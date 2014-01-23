@@ -125,6 +125,8 @@
     <ClInclude Include="..\Libraries\MATH_CORE.h" />
     <ClInclude Include="..\Libraries\MATH_DEFINITION.h" />
     <ClInclude Include="..\Libraries\MATRIX3_T.h" />
+    <ClInclude Include="..\Libraries\PARTICLE.h" />
+    <ClInclude Include="..\Libraries\PARTICLE_MANAGER_3D.h" />
     <ClInclude Include="..\Libraries\QUATERNION_T.h" />
     <ClInclude Include="..\Libraries\TRACK_BALL_CONTROL.h" />
     <ClInclude Include="..\Libraries\VECTOR3_T.h" />

@@ -165,7 +165,7 @@ public:
 			int i,j,k;
 			Index1Dto3D(x,i,j,k);
 
-//			if(!IsGhostCell(i,j,k))
+			if(IsGhostCell(i,j,k))
 			{
 				Vec3T cell_center = CellCenterPosition(i,j,k);
 
