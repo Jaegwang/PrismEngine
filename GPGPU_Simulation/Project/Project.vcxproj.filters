@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Math">
+      <UniqueIdentifier>{eacef841-920b-4712-b4d2-a7ada0ecacb7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries">
+      <UniqueIdentifier>{01000f02-2687-46c8-86db-e6ab1801954d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Libraries\MATH_DEFINITION.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\MATH_CORE.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\VECTOR3_T.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\QUATERNION_T.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\MATRIX3_T.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\TRACK_BALL_CONTROL.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\PARTICLE.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\PARTICLE_MANAGER_3D.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\GRID_UNIFORM_3D.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
