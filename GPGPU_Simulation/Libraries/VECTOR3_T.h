@@ -25,11 +25,12 @@ class VECTOR3_T
 {
 public:
 
+	/*
 	static const VECTOR3_T ZERO;
 	static const VECTOR3_T UP;
 	static const VECTOR3_T RIGHT;
 	static const VECTOR3_T FORWARD;
-
+	*/
 	union
 	{
 		struct{T x, y, z;};

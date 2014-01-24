@@ -70,6 +70,16 @@ public:
 		return false;
 	}
 
+	bool IsInside(const Vec3T& p) restrict(cpu, amp)
+	{
+		if (min_.x < p.x && max_.x > p.x &&
+			min_.y < p.y && max_.y > p.y &&
+			min_.z < p.z && max_.z > p.z)
+			return true;
+
+		return false;
+	}
+
 	Vec3T CellCenterPosition(const int i, const int j, const int k) restrict(cpu,amp)
 	{
 		return min_ + Vec3T(((T)(i+ghost_width_)+(T)0.5)*dx_, ((T)(j+ghost_width_)+(T)0.5)*dy_, ((T)(k+ghost_width_)+(T)0.5)*dz_);
