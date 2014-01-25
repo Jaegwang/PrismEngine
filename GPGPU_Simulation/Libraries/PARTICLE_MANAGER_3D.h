@@ -57,13 +57,13 @@ public:
 		particle_id_array_ = new int[num_pts];
 		particle_index_array_ = new int[num_pts];
 
-		num_pts_cell_ = new int[grid_.ijk_res_g_];
-		start_idx_cell_ = new int[grid_.ijk_res_g_];
+		num_pts_cell_ = new int[grid_.ijk_res_];
+		start_idx_cell_ = new int[grid_.ijk_res_];
 	}
 
 	void InitializeParticleArray()
 	{
-		num_of_pts_ = 10000;
+		num_of_pts_ = 5;
 
 		for (int i = 0; i < num_of_pts_; i++)
 		{
@@ -85,8 +85,8 @@ public:
 		array_view<int, 1> pts_id_view(num_of_pts_, particle_id_array_);
 		array_view<int, 1> pts_index_view(num_of_pts_, particle_index_array_);
 		
-		array_view<int, 1> num_pts_cell_view(grid_.ijk_res_g_, num_pts_cell_);
-		array_view<int, 1> start_idx_cell_view(grid_.ijk_res_g_, start_idx_cell_);		
+		array_view<int, 1> num_pts_cell_view(grid_.ijk_res_, num_pts_cell_);
+		array_view<int, 1> start_idx_cell_view(grid_.ijk_res_, start_idx_cell_);		
 		
 		int start_idx = 0;
 		array_view<int, 1> start_idx_view(1, &start_idx);
@@ -180,7 +180,7 @@ public:
 
 		int count = 0;
 
-		for (int n = 0; n < grid_.ijk_res_g_; n++)
+		for (int n = 0; n < grid_.ijk_res_; n++)
 		{
 			int num = num_pts_cell_[n];
 			int b_ix = start_idx_cell_[n];

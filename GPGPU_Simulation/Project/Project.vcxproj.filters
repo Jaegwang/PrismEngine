@@ -53,5 +53,11 @@
     <ClInclude Include="..\Libraries\TRACK_BALL_CONTROL.h">
       <Filter>Libraries</Filter>
     </ClInclude>
+    <ClInclude Include="..\Libraries\MPM_FLUID_SOLVER.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\KERNEL_FUNCTIONS.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

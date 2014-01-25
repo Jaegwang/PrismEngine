@@ -10,17 +10,14 @@ public:
 	
 	Vec3T min_, max_;
 
-	Vec3T min_g_, max_g_;
-
 	T dx_, dy_, dz_;
 
 	T gx_, gy_, gz_;
 
+	T one_over_dx_, one_over_dy_, one_over_dz_;
+
 	int i_res_, j_res_, k_res_;
 	int ij_res_, ijk_res_;
-
-	int i_res_g_, j_res_g_ ,k_res_g_;
-	int ij_res_g_, ijk_res_g_;
 
 	int ghost_width_;	
 	
@@ -31,71 +28,59 @@ public:
 	~GRID_UNIFORM_3D()
 	{}
 
-	static void Initialize(const Vec3T& min, const Vec3T& max, const int i_res, const int j_res, const int k_res, const int g, GRID_UNIFORM_3D& grid, GRID_UNIFORM_3D& grid_ghost) restrict(cpu, amp)
-	{
-		grid.Initialize(min, max, i_res, j_res, k_res, g);
-		grid_ghost.Initialize(grid.min_g_, grid.max_g_, grid.i_res_g_, grid.j_res_g_, grid.k_res_g_, 0);
-	}
-
 	void Initialize(const Vec3T& min, const Vec3T& max, const int i_res, const int j_res, const int k_res, const int g) restrict(cpu,amp)
 	{
 		dx_ = (max.x-min.x)/(float)i_res;
 		dy_ = (max.y-min.y)/(float)j_res;
 		dz_ = (max.z-min.z)/(float)k_res;
 
+		one_over_dx_ = (T)1 / dx_;
+		one_over_dy_ = (T)1 / dy_;
+		one_over_dz_ = (T)1 / dz_;
+
 		gx_ = dx_*(float)g;
 		gy_ = dy_*(float)g;
 		gz_ = dz_*(float)g;
 		
-		min_g_ = min - Vec3T(gx_, gy_, gz_);
-		max_g_ = max + Vec3T(gx_, gy_, gz_);
+		min_ = min - Vec3T(gx_, gy_, gz_);
+		max_ = max + Vec3T(gx_, gy_, gz_);
 
 		ghost_width_ = g;
 
-		i_res_g_ = i_res + g*2;
-		j_res_g_ = j_res + g*2;
-		k_res_g_ = k_res + g*2;
+		i_res_ = i_res + g*2;
+		j_res_ = j_res + g*2;
+		k_res_ = k_res + g*2;
 
-		ij_res_g_ = i_res_g_ * j_res_g_;
-		ijk_res_g_ = i_res_g_ * j_res_g_ * k_res_g_;
-
-		i_res_ = i_res;
-		j_res_ = j_res;
-		k_res_ = k_res;
-
-		ij_res_ = i_res_ * j_res_;
+		ij_res_  = i_res_ * j_res_;
 		ijk_res_ = i_res_ * j_res_ * k_res_;
-
-		min_ = min;
-		max_ = max;
 	}
 
 	int Index3Dto1D(const int i, const int j, const int k) restrict(cpu,amp)
 	{
-		return (i+ghost_width_) + (j+ghost_width_)*i_res_g_ + (k+ghost_width_)*ij_res_g_;
+		return (i+ghost_width_) + (j+ghost_width_)*i_res_ + (k+ghost_width_)*ij_res_;
 	}
 
 	void Index1Dto3D(const int idx, int& i, int& j, int& k) restrict(cpu,amp)
 	{
-		i = idx             % i_res_g_ - ghost_width_;
-		j = (idx/i_res_g_)  % j_res_g_ - ghost_width_;
-		k = (idx/ij_res_g_) % k_res_g_ - ghost_width_;
+		i = idx           % i_res_ - ghost_width_;
+		j = (idx/i_res_)  % j_res_ - ghost_width_;
+		k = (idx/ij_res_) % k_res_ - ghost_width_;
 	}
 
 	bool IsGhostCell(const int i, const int j, const int k) restrict(cpu,amp)
 	{
-		if(i < 0 || i >= i_res_) return true;
-		if(j < 0 || j >= j_res_) return true;
-		if(k < 0 || k >= k_res_) return true;
+		if(i < 0 || i >= i_res_-ghost_width_*2) return true;
+		if(j < 0 || j >= j_res_-ghost_width_*2) return true;
+		if(k < 0 || k >= k_res_-ghost_width_*2) return true;
 
 		return false;
 	}
 
 	bool IsInside(const Vec3T& p) restrict(cpu, amp)
 	{
-		if (min_g_.x < p.x && max_g_.x > p.x &&
-			min_g_.y < p.y && max_g_.y > p.y &&
-			min_g_.z < p.z && max_g_.z > p.z)
+		if (min_.x < p.x && max_.x > p.x &&
+			min_.y < p.y && max_.y > p.y &&
+			min_.z < p.z && max_.z > p.z)
 			return true;
 
 		return false;
@@ -103,12 +88,12 @@ public:
 
 	Vec3T CellCenterPosition(const int i, const int j, const int k) restrict(cpu,amp)
 	{
-		return min_g_ + Vec3T(((T)(i+ghost_width_)+(T)0.5)*dx_, ((T)(j+ghost_width_)+(T)0.5)*dy_, ((T)(k+ghost_width_)+(T)0.5)*dz_);
+		return min_ + Vec3T(((T)(i+ghost_width_)+(T)0.5)*dx_, ((T)(j+ghost_width_)+(T)0.5)*dy_, ((T)(k+ghost_width_)+(T)0.5)*dz_);
 	}
 
 	void CellCenterIndex(const Vec3T& p, int& i, int& j, int& k) restrict(cpu,amp)
 	{
-		Vec3T v = p-min_g_;
+		Vec3T v = p-min_;
 		i = (int)(v.x/dx_) - ghost_width_; 
 		j = (int)(v.y/dy_) - ghost_width_; 
 		k = (int)(v.z/dz_) - ghost_width_; 
@@ -116,7 +101,7 @@ public:
 
 	void LeftBottomIndex(const Vec3T& p, int& i, int& j, int& k) restrict(cpu,amp) 
 	{
-		Vec3T v = p-min_g_;
+		Vec3T v = p-min_;
 		i = (int)((v.x/dx_)-0.5) - ghost_width_;  
 		j = (int)((v.y/dy_)-0.5) - ghost_width_;  
 		k = (int)((v.z/dz_)-0.5) - ghost_width_; 
@@ -124,7 +109,7 @@ public:
 
 	void RightUpIndex(const Vec3T& p, int& i, int& j, int& k) restrict(cpu,amp)
 	{
-		Vec3T v = p-min_g_;
+		Vec3T v = p-min_;
 		i = (int)((v.x/dx_)+0.5) - ghost_width_; 
 		j = (int)((v.y/dy_)+0.5) - ghost_width_; 
 		k = (int)((v.z/dz_)+0.5) - ghost_width_; 
@@ -146,9 +131,9 @@ public:
 		T_ z_d = (p.z-p_0.z)/dz_;
 
 		TT c_00 = arr[ix]*((T_)1-x_d) + arr[ix+1]*(x_d);
-		TT c_10 = arr[ix+i_res_g_]*((T_)1-x_d) + arr[ix+i_res_g_+1]*(x_d);
-		TT c_01 = arr[ix+ij_res_g_]*((T_)1-x_d) + arr[ix+ij_res_g_+1]*(x_d);
-		TT c_11 = arr[ix+i_res_g_+ij_res_g_]*((T_)1-x_d) + arr[ix+i_res_g_+ij_res_g_+1]*(x_d);
+		TT c_10 = arr[ix+i_res_]*((T_)1-x_d) + arr[ix+i_res_+1]*(x_d);
+		TT c_01 = arr[ix+ij_res_]*((T_)1-x_d) + arr[ix+ij_res_+1]*(x_d);
+		TT c_11 = arr[ix+i_res_+ij_res_]*((T_)1-x_d) + arr[ix+i_res_+ij_res_+1]*(x_d);
 
 		TT c_0 = c_00*((T_)1-y_d) + c_10*y_d;
 		TT c_1 = c_01*((T_)1-y_d) + c_11*y_d;
@@ -161,8 +146,8 @@ public:
 	{
 		glDisable(GL_LIGHTING);
 
-		Vec3T grid_center = (min_g_ + max_g_)*0.5;
-		Vec3T deviation = max_g_-min_g_;
+		Vec3T grid_center = (min_ + max_)*0.5;
+		Vec3T deviation = max_-min_;
 
 		glPushMatrix();
 		glColor3f(0, 0, 1);
@@ -171,11 +156,13 @@ public:
 		glutWireCube(1);
 		glPopMatrix();
 
+		
+		deviation -= Vec3T(gx_*(T)2, gy_*(T)2, gz_*(T)2);
 
 		glPushMatrix();
 		glColor3f(1, 0, 0);
 		glTranslatef(grid_center.x, grid_center.y, grid_center.z);
-		glScaled((min_ - max_).x, (min_ - max_).y, (min_ - max_).z );
+		glScaled(deviation.x, deviation.y, deviation.z);
 		glutWireCube(1);
 		glPopMatrix();
 
@@ -191,7 +178,7 @@ public:
 		glColor3f(0, 0, 0);
 		
 		glBegin(GL_POINTS);
-		for(int x=0; x<ijk_res_g_; x++)
+		for(int x=0; x<ijk_res_; x++)
 		{
 			int i,j,k;
 			Index1Dto3D(x,i,j,k);

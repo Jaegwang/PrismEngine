@@ -31,11 +31,11 @@
 #define CLAMP(v, min, max)		((v) > (max) ? (max) : ((v) < (min) ? (min) : (v)))
 
 #define SQUARE(a)				((a)*(a))
+#define POW2(a)					((a)*(a))
 #define POW3(a)					((a)*(a)*(a))
 
 #define SIGN(a) ((a > 0) ? 1 : -1)
 
-inline float POW2(const float& a){return a*a;}
 inline float POW4(const float& a){const float a2 = a*a; return a2*a2;}
 inline float POW5(const float& a){const float a2 = a*a; return a2*a2*a;}
 inline float POW6(const float& a){const float a3 = a*a*a; return a3*a3;}

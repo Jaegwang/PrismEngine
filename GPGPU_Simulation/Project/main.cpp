@@ -6,6 +6,7 @@
 #include "QUATERNION_T.h"
 #include "PARTICLE_MANAGER_3D.h"
 #include "PARTICLE.h"
+#include "MPM_FLUID_SOLVER.h"
 
 #include <amp.h>
 
@@ -19,6 +20,8 @@ TRACK_BALL_CONTROL track_ball;
 GRID_UNIFORM_3D world_grid;
 
 PARTICLE_MANAGER_3D particle_manager;
+
+MPM_FLUID_SOLVER mpm_solver;
 
 static const int window_w = 800;
 static const int window_h = 600;
@@ -45,12 +48,13 @@ int main(int argc, char **argv)
 
 
 
-	particle_manager.Initialize(grid, 100000);
-	particle_manager.InitializeParticleArray();
+//	particle_manager.Initialize(grid, 100000);
+//	particle_manager.InitializeParticleArray();
+
+//	particle_manager.RebuildParticleDataStructure();
 
 
-
-	particle_manager.RebuildParticleDataStructure();
+	mpm_solver.Initialize(min0, max0, 50, 50, 50, 2, 10000);
 
 
 	world_grid.Initialize(min0, max0, 100, 100, 100, 2);
@@ -101,10 +105,16 @@ void display()
 
 
 //	glutSolidTeapot(0.5);
-	world_grid.RenderGrid();
+//	world_grid.RenderGrid();
 //	world_grid.RenderCells();
 
-	particle_manager.Rendering();
+//	particle_manager.Rendering();
+
+	mpm_solver.particle_manager_.Rendering();
+	mpm_solver.RenderDensityField();
+
+	mpm_solver.grid_.RenderGrid();
+
 
 
 	glFlush();
@@ -115,7 +125,8 @@ void idle()
 {
 	track_ball.GetInputState();
 
-	particle_manager.RebuildParticleDataStructure();
+	mpm_solver.particle_manager_.RebuildParticleDataStructure();
+	mpm_solver.RasterizeDensityParticlesToGrid();
 
 	glutPostRedisplay();
 }
