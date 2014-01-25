@@ -125,6 +125,9 @@ void idle()
 {
 	track_ball.GetInputState();
 
+
+	mpm_solver.AdvanceTimeStep((T)0.01, 2);
+
 	mpm_solver.particle_manager_.RebuildParticleDataStructure();
 	mpm_solver.RasterizeDensityParticlesToGrid();
 
