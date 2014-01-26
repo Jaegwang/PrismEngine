@@ -41,10 +41,6 @@ public:
 		density_field_ = new T[grid_.ijk_res_];
 
 		memset((void*)density_field_, 0, sizeof(T)*grid_.ijk_res_);
-
-		
-		particle_manager_.InitializeParticleArray();
-		particle_manager_.RebuildParticleDataStructure();
 	}
 
 	void AdvanceTimeStep(const T spf, const int steps)
@@ -53,13 +49,59 @@ public:
 
 		for (int i = 0; i < steps; i++)
 		{
+			SourceFormSphere(Vec3T(0.5, 0.5, 0.5), Vec3T(0.1, 0.0, 0.0), 0.1, 10);
 
+			AdvectParticles(dt);
 
+			RasterizeParticleDensityToGrid();
+			ComputeParticleDenistyFromGrid();
 		}
 	}
 
-	void RasterizeDensityParticlesToGrid()
+	void AdvectParticles(const T dt)
 	{
+		if(particle_manager_.num_of_pts_ == 0) return;
+
+		array_view<Vec3T, 1> pos_arr_view(particle_manager_.num_of_pts_, particle_manager_.position_array_);
+		array_view<Vec3T, 1> vel_arr_view(particle_manager_.num_of_pts_, particle_manager_.velocity_array_);
+
+		array_view<T, 1> dt_view(1, &(T)dt);
+
+		parallel_for_each(pos_arr_view.extent, [=](index<1> idx) restrict(amp)
+		{
+			pos_arr_view[idx[0]] += vel_arr_view[idx[0]] * dt_view[0];
+		});
+
+		pos_arr_view.synchronize();
+		particle_manager_.RebuildParticleDataStructure();
+	}
+
+	void SourceFormSphere(const Vec3T& pos, const Vec3T& vel, const T rad, const int num)
+	{	
+		Vec3T* pos_arr = particle_manager_.position_array_;
+		Vec3T* vel_arr = particle_manager_.velocity_array_;
+
+		int num_pts = 0;
+		while (num_pts < num)
+		{
+			Vec3T new_pos = pos + RandomVector()*rad;
+
+			T dist = (new_pos - pos).Magnitude();
+			if (dist <= rad)
+			{
+				num_pts++;
+				int ix = particle_manager_.AddParticle();
+				
+				pos_arr[ix] = new_pos;
+				vel_arr[ix] = vel;
+			}
+		}	
+	}
+
+	void RasterizeParticleDensityToGrid()
+	{
+		if (particle_manager_.num_of_pts_ == 0) return;
+
 		array_view<T, 1> density_field_view(grid_.ijk_res_, density_field_);
 
 		array_view<GRID_UNIFORM_3D, 1> grid_view(1, &grid_);
@@ -72,8 +114,7 @@ public:
 
 		array_view<Vec3T, 1> position_arr_view(particle_manager_.num_of_pts_, particle_manager_.position_array_);
 
-		extent<1> ext(grid_.ijk_res_);
-
+		concurrency::extent<1> ext(grid_.ijk_res_);
 		parallel_for_each(ext, [=](index<1> idx) restrict(amp)
 		{
 			int i, j, k;
@@ -92,8 +133,8 @@ public:
 
 			T mass_weighted = (T)0;
 
-			int start_l = i-1, start_m = j-1, start_n = k-1;
-			int end_l = i+1, end_m = j+1, end_n = k+1;
+			int start_l, start_m, start_n, end_l, end_m, end_n;
+			grid_view[0].StartEndIndices(i, j, k, start_l, start_m, start_n, end_l, end_m, end_n);
 
 			for(int n = start_n; n <= end_n; n++) for(int m = start_m; m <= end_m; m++) for(int l = start_l; l <= end_l; l++)
 			{
@@ -120,6 +161,51 @@ public:
 		density_field_view.synchronize();
 	}
 
+
+	void ComputeParticleDenistyFromGrid()
+	{
+		array_view<Vec3T, 1> pos_arr_view(particle_manager_.num_of_pts_, particle_manager_.position_array_);
+		array_view<T, 1> den_field_view(grid_.ijk_res_, density_field_);
+		array_view<T, 1> den_arr_view(particle_manager_.num_of_pts_, particle_manager_.density_array_);
+
+		array_view<GRID_UNIFORM_3D, 1> grid_view(1, &grid_);
+
+		parallel_for_each(pos_arr_view.extent, [=](index<1> idx) restrict(amp)
+		{
+			int i, j, k;
+			grid_view[0].CellCenterIndex(pos_arr_view[idx[0]], i, j, k);
+
+			int start_l, start_m, start_n, end_l, end_m, end_n;
+			grid_view[0].StartEndIndices(i, j, k, start_l, start_m, start_n, end_l, end_m, end_n);
+
+			T density_weighted = (T)0;
+			T weight = (T)0;
+
+			for(int n = start_n; n <= end_n; n++) for (int m = start_m; m <= end_m; m++) for (int l = start_l; l <= end_l; l++)
+			{
+				int n_ix = grid_view[0].Index3Dto1D(l, m, n);
+
+				Vec3T cell_center = grid_view[0].CellCenterPosition(l, m, n);
+				T density_pts = den_field_view[n_ix];
+
+				Vec3T deviation = cell_center - pos_arr_view[idx[0]];
+				
+				T w = MPMSplineKernel(deviation, grid_view[0].one_over_dx_, grid_view[0].one_over_dy_, grid_view[0].one_over_dz_);
+
+				density_weighted += density_pts * w;
+				weight += w;
+			}
+
+			if (weight > FLT_EPSILON)
+			{
+				den_arr_view[idx[0]] = density_weighted / weight;
+			}
+			else
+			{
+				den_arr_view[idx[0]] = (T)0;
+			}
+		});
+	}
 
 	void RenderDensityField()
 	{

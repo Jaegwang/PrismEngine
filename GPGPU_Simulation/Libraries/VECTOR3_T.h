@@ -202,6 +202,10 @@ public:
 };
 
 
+static VECTOR3_T RandomVector()
+{
+	return VECTOR3_T(((T)rand() / (T)RAND_MAX - (T)0.5)*(T)2, ((T)rand() / (T)RAND_MAX - (T)0.5)*(T)2, ((T)rand() / (T)RAND_MAX - (T)0.5)*(T)2);
+}
 
 VECTOR3_T operator + ( const VECTOR3_T& v0, const VECTOR3_T& v1 ) restrict(amp,cpu) 
 {

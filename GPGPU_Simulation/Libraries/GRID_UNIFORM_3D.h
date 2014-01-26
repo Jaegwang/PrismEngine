@@ -115,6 +115,17 @@ public:
 		k = (int)((v.z/dz_)+0.5) - ghost_width_; 
 	}
 
+	void StartEndIndices(const int l, const int m, const int n, int& start_l, int& start_m, int& start_n, int& end_l, int& end_m, int& end_n, const int pad=1) restrict(cpu,amp)
+	{
+		start_l = MAX(l-pad, -ghost_width_);
+		start_m = MAX(m-pad, -ghost_width_);
+		start_n = MAX(n-pad, -ghost_width_);
+
+		end_l = MIN(l+pad, i_res_-1+ghost_width_);
+		end_m = MIN(m+pad, j_res_-1+ghost_width_);
+		end_n = MIN(n+pad, k_res_-1+ghost_width_);
+	}
+
 	template<class TT>
 	TT TriLinearInterpolate(const Vec3T& p, TT* arr) restrict(cpu,amp)
 	{ //http://en.wikipedia.org/wiki/Trilinear_interpolation

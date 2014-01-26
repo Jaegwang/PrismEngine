@@ -36,9 +36,11 @@
 
 #define SIGN(a) ((a > 0) ? 1 : -1)
 
+
+#define SWAP(a, b, temp) temp=a; a=b; b=temp;
+
 inline float POW4(const float& a){const float a2 = a*a; return a2*a2;}
 inline float POW5(const float& a){const float a2 = a*a; return a2*a2*a;}
 inline float POW6(const float& a){const float a3 = a*a*a; return a3*a3;}
 inline float POW7(const float& a){const float a3 = a*a*a; return a3*a3*a;}
 inline float POW8(const float& a){const float a2 = a*a; const float a4 = a2*a2; return a4*a4;}
-

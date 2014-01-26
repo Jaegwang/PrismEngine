@@ -42,22 +42,8 @@ int main(int argc, char **argv)
 	Vec3T max0(1,1,1);
 
 
-	GRID_UNIFORM_3D grid;
-	grid.Initialize(min0, max0, 100, 100, 100, 2);
+	mpm_solver.Initialize(min0, max0, 100, 100, 100, 2, 1000000);
 
-
-
-
-//	particle_manager.Initialize(grid, 100000);
-//	particle_manager.InitializeParticleArray();
-
-//	particle_manager.RebuildParticleDataStructure();
-
-
-	mpm_solver.Initialize(min0, max0, 50, 50, 50, 2, 10000);
-
-
-	world_grid.Initialize(min0, max0, 100, 100, 100, 2);
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
@@ -126,10 +112,10 @@ void idle()
 	track_ball.GetInputState();
 
 
-	mpm_solver.AdvanceTimeStep((T)0.01, 2);
+	mpm_solver.AdvanceTimeStep((T)0.01, 1);
 
-	mpm_solver.particle_manager_.RebuildParticleDataStructure();
-	mpm_solver.RasterizeDensityParticlesToGrid();
+//	mpm_solver.particle_manager_.RebuildParticleDataStructure();
+//	mpm_solver.RasterizeDensityParticlesToGrid();
 
 	glutPostRedisplay();
 }
