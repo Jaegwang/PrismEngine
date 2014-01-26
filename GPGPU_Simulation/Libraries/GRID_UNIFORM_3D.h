@@ -121,9 +121,9 @@ public:
 		start_m = MAX(m-pad, -ghost_width_);
 		start_n = MAX(n-pad, -ghost_width_);
 
-		end_l = MIN(l+pad, i_res_-1+ghost_width_);
-		end_m = MIN(m+pad, j_res_-1+ghost_width_);
-		end_n = MIN(n+pad, k_res_-1+ghost_width_);
+		end_l = MIN(l+pad, i_res_-1-ghost_width_);
+		end_m = MIN(m+pad, j_res_-1-ghost_width_);
+		end_n = MIN(n+pad, k_res_-1-ghost_width_);
 	}
 
 	template<class TT>

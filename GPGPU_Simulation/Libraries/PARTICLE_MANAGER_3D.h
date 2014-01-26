@@ -7,6 +7,7 @@
 #include "VECTOR3_T.h"
 #include "GL\glut.h"
 #include "iostream"
+#include "PARALLEL_MACRO.h"
 
 using namespace std;
 using namespace concurrency;
@@ -30,8 +31,8 @@ public:
 	int num_of_pts_;
 	int max_of_pts_;
 
-	int* num_pts_cell_;
-	int* start_idx_cell_;
+	atomic<int>* num_pts_cell_;
+	atomic<int>* start_idx_cell_;
 
 public:
 
@@ -63,8 +64,6 @@ public:
 		grid_ = grid_input;
 		max_of_pts_ = num_pts;
 
-
-
 		position_array_ = new Vec3T[num_pts];
 		position_array_old_ = new Vec3T[num_pts];
 
@@ -78,10 +77,8 @@ public:
 		particle_id_array_ = new int[num_pts];
 		particle_index_array_ = new int[num_pts];
 
-		num_pts_cell_ = new int[grid_.ijk_res_];
-		start_idx_cell_ = new int[grid_.ijk_res_];
-
-
+		num_pts_cell_ = new atomic<int>[grid_.ijk_res_];
+		start_idx_cell_ = new atomic<int>[grid_.ijk_res_];
 
 		memset((void*)density_array_, 0, sizeof(T)*max_of_pts_);
 		memset((void*)density_array_old_, 0, sizeof(T)*max_of_pts_);
@@ -99,6 +96,103 @@ public:
 		position_array_[ix] = Vec3T(max_pos, max_pos, max_pos);
 	}
 
+	void RebuildParticleDataStructure()
+	{
+		if (num_of_pts_ == 0) return;
+
+		atomic<int> start_idx = 0;
+		atomic<int> count_pts = 0;
+
+		BEGIN_CPU_THREADS_1D(grid_.ijk_res_)
+		{
+			for (int p = ix_begin; p <= ix_end; p++)
+			{
+				num_pts_cell_[p] = 0;
+				start_idx_cell_[p] = -1;
+			}
+		}
+		END_CPU_THREADS_1D;
+
+		BEGIN_CPU_THREADS_1D(num_of_pts_)
+		{
+			for (int p = ix_begin; p <= ix_end; p++)
+			{
+				const Vec3T pos = position_array_[p];
+
+				if (grid_.IsInside(pos) == false) continue;
+
+				int i, j, k;
+				grid_.CellCenterIndex(pos, i, j, k);
+
+				int g_ix = grid_.Index3Dto1D(i, j, k);
+
+				particle_id_array_[p] = std::atomic_fetch_add(&num_pts_cell_[g_ix], 1);
+
+				std::atomic_fetch_add(&count_pts, 1);
+			}
+		}
+		END_CPU_THREADS_1D;
+
+		BEGIN_CPU_THREADS_1D(grid_.ijk_res_)
+		{
+			for (int p = ix_begin; p <= ix_end; p++)
+			{
+				const atomic<int>& num = num_pts_cell_[p];
+				start_idx_cell_[p] = std::atomic_fetch_add(&start_idx, num);
+			}
+		}
+		END_CPU_THREADS_1D;
+
+		BEGIN_CPU_THREADS_1D(num_of_pts_)
+		{
+			for (int p = ix_begin; p <= ix_end; p++)
+			{
+				const Vec3T pos = position_array_[p];
+				const int pts_id = particle_id_array_[p];
+
+				if (grid_.IsInside(pos) == false) continue;
+
+				int i, j, k;
+				grid_.CellCenterIndex(pos, i, j, k);
+
+				int g_ix = grid_.Index3Dto1D(i, j, k);
+
+				int b_ix = start_idx_cell_[g_ix];
+
+				particle_index_array_[b_ix + pts_id] = p;
+			}
+		}
+		END_CPU_THREADS_1D;
+
+		BEGIN_CPU_THREADS_1D(grid_.ijk_res_)
+		{
+			for (int p = ix_begin; p <= ix_end; p++)
+			{
+				const int& num = num_pts_cell_[p];
+				const int& b_ix = start_idx_cell_[p];
+
+				for (int n = 0; n < num; n++)
+				{
+					int v_ix = particle_index_array_[b_ix + n];
+
+					position_array_old_[b_ix + n] = position_array_[v_ix];
+					velocity_array_old_[b_ix + n] = velocity_array_[v_ix];
+					density_array_old_[b_ix + n]  = density_array_[v_ix];
+				}
+			}
+		}
+		END_CPU_THREADS_1D;
+
+		Vec3T* v_temp = 0; T* t_temp = 0;
+
+		SWAP(position_array_, position_array_old_, v_temp);
+		SWAP(velocity_array_, velocity_array_old_, v_temp);
+		SWAP(density_array_, density_array_old_, t_temp);
+
+		num_of_pts_ = count_pts;
+	}
+
+	/*
 	void RebuildParticleDataStructure()
 	{
 		if (num_of_pts_ == 0) return;
@@ -213,6 +307,7 @@ public:
 
 		num_of_pts_ = valid_num_pts;
 	}
+	*/
 
 	void Rendering()
 	{
