@@ -139,6 +139,14 @@ public:
 		return *this;
 	}
 
+	VECTOR3_T& operator += (VECTOR3_T& v) restrict(amp, cpu)
+	{
+		m_elements[0] += v.m_elements[0];
+		m_elements[1] += v.m_elements[1];
+		m_elements[2] += v.m_elements[2];
+		return *this;
+	}
+
 	VECTOR3_T& operator -= ( const VECTOR3_T& v ) restrict(amp,cpu)
 	{
 		m_elements[ 0 ] -= v.m_elements[ 0 ];
@@ -210,6 +218,11 @@ static VECTOR3_T RandomVector()
 VECTOR3_T operator + ( const VECTOR3_T& v0, const VECTOR3_T& v1 ) restrict(amp,cpu) 
 {
     return VECTOR3_T( v0[0] + v1[0], v0[1] + v1[1], v0[2] + v1[2] );
+}
+
+VECTOR3_T operator + (VECTOR3_T& v0, VECTOR3_T& v1) restrict(amp, cpu)
+{
+	return VECTOR3_T(v0[0] + v1[0], v0[1] + v1[1], v0[2] + v1[2]);
 }
 
 VECTOR3_T operator - ( const VECTOR3_T& v0, const VECTOR3_T& v1 ) restrict(amp,cpu)  

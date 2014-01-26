@@ -195,8 +195,7 @@ public:
 				vel_arr_old_view[b_ix + n] = vel_arr_view[v_ix];
 				den_arr_old_view[b_ix + n] = den_arr_view[v_ix];
 			}
-		});
-		
+		});		
 
 		num_pts_cell_view.synchronize();
 		start_idx_cell_view.synchronize();
@@ -235,6 +234,7 @@ public:
 			for (int x = 0; x < num; x++)
 			{
 				Vec3T pos = position_array_[b_ix + x];
+				T den = density_array_[b_ix + x];
 
 				glVertex3f(pos.x, pos.y, pos.z);
 

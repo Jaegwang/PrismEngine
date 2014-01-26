@@ -97,7 +97,7 @@ void display()
 //	particle_manager.Rendering();
 
 	mpm_solver.particle_manager_.Rendering();
-	mpm_solver.RenderDensityField();
+//	mpm_solver.RenderDensityField();
 
 	mpm_solver.grid_.RenderGrid();
 
@@ -112,7 +112,7 @@ void idle()
 	track_ball.GetInputState();
 
 
-	mpm_solver.AdvanceTimeStep((T)0.01, 1);
+	mpm_solver.AdvanceTimeStep((T)0.001, 2);
 
 //	mpm_solver.particle_manager_.RebuildParticleDataStructure();
 //	mpm_solver.RasterizeDensityParticlesToGrid();
