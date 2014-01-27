@@ -76,9 +76,9 @@ void display()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	Vec3T world_center(0,0,0);
+	const Vec3T& world_center = (mpm_solver.grid_.max_ + mpm_solver.grid_.min_)*(T)0.5;
 
-	glTranslatef(0, 0, -5.0f);
+	glTranslatef(0, 0, -2.0f);
 	
 	glTranslatef(track_ball.position.x, track_ball.position.y, track_ball.position.z);	
 

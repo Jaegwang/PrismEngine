@@ -57,30 +57,30 @@ public:
 
 	int Index3Dto1D(const int i, const int j, const int k) restrict(cpu,amp)
 	{
-		return (i+ghost_width_) + (j+ghost_width_)*i_res_ + (k+ghost_width_)*ij_res_;
+		return i + j*i_res_ + k*ij_res_;
 	}
 
 	void Index1Dto3D(const int idx, int& i, int& j, int& k) restrict(cpu,amp)
 	{
-		i = idx           % i_res_ - ghost_width_;
-		j = (idx/i_res_)  % j_res_ - ghost_width_;
-		k = (idx/ij_res_) % k_res_ - ghost_width_;
+		i = idx           % i_res_;
+		j = (idx/i_res_)  % j_res_;
+		k = (idx/ij_res_) % k_res_;
 	}
 
 	bool IsGhostCell(const int i, const int j, const int k) restrict(cpu,amp)
 	{
-		if(i < 0 || i >= i_res_-ghost_width_*2) return true;
-		if(j < 0 || j >= j_res_-ghost_width_*2) return true;
-		if(k < 0 || k >= k_res_-ghost_width_*2) return true;
+		if(i < ghost_width_ || i >= i_res_-ghost_width_) return true;
+		if(j < ghost_width_ || j >= j_res_-ghost_width_) return true;
+		if(k < ghost_width_ || k >= k_res_-ghost_width_) return true;
 
 		return false;
 	}
 
 	bool IsInside(const Vec3T& p) restrict(cpu, amp)
 	{
-		if (min_.x < p.x && max_.x > p.x &&
-			min_.y < p.y && max_.y > p.y &&
-			min_.z < p.z && max_.z > p.z)
+		if (min_.x+gx_ < p.x && max_.x-gx_ > p.x &&
+			min_.y+gy_ < p.y && max_.y-gy_ > p.y &&
+			min_.z+gz_ < p.z && max_.z-gz_ > p.z)
 			return true;
 
 		return false;
@@ -88,42 +88,42 @@ public:
 
 	Vec3T CellCenterPosition(const int i, const int j, const int k) restrict(cpu,amp)
 	{
-		return min_ + Vec3T(((T)(i+ghost_width_)+(T)0.5)*dx_, ((T)(j+ghost_width_)+(T)0.5)*dy_, ((T)(k+ghost_width_)+(T)0.5)*dz_);
+		return min_ + Vec3T(((T)i+(T)0.5)*dx_, ((T)j+(T)0.5)*dy_, ((T)k+(T)0.5)*dz_);
 	}
 
 	void CellCenterIndex(const Vec3T& p, int& i, int& j, int& k) restrict(cpu,amp)
 	{
 		Vec3T v = p-min_;
-		i = (int)(v.x/dx_) - ghost_width_; 
-		j = (int)(v.y/dy_) - ghost_width_; 
-		k = (int)(v.z/dz_) - ghost_width_; 
+		i = (int)(v.x/dx_); 
+		j = (int)(v.y/dy_); 
+		k = (int)(v.z/dz_); 
 	}
 
 	void LeftBottomIndex(const Vec3T& p, int& i, int& j, int& k) restrict(cpu,amp) 
 	{
 		Vec3T v = p-min_;
-		i = (int)((v.x/dx_)-0.5) - ghost_width_;  
-		j = (int)((v.y/dy_)-0.5) - ghost_width_;  
-		k = (int)((v.z/dz_)-0.5) - ghost_width_; 
+		i = (int)((v.x/dx_)-(T)0.5);  
+		j = (int)((v.y/dy_)-(T)0.5);  
+		k = (int)((v.z/dz_)-(T)0.5); 
 	}
 
 	void RightUpIndex(const Vec3T& p, int& i, int& j, int& k) restrict(cpu,amp)
 	{
 		Vec3T v = p-min_;
-		i = (int)((v.x/dx_)+0.5) - ghost_width_; 
-		j = (int)((v.y/dy_)+0.5) - ghost_width_; 
-		k = (int)((v.z/dz_)+0.5) - ghost_width_; 
+		i = (int)((v.x/dx_)+(T)0.5); 
+		j = (int)((v.y/dy_)+(T)0.5); 
+		k = (int)((v.z/dz_)+(T)0.5); 
 	}
 
 	void StartEndIndices(const int l, const int m, const int n, int& start_l, int& start_m, int& start_n, int& end_l, int& end_m, int& end_n, const int pad=1) restrict(cpu,amp)
 	{
-		start_l = MAX(l-pad, -ghost_width_);
-		start_m = MAX(m-pad, -ghost_width_);
-		start_n = MAX(n-pad, -ghost_width_);
+		start_l = MAX(l-pad, 0);
+		start_m = MAX(m-pad, 0);
+		start_n = MAX(n-pad, 0);
 
-		end_l = MIN(l+pad, i_res_-1-ghost_width_);
-		end_m = MIN(m+pad, j_res_-1-ghost_width_);
-		end_n = MIN(n+pad, k_res_-1-ghost_width_);
+		end_l = MIN(l+pad, i_res_-1);
+		end_m = MIN(m+pad, j_res_-1);
+		end_n = MIN(n+pad, k_res_-1);
 	}
 
 	template<class TT>
