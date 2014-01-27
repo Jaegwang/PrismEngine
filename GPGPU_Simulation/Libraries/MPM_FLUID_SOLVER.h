@@ -18,6 +18,7 @@ public:
 	T rest_density_;
 
 	T stiffness_;
+	T mpm_coefficient_;
 
 	T*     density_field_;
 	Vec3T* velocity_field_;
@@ -25,9 +26,10 @@ public:
 
 	Vec3T gravity_;
 
+
 public:
 
-	MPM_FLUID_SOLVER() : density_field_(0), velocity_field_(0), force_field_(0), mass_(1), rest_density_(1)
+	MPM_FLUID_SOLVER() : density_field_(0), velocity_field_(0), force_field_(0), mass_(1), rest_density_(1), mpm_coefficient_((T)0.2)
 	{}
 
 	~MPM_FLUID_SOLVER()
@@ -44,8 +46,8 @@ public:
 		particle_manager_.Initialize(grid_, num_pts_res);		
 
 		mass_ = 1;
-		rest_density_ = 1;
-		stiffness_ = 1;
+		rest_density_ = 3;
+		stiffness_ = 3;
 
 		density_field_  = new T[grid_.ijk_res_];
 		velocity_field_ = new Vec3T[grid_.ijk_res_];
@@ -74,8 +76,8 @@ public:
 
 			AdvectParticles(dt);
 
-			SourceFormSphere(Vec3T(0.2, 0.7, 0.5), Vec3T( 2, 0.0, 0.0), 0.05, 300);
-			SourceFormSphere(Vec3T(0.8, 0.7, 0.5), Vec3T(-2, 0.0, 0.0), 0.05, 300);
+			SourceFormSphere(Vec3T(0.2, 0.7, 0.5), Vec3T( 2, 0.0, 0.0), 0.05, 1000);
+			SourceFormSphere(Vec3T(0.8, 0.7, 0.5), Vec3T(-2, 0.0, 0.0), 0.05, 1000);
 
 			particle_manager_.RebuildParticleDataStructure();
 		}
@@ -109,29 +111,8 @@ public:
 				Vec3T& pts_pos = particle_manager_.position_array_[p];
 				Vec3T& pts_vel = particle_manager_.velocity_array_[p];
 
-				int i, j, k;
-				grid_.CellCenterIndex(pts_pos, i, j, k);
 
-				int start_l, start_m, start_n, end_l, end_m, end_n;
-				grid_.StartEndIndices(i, j, k, start_l, start_m, start_n, end_l, end_m, end_n);
-
-				Vec3T vel_weighted = Vec3T();
-
-				for (int n = start_n; n <= end_n; n++) for (int m = start_m; m <= end_m; m++) for (int l = start_l; l <= end_l; l++)
-				{
-					int n_ix = grid_.Index3Dto1D(l, m, n);
-
-					Vec3T cell_center = grid_.CellCenterPosition(l, m, n);
-
-					Vec3T velocity_g = velocity_field_[n_ix];
-
-					Vec3T deviation = cell_center - pts_pos;
-					T w = MPMSplineKernel(deviation, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
-
-					vel_weighted += velocity_g * w;
-				}
-
-				pts_pos += vel_weighted * dt;
+				pts_pos += pts_vel * dt;
 			}
 		}
 		END_CPU_THREADS_1D;
@@ -346,6 +327,7 @@ public:
 				grid_.StartEndIndices(i, j, k, start_l, start_m, start_n, end_l, end_m, end_n);
 
 				Vec3T acc_weighted = Vec3T();
+				Vec3T vel_weighted = Vec3T();
 
 				for (int n = start_n; n <= end_n; n++) for (int m = start_m; m <= end_m; m++) for (int l = start_l; l <= end_l; l++)
 				{
@@ -353,6 +335,7 @@ public:
 
 					Vec3T cell_center = grid_.CellCenterPosition(l, m, n);
 
+					Vec3T velocity_g = velocity_field_[n_ix];
 					Vec3T force_g = force_field_[n_ix];
 					T density_g = density_field_[n_ix];
 
@@ -362,10 +345,15 @@ public:
 						T w = MPMSplineKernel(deviation, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
 
 						acc_weighted += force_g / density_g * w;
+						vel_weighted += velocity_g * w;
 					}
 				}
 
-				particle_manager_.velocity_array_[p] += acc_weighted * dt;
+				Vec3T& pts_vel = particle_manager_.velocity_array_[p];
+
+				pts_vel += acc_weighted * dt;
+
+				pts_vel = pts_vel*mpm_coefficient_ + vel_weighted*((T)1 - mpm_coefficient_);
 			}
 		}
 		END_CPU_THREADS_1D;
