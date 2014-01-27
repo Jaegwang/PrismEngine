@@ -23,6 +23,8 @@ public:
 	Vec3T* velocity_field_;
 	Vec3T* force_field_;
 
+	Vec3T gravity_;
+
 public:
 
 	MPM_FLUID_SOLVER() : density_field_(0), velocity_field_(0), force_field_(0), mass_(1), rest_density_(1)
@@ -43,11 +45,13 @@ public:
 
 		mass_ = 1;
 		rest_density_ = 1;
-		stiffness_ = 0.1;
+		stiffness_ = 1;
 
 		density_field_  = new T[grid_.ijk_res_];
 		velocity_field_ = new Vec3T[grid_.ijk_res_];
 		force_field_    = new Vec3T[grid_.ijk_res_];
+
+		gravity_ = Vec3T(0, -5, 0);
 
 		memset((void*)density_field_, 0, sizeof(T)*grid_.ijk_res_);
 		memset((void*)force_field_, 0, sizeof(Vec3T)*grid_.ijk_res_);
@@ -59,20 +63,39 @@ public:
 		const T dt = spf / (T)steps;
 
 		for (int i = 0; i < steps; i++)
-		{
-			SourceFormSphere(Vec3T(0.3, 0.5, 0.5), Vec3T( 0.5, 0.0, 0.0), 0.05, 100);
-			SourceFormSphere(Vec3T(0.7, 0.5, 0.5), Vec3T(-0.5, 0.0, 0.0), 0.05, 100);
+		{			
+			ApplyExternalForce(dt);
 
-			particle_manager_.RebuildParticleDataStructure();
-			
 			RasterizeParticlesDensityAndVelocityToGrid();
 			ComputeParticleDenistyFromGrid();
 
 			RasterizeParticlesForceToGrid();
 			UpdateParticleAndGridVelocity(dt);
 
-			AdvectParticles(dt);			
+			AdvectParticles(dt);
+
+			SourceFormSphere(Vec3T(0.2, 0.7, 0.5), Vec3T( 2, 0.0, 0.0), 0.05, 300);
+			SourceFormSphere(Vec3T(0.8, 0.7, 0.5), Vec3T(-2, 0.0, 0.0), 0.05, 300);
+
+			particle_manager_.RebuildParticleDataStructure();
 		}
+	}
+
+	void ApplyExternalForce(const T dt)
+	{
+		if(particle_manager_.num_of_pts_ == 0) return;
+
+		BEGIN_CPU_THREADS_1D(particle_manager_.num_of_pts_)
+		{
+			for (int p = ix_begin; p <= ix_end; p++)
+			{
+				Vec3T& pts_pos = particle_manager_.position_array_[p];
+				Vec3T& pts_vel = particle_manager_.velocity_array_[p];
+
+				pts_vel += gravity_ * dt;				
+			}
+		}
+		END_CPU_THREADS_1D;
 	}
 
 	void AdvectParticles(const T dt)
@@ -107,13 +130,11 @@ public:
 
 					vel_weighted += velocity_g * w;
 				}
-				
+
 				pts_pos += vel_weighted * dt;
 			}
 		}
 		END_CPU_THREADS_1D;
-
-		particle_manager_.RebuildParticleDataStructure();
 	}
 
 	void SourceFormSphere(const Vec3T& pos, const Vec3T& vel, const T rad, const int num)
@@ -234,6 +255,12 @@ public:
 		END_CPU_THREADS_1D;
 	}
 
+	T ComputePressure(const T density)
+	{
+//		return (stiffness_*rest_density_) * ((density / rest_density_) - (T)1);
+		return (stiffness_*rest_density_ / (T)3) * (POW3(density / rest_density_) - (T)1);
+	}
+
 	void RasterizeParticlesForceToGrid()
 	{
 		if (particle_manager_.num_of_pts_ == 0) return;
@@ -252,7 +279,7 @@ public:
 				Vec3T cell_center = grid_.CellCenterPosition(i, j, k);
 
 				T rho_i = density_field_[g_ix];
-				T p_i = stiffness_*(rho_i - rest_density_);
+				T p_i = ComputePressure(rho_i);
 
 				Vec3T pressure((T)0,(T)0,(T)0);
 
@@ -272,7 +299,7 @@ public:
 						const Vec3T& vel = particle_manager_.velocity_array_[b_ix + p];
 
 						T rho_j = particle_manager_.density_array_[b_ix + p];
-						T p_j = stiffness_*(rho_j - rest_density_);
+						T p_j = ComputePressure(rho_j);
 
 						Vec3T w_grad = MPMSplineKernelGradient(cell_center-pos, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
 

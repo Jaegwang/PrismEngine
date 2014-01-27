@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 	Vec3T max0(1,1,1);
 
 
-	mpm_solver.Initialize(min0, max0, 100, 100, 100, 2, 1000000);
+	mpm_solver.Initialize(min0, max0, 128, 128, 128, 2, 1000000);
 
 
 	glutInit(&argc, argv);
@@ -110,7 +110,7 @@ void idle()
 	track_ball.GetInputState();
 
 
-	mpm_solver.AdvanceTimeStep((T)0.01, 2);
+	mpm_solver.AdvanceTimeStep((T)0.01, 1);
 
 //	mpm_solver.particle_manager_.RebuildParticleDataStructure();
 //	mpm_solver.RasterizeDensityParticlesToGrid();

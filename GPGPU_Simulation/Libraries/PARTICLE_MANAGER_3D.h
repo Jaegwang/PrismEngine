@@ -118,7 +118,7 @@ public:
 			{
 				const Vec3T pos = position_array_[p];
 
-				if (grid_.IsInside(pos) == false) continue;
+				if (grid_.IsInsideValid(pos) == false) continue;
 
 				int i, j, k;
 				grid_.CellCenterIndex(pos, i, j, k);
@@ -149,7 +149,7 @@ public:
 				const Vec3T pos = position_array_[p];
 				const int pts_id = particle_id_array_[p];
 
-				if (grid_.IsInside(pos) == false) continue;
+				if (grid_.IsInsideValid(pos) == false) continue;
 
 				int i, j, k;
 				grid_.CellCenterIndex(pos, i, j, k);

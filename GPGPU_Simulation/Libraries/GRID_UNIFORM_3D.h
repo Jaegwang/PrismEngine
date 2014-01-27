@@ -76,7 +76,7 @@ public:
 		return false;
 	}
 
-	bool IsInside(const Vec3T& p) restrict(cpu, amp)
+	bool IsInsideValid(const Vec3T& p) restrict(cpu, amp)
 	{
 		if (min_.x+gx_ < p.x && max_.x-gx_ > p.x &&
 			min_.y+gy_ < p.y && max_.y-gy_ > p.y &&
@@ -84,6 +84,27 @@ public:
 			return true;
 
 		return false;
+	}
+
+	bool IsInsideGhost(const Vec3T& p) restrict(cpu, amp)
+	{
+		if (min_.x < p.x && max_.x > p.x &&
+			min_.y < p.y && max_.y > p.y &&
+			min_.z < p.z && max_.z > p.z)
+			return true;
+
+		return false;
+	}
+
+	void ClampValid(Vec3T& p)
+	{
+
+	}
+
+	void ClampGhost(Vec3T& p)
+	{
+
+
 	}
 
 	Vec3T CellCenterPosition(const int i, const int j, const int k) restrict(cpu,amp)
