@@ -134,6 +134,7 @@
     <ClInclude Include="..\Libraries\QUATERNION_T.h" />
     <ClInclude Include="..\Libraries\TRACK_BALL_CONTROL.h" />
     <ClInclude Include="..\Libraries\VECTOR3_T.h" />
+    <ClInclude Include="..\Libraries\WALL_CONDITIONS.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
