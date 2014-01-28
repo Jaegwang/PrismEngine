@@ -19,8 +19,8 @@ public:
 	GRID_UNIFORM_3D grid_;
 
 	// particle properties
-	Vec3T *position_array_, *velocity_array_, *adv_vel_array_;
-	Vec3T *position_array_old_, *velocity_array_old_, *adv_vel_array_old_;
+	Vec3T *position_array_, *velocity_array_, *force_array_;
+	Vec3T *position_array_old_, *velocity_array_old_, *force_array_old_;
 
 	T *density_array_;
 	T *density_array_old_;
@@ -38,7 +38,7 @@ public:
 
 	PARTICLE_MANAGER_3D() : 
 		position_array_(0), position_array_old_(0), velocity_array_(0), velocity_array_old_(0), density_array_(0), density_array_old_(0),
-		adv_vel_array_(0), adv_vel_array_old_(0),
+		force_array_(0), force_array_old_(0),
 		num_pts_cell_(0), start_idx_cell_(0), particle_id_array_(0), particle_index_array_(0), max_of_pts_(0)
 	{}
 
@@ -50,8 +50,8 @@ public:
 		if (velocity_array_) delete[] velocity_array_;
 		if (velocity_array_old_) delete[] velocity_array_old_;
 
-		if (adv_vel_array_) delete[] adv_vel_array_;
-		if (adv_vel_array_old_) delete[] adv_vel_array_old_;
+		if (force_array_) delete[] force_array_;
+		if (force_array_old_) delete[] force_array_old_;
 
 		if (density_array_) delete[] density_array_;
 		if (density_array_old_) delete[] density_array_old_;
@@ -74,8 +74,8 @@ public:
 		velocity_array_ = new Vec3T[num_pts];
 		velocity_array_old_ = new Vec3T[num_pts];
 
-		adv_vel_array_ = new Vec3T[num_pts];
-		adv_vel_array_old_ = new Vec3T[num_pts];
+		force_array_ = new Vec3T[num_pts];
+		force_array_old_ = new Vec3T[num_pts];
 
 		density_array_ = new T[num_pts];
 		density_array_old_ = new T[num_pts];
@@ -181,7 +181,7 @@ public:
 				{
 					int v_ix = particle_index_array_[b_ix + n];
 
-					adv_vel_array_old_[b_ix + n] = adv_vel_array_[v_ix];
+					force_array_old_[b_ix + n] = force_array_[v_ix];
 					position_array_old_[b_ix + n] = position_array_[v_ix];
 					velocity_array_old_[b_ix + n] = velocity_array_[v_ix];
 					density_array_old_[b_ix + n]  = density_array_[v_ix];
@@ -194,7 +194,7 @@ public:
 
 		SWAP(position_array_, position_array_old_, v_temp);
 		SWAP(velocity_array_, velocity_array_old_, v_temp);
-		SWAP(adv_vel_array_, adv_vel_array_old_, v_temp);
+		SWAP(force_array_, force_array_old_, v_temp);
 		SWAP(density_array_, density_array_old_, t_temp);
 
 		num_of_pts_ = (int)count_pts;

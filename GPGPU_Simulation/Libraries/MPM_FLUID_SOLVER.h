@@ -32,14 +32,14 @@ public:
 
 public:
 
-	MPM_FLUID_SOLVER() : density_field_(0), velocity_field_(0), force_field_(0), mass_(1), rest_density_(1), smoothing_((T)0.2)
+	MPM_FLUID_SOLVER() : density_field_(0), velocity_field_(0), force_field_(0), mass_(1), rest_density_(1), smoothing_((T)0.3)
 	{}
 
 	~MPM_FLUID_SOLVER()
 	{
-		if (density_field_) delete[] density_field_;
+		if (density_field_)  delete[] density_field_;
 		if (velocity_field_) delete[] velocity_field_;
-		if (force_field_) delete[] force_field_;
+		if (force_field_)    delete[] force_field_;
 	}
 
 	void Initialize(const Vec3T min, const Vec3T max, const int i_res, const int j_res, const int k_res, const int ghost_width, const int num_pts_res)
@@ -52,7 +52,7 @@ public:
 
 		mass_ = 1;
 		rest_density_ = 1;
-		stiffness_ = 3;
+		stiffness_ = 1;
 
 		density_field_  = new T[grid_.ijk_res_];
 		velocity_field_ = new Vec3T[grid_.ijk_res_];
@@ -96,10 +96,9 @@ public:
 		{
 			for (int p = ix_begin; p <= ix_end; p++)
 			{
-				Vec3T& pts_pos = particle_manager_.position_array_[p];
-				Vec3T& pts_vel = particle_manager_.velocity_array_[p];
+				Vec3T& pts_force = particle_manager_.force_array_[p];
 
-				pts_vel += gravity_ * dt;				
+				pts_force += gravity_*mass_;
 			}
 		}
 		END_CPU_THREADS_1D;
@@ -114,12 +113,13 @@ public:
 			for (int p = ix_begin; p <= ix_end; p++)
 			{
 				Vec3T& pts_pos = particle_manager_.position_array_[p];
-				Vec3T& adv_vel = particle_manager_.adv_vel_array_[p];
+				Vec3T& adv_vel = particle_manager_.force_array_[p];
 
 				Vec3T& pts_vel = particle_manager_.velocity_array_[p];
 
 				pts_pos += adv_vel * dt;
 
+				adv_vel = Vec3T();
 				wall_conditions_.ClampPositionAndVelocity(pts_pos, pts_vel);
 			}
 		}
@@ -161,13 +161,13 @@ public:
 				grid_.Index1Dto3D(p, i, j, k);
 
 				int g_ix = grid_.Index3Dto1D(i, j, k);
-
+				
 				if (grid_.IsGhostCell(i, j, k) == true)
 				{
 					density_field_[g_ix] = rest_density_;
 					velocity_field_[g_ix] = Vec3T();
 					continue;
-				}
+				}				
 
 				Vec3T cell_center = grid_.CellCenterPosition(i, j, k);
 
@@ -268,7 +268,11 @@ public:
 
 				int g_ix = grid_.Index3Dto1D(i, j, k);
 
-				if (grid_.IsGhostCell(i, j, k) == true) continue;
+				if (grid_.IsGhostCell(i, j, k) == true)
+				{
+					force_field_[g_ix] = Vec3T();
+					continue;
+				}
 
 				Vec3T cell_center = grid_.CellCenterPosition(i, j, k);
 
@@ -276,6 +280,7 @@ public:
 				T p_i = ComputePressure(rho_i);
 
 				Vec3T pressure((T)0,(T)0,(T)0);
+				Vec3T external_force((T)0, (T)0, (T)0);
 
 				int start_l, start_m, start_n, end_l, end_m, end_n;
 				grid_.StartEndIndices(i, j, k, start_l, start_m, start_n, end_l, end_m, end_n);
@@ -289,19 +294,22 @@ public:
 
 					for (int p = 0; p < num; p++)
 					{
-						const Vec3T& pos = particle_manager_.position_array_[b_ix + p];
-						const Vec3T& vel = particle_manager_.velocity_array_[b_ix + p];
+						const Vec3T& pos   = particle_manager_.position_array_[b_ix + p];
+						const Vec3T& vel   = particle_manager_.velocity_array_[b_ix + p];
+						const Vec3T& force = particle_manager_.force_array_[b_ix + p];
 
 						T rho_j = particle_manager_.density_array_[b_ix + p];
 						T p_j = ComputePressure(rho_j);
 
+						T w = MPMSplineKernel(cell_center - pos, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
 						Vec3T w_grad = MPMSplineKernelGradient(cell_center-pos, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
 
 						pressure += w_grad * mass_ * (p_i + p_j) / (rho_j + rho_j);
+						external_force += w * force;
 					}
 				}
 
-				force_field_[g_ix] = -pressure;
+				force_field_[g_ix] = -pressure + external_force;
 			}
 		}
 		END_CPU_THREADS_1D;
@@ -363,7 +371,7 @@ public:
 				}
 
 				Vec3T& pts_vel = particle_manager_.velocity_array_[p];
-				Vec3T& adv_vel = particle_manager_.adv_vel_array_[p];
+				Vec3T& adv_vel = particle_manager_.force_array_[p];
 
 				const T density_p = particle_manager_.density_array_[p];
 
