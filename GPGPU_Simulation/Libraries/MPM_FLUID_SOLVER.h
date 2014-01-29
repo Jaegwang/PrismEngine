@@ -32,7 +32,7 @@ public:
 
 public:
 
-	MPM_FLUID_SOLVER() : density_field_(0), velocity_field_(0), force_field_(0), mass_(1), rest_density_(1), smoothing_((T)0.3)
+	MPM_FLUID_SOLVER() : density_field_(0), velocity_field_(0), force_field_(0), mass_(1), rest_density_(1), smoothing_((T)0.2)
 	{}
 
 	~MPM_FLUID_SOLVER()
@@ -51,8 +51,8 @@ public:
 		wall_conditions_.Initialize(grid_);
 
 		mass_ = 1;
-		rest_density_ = 1;
-		stiffness_ = 1;
+		rest_density_ = 2;
+		stiffness_ = 3;
 
 		density_field_  = new T[grid_.ijk_res_];
 		velocity_field_ = new Vec3T[grid_.ijk_res_];
@@ -80,12 +80,17 @@ public:
 			UpdateParticleAndGridVelocity(dt);
 
 			AdvectParticles(dt);
-
-			SourceFormSphere(Vec3T(0.2, 0.7, 0.5), Vec3T( 2, 0.0, 0.0), 0.05, 500);
-			SourceFormSphere(Vec3T(0.8, 0.7, 0.5), Vec3T(-2, 0.0, 0.0), 0.05, 500);
+			
+			SourceParticles();
 
 			particle_manager_.RebuildParticleDataStructure();
 		}
+	}
+
+	void SourceParticles()
+	{
+		SourceFormSphere(Vec3T(0.2, 0.7, 0.5), Vec3T( 2, 0.0, 0.0), 0.05, 1000);
+		SourceFormSphere(Vec3T(0.8, 0.7, 0.5), Vec3T(-2, 0.0, 0.0), 0.05, 1000);
 	}
 
 	void ApplyExternalForce(const T dt)

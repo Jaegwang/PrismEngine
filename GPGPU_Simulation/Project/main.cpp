@@ -1,4 +1,6 @@
 
+#include "READ_WRITE_PNG.h"
+
 #include <GL\glut.h>
 
 #include "VECTOR3_T.h"
@@ -7,6 +9,7 @@
 #include "PARTICLE_MANAGER_3D.h"
 #include "PARTICLE.h"
 #include "MPM_FLUID_SOLVER.h"
+#include "CAPTURE_MANAGER.h"
 
 #include <amp.h>
 
@@ -16,15 +19,18 @@ using namespace concurrency;
 #include "GRID_UNIFORM_3D.h"
 #include "TRACK_BALL_CONTROL.h"
 
+
 TRACK_BALL_CONTROL track_ball;
-GRID_UNIFORM_3D world_grid;
-
-PARTICLE_MANAGER_3D particle_manager;
-
 MPM_FLUID_SOLVER mpm_solver;
+
+CAPTURE_MANAGER capture_manager;
 
 static const int window_w = 800;
 static const int window_h = 600;
+
+static bool is_playing      = false;
+static bool is_capture      = true;
+static bool is_capture_flag = false;
 
 void display();
 void idle();
@@ -41,9 +47,10 @@ int main(int argc, char **argv)
 	Vec3T min0(0,0,0);
 	Vec3T max0(1,1,1);
 
+	std::string path = "no";
 
-	mpm_solver.Initialize(min0, max0, 128, 128, 128, 2, 1000000);
-
+	mpm_solver.Initialize(min0, max0, 128, 128, 128, 2, 5000000);
+	capture_manager.Initialize(path);
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
@@ -63,8 +70,6 @@ int main(int argc, char **argv)
 
 	glutMainLoop();
 }
-
-
 
 void init()
 {
@@ -86,9 +91,8 @@ void display()
 	glTranslatef(-world_center.x, -world_center.y, -world_center.z);
 
 
-	glClearColor(0.7, 0.7, 0.7, 0.0);
+	glClearColor(0.3, 0.3, 0.3, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 
 //	glutSolidTeapot(0.5);
 //	world_grid.RenderGrid();
@@ -98,8 +102,17 @@ void display()
 
 	mpm_solver.particle_manager_.Rendering();
 //	mpm_solver.RenderDensityField();
-
 	mpm_solver.grid_.RenderGrid();
+
+	// capture image and video
+	if(is_capture && is_capture_flag)
+	{
+		static int __capture_frame = 0;
+		GLint viewport[4];
+		glGetIntegerv(GL_VIEWPORT, viewport);
+		capture_manager.CaptureImage(__capture_frame++, viewport[2] - viewport[0], viewport[3] - viewport[1]);
+		is_capture_flag = false;
+	}
 
 	glFlush();
 	glutSwapBuffers();
@@ -109,11 +122,12 @@ void idle()
 {
 	track_ball.GetInputState();
 
+	if (is_playing == true)
+	{
+		mpm_solver.AdvanceTimeStep((T)0.01, 1);
 
-	mpm_solver.AdvanceTimeStep((T)0.01, 1);
-
-//	mpm_solver.particle_manager_.RebuildParticleDataStructure();
-//	mpm_solver.RasterizeDensityParticlesToGrid();
+		is_capture_flag = true;
+	}
 
 	glutPostRedisplay();
 }
@@ -137,9 +151,17 @@ void mouseMotion(int x,int y)
 
 void keyboard(unsigned char key, int x, int y)
 {
+	key = tolower(key);
+
+	switch (key)
+	{
+		case 'q': exit(0);	                    break;
+		case 'p': is_playing = !is_playing;		break;
+		case 'c': is_capture = !is_capture;		break;
+		case 'v': capture_manager.MakeVideo();  break;
+	}
 
 	glutPostRedisplay();
-
 }
 
 void light()

@@ -207,11 +207,19 @@ public:
 		glPushMatrix();
 		glColor3f(0.3, 0.3, 1);
 
+		T dt = (T)0.01;
+		T dist = MAX(grid_.dx_*(T)3, grid_.dy_*(T)3, grid_.dz_*(T)3);
+		T max_vel = dist / dt;
+
 		glBegin(GL_POINTS);
 
 		for (int i = 0; i < num_of_pts_; i++)
 		{
 			const Vec3T& pos = position_array_[i];
+			const T v = velocity_array_[i].Magnitude();
+			const T g = v / max_vel;
+
+			glColor3f(g, g, (T)1);
 
 			glVertex3f(pos.x, pos.y, pos.z);
 		}

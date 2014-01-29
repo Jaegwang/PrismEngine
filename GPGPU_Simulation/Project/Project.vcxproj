@@ -81,11 +81,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\3rd_party\cg\include;..\libraries</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\3rd_party\cg\include;..\libraries;..\3rd_party\libpng-1.5.7\include;..\3rd_party\zlib-1.2.5\include;..\3rd_party\glew-1.7.0\include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\3rd_party\cg\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\3rd_party\cg\lib;..\3rd_party\glew-1.7.0\lib;..\3rd_party\libpng-1.5.7\lib;..\3rd_party\zlib-1.2.5\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libpng15.lib;libpng15d.lib;libpng15s.lib;libpng15sd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -109,19 +111,24 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\3rd_party\cg\include;..\libraries</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\3rd_party\cg\include;..\libraries;..\3rd_party\libpng-1.5.7\include;..\3rd_party\zlib-1.2.5\include;..\3rd_party\glew-1.7.0\include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\3rd_party\cg\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\3rd_party\cg\lib;..\3rd_party\glew-1.7.0\lib;..\3rd_party\libpng-1.5.7\lib;..\3rd_party\zlib-1.2.5\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libpng15.lib;libpng15d.lib;libpng15s.lib;libpng15sd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Libraries\CAPTURE_MANAGER.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Libraries\CAPTURE_MANAGER.h" />
+    <ClInclude Include="..\Libraries\FILE_UTILITIES.h" />
     <ClInclude Include="..\Libraries\GRID_UNIFORM_3D.h" />
     <ClInclude Include="..\Libraries\KERNEL_FUNCTIONS.h" />
     <ClInclude Include="..\Libraries\MATH_CORE.h" />
@@ -132,6 +139,7 @@
     <ClInclude Include="..\Libraries\PARTICLE.h" />
     <ClInclude Include="..\Libraries\PARTICLE_MANAGER_3D.h" />
     <ClInclude Include="..\Libraries\QUATERNION_T.h" />
+    <ClInclude Include="..\Libraries\READ_WRITE_PNG.h" />
     <ClInclude Include="..\Libraries\TRACK_BALL_CONTROL.h" />
     <ClInclude Include="..\Libraries\VECTOR3_T.h" />
     <ClInclude Include="..\Libraries\WALL_CONDITIONS.h" />

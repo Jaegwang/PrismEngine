@@ -215,57 +215,57 @@ static VECTOR3_T RandomVector()
 	return VECTOR3_T(((T)rand() / (T)RAND_MAX - (T)0.5)*(T)2, ((T)rand() / (T)RAND_MAX - (T)0.5)*(T)2, ((T)rand() / (T)RAND_MAX - (T)0.5)*(T)2);
 }
 
-VECTOR3_T operator + ( const VECTOR3_T& v0, const VECTOR3_T& v1 ) restrict(amp,cpu) 
+static VECTOR3_T operator + (const VECTOR3_T& v0, const VECTOR3_T& v1) restrict(amp, cpu)
 {
     return VECTOR3_T( v0[0] + v1[0], v0[1] + v1[1], v0[2] + v1[2] );
 }
 
-VECTOR3_T operator + (VECTOR3_T& v0, VECTOR3_T& v1) restrict(amp, cpu)
+static VECTOR3_T operator + (VECTOR3_T& v0, VECTOR3_T& v1) restrict(amp, cpu)
 {
 	return VECTOR3_T(v0[0] + v1[0], v0[1] + v1[1], v0[2] + v1[2]);
 }
 
-VECTOR3_T operator - ( const VECTOR3_T& v0, const VECTOR3_T& v1 ) restrict(amp,cpu)  
+static VECTOR3_T operator - (const VECTOR3_T& v0, const VECTOR3_T& v1) restrict(amp, cpu)
 {
     return VECTOR3_T( v0[0] - v1[0], v0[1] - v1[1], v0[2] - v1[2] );
 }
 
-VECTOR3_T operator * ( const VECTOR3_T& v0, const VECTOR3_T& v1 ) restrict(amp,cpu)  
+static VECTOR3_T operator * (const VECTOR3_T& v0, const VECTOR3_T& v1) restrict(amp, cpu)
 {
     return VECTOR3_T( v0[0] * v1[0], v0[1] * v1[1], v0[2] * v1[2] );
 }
 
-VECTOR3_T operator / ( const VECTOR3_T& v0, const VECTOR3_T& v1 ) restrict(amp,cpu)  
+static VECTOR3_T operator / (const VECTOR3_T& v0, const VECTOR3_T& v1) restrict(amp, cpu)
 {
     return VECTOR3_T( v0[0] / v1[0], v0[1] / v1[1], v0[2] / v1[2] );
 }
 
-VECTOR3_T operator - ( const VECTOR3_T& v ) restrict(amp,cpu)  
+static VECTOR3_T operator - (const VECTOR3_T& v) restrict(amp, cpu)
 {
     return VECTOR3_T( -v[0], -v[1], -v[2] );
 }
 
-VECTOR3_T operator * ( T f, const VECTOR3_T& v ) restrict(amp,cpu)  
+static VECTOR3_T operator * (T f, const VECTOR3_T& v) restrict(amp, cpu)
 {
     return VECTOR3_T( v[0] * f, v[1] * f, v[2] * f );
 }
 
-VECTOR3_T operator * ( const VECTOR3_T& v, T f ) restrict(amp,cpu)  
+static VECTOR3_T operator * (const VECTOR3_T& v, T f) restrict(amp, cpu)
 {
     return VECTOR3_T( v[0] * f, v[1] * f, v[2] * f );
 }
 
-VECTOR3_T operator / ( const VECTOR3_T& v, T f ) restrict(amp,cpu)  
+static VECTOR3_T operator / (const VECTOR3_T& v, T f) restrict(amp, cpu)
 {
     return VECTOR3_T( v[0] / f, v[1] / f, v[2] / f );
 }
 
-bool operator == ( const VECTOR3_T& v0, const VECTOR3_T& v1 ) restrict(amp,cpu)  
+static bool operator == (const VECTOR3_T& v0, const VECTOR3_T& v1) restrict(amp, cpu)
 {
     return( v0.x == v1.x && v0.y == v1.y && v0.z == v1.z );
 }
 
-bool operator != ( const VECTOR3_T& v0, const VECTOR3_T& v1 ) restrict(amp,cpu)  
+static bool operator != (const VECTOR3_T& v0, const VECTOR3_T& v1) restrict(amp, cpu)
 {
     return !( v0 == v1 );
 }

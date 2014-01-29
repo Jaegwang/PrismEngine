@@ -370,7 +370,7 @@ public:
 
 // Matrix-Vector multiplication
 // 3x3 * 3x1 ==> 3x1
-VECTOR3_T operator * ( const MATRIX3_T& m, const VECTOR3_T& v ) restrict(cpu,amp)
+static VECTOR3_T operator * (const MATRIX3_T& m, const VECTOR3_T& v) restrict(cpu, amp)
 {
 	VECTOR3_T output( 0, 0, 0 );
 
@@ -386,7 +386,7 @@ VECTOR3_T operator * ( const MATRIX3_T& m, const VECTOR3_T& v ) restrict(cpu,amp
 }
 
 // Matrix-Matrix multiplication
-MATRIX3_T operator * ( const MATRIX3_T& x, const MATRIX3_T& y ) restrict(cpu,amp)
+static MATRIX3_T operator * (const MATRIX3_T& x, const MATRIX3_T& y) restrict(cpu, amp)
 {
 	MATRIX3_T product; // zeroes
 

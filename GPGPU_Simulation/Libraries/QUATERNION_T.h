@@ -392,7 +392,7 @@ const QUATERNION_T QUATERNION_T::ZERO = QUATERNION_T( 0, 0, 0, 0 );
 const QUATERNION_T QUATERNION_T::IDENTITY = QUATERNION_T( 1, 0, 0, 0 );
 
 
-QUATERNION_T operator + ( const QUATERNION_T& q0, const QUATERNION_T& q1 ) restrict(cpu,amp)
+static QUATERNION_T operator + (const QUATERNION_T& q0, const QUATERNION_T& q1) restrict(cpu, amp)
 {
 	return QUATERNION_T
 	(
@@ -403,7 +403,7 @@ QUATERNION_T operator + ( const QUATERNION_T& q0, const QUATERNION_T& q1 ) restr
 	);
 }
 
-QUATERNION_T operator - ( const QUATERNION_T& q0, const QUATERNION_T& q1 ) restrict(cpu,amp)
+static QUATERNION_T operator - (const QUATERNION_T& q0, const QUATERNION_T& q1) restrict(cpu, amp)
 {
 	return QUATERNION_T
 	(
@@ -414,7 +414,7 @@ QUATERNION_T operator - ( const QUATERNION_T& q0, const QUATERNION_T& q1 ) restr
 	);
 }
 
-QUATERNION_T operator * ( const QUATERNION_T& q0, const QUATERNION_T& q1 ) restrict(cpu,amp)
+static QUATERNION_T operator * (const QUATERNION_T& q0, const QUATERNION_T& q1) restrict(cpu, amp)
 {
 	return QUATERNION_T
 	(
@@ -425,7 +425,7 @@ QUATERNION_T operator * ( const QUATERNION_T& q0, const QUATERNION_T& q1 ) restr
 	);
 }
 
-QUATERNION_T operator * ( T f, const QUATERNION_T& q ) restrict(cpu,amp)
+static QUATERNION_T operator * (T f, const QUATERNION_T& q) restrict(cpu, amp)
 {
 	return QUATERNION_T
 	(
@@ -436,7 +436,7 @@ QUATERNION_T operator * ( T f, const QUATERNION_T& q ) restrict(cpu,amp)
 	);
 }
 
-QUATERNION_T operator * ( const QUATERNION_T& q, T f ) restrict(cpu,amp)
+static QUATERNION_T operator * (const QUATERNION_T& q, T f) restrict(cpu, amp)
 {
 	return QUATERNION_T
 	(

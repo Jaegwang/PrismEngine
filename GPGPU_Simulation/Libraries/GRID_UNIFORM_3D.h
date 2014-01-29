@@ -181,24 +181,26 @@ public:
 		Vec3T grid_center = (min_ + max_)*0.5;
 		Vec3T deviation = max_-min_;
 
+		glColor3f(0.5, 0.5, 0.5);
+
 		glPushMatrix();
-		glColor3f(0, 0, 1);
+
 		glTranslatef(grid_center.x, grid_center.y, grid_center.z);
 		glScaled(deviation.x, deviation.y, deviation.z);
 		glutWireCube(1);
 		glPopMatrix();
-
 		
 		deviation -= Vec3T(gx_*(T)2, gy_*(T)2, gz_*(T)2);
 
+		glColor3f(0, 0, 0);
+
 		glPushMatrix();
-		glColor3f(1, 0, 0);
+
 		glTranslatef(grid_center.x, grid_center.y, grid_center.z);
 		glScaled(deviation.x, deviation.y, deviation.z);
 		glutWireCube(1);
 		glPopMatrix();
-
-
+				
 		glEnable(GL_LIGHTING);
 	}
 
