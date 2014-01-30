@@ -30,17 +30,17 @@ public:
 
 	void Initialize(const Vec3T& min, const Vec3T& max, const int i_res, const int j_res, const int k_res, const int g) restrict(cpu,amp)
 	{
-		dx_ = (max.x-min.x)/(float)i_res;
-		dy_ = (max.y-min.y)/(float)j_res;
-		dz_ = (max.z-min.z)/(float)k_res;
+		dx_ = (max.x-min.x)/(T)i_res;
+		dy_ = (max.y-min.y)/(T)j_res;
+		dz_ = (max.z-min.z)/(T)k_res;
 
 		one_over_dx_ = (T)1 / dx_;
 		one_over_dy_ = (T)1 / dy_;
 		one_over_dz_ = (T)1 / dz_;
 
-		gx_ = dx_*(float)g;
-		gy_ = dy_*(float)g;
-		gz_ = dz_*(float)g;
+		gx_ = dx_*(T)g;
+		gy_ = dy_*(T)g;
+		gz_ = dz_*(T)g;
 		
 		min_ = min - Vec3T(gx_, gy_, gz_);
 		max_ = max + Vec3T(gx_, gy_, gz_);

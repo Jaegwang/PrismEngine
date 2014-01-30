@@ -25,6 +25,8 @@ public:
 	T *density_array_;
 	T *density_array_old_;
 
+	Vec3T *grid_velocity_array_;
+
 	int* particle_id_array_;
 	int* particle_index_array_;
 
@@ -38,7 +40,7 @@ public:
 
 	PARTICLE_MANAGER_3D() : 
 		position_array_(0), position_array_old_(0), velocity_array_(0), velocity_array_old_(0), density_array_(0), density_array_old_(0),
-		force_array_(0), force_array_old_(0),
+		force_array_(0), force_array_old_(0), grid_velocity_array_(0),
 		num_pts_cell_(0), start_idx_cell_(0), particle_id_array_(0), particle_index_array_(0), max_of_pts_(0)
 	{}
 
@@ -58,6 +60,8 @@ public:
 
 		if(particle_id_array_) delete[] particle_id_array_;
 		if(particle_index_array_) delete[] particle_index_array_;
+
+		if (grid_velocity_array_) delete[] grid_velocity_array_;
 
 		if(num_pts_cell_) delete[] num_pts_cell_;
 		if(start_idx_cell_) delete[] start_idx_cell_;
@@ -80,9 +84,10 @@ public:
 		density_array_ = new T[num_pts];
 		density_array_old_ = new T[num_pts];
 
-
 		particle_id_array_ = new int[num_pts];
 		particle_index_array_ = new int[num_pts];
+
+		grid_velocity_array_ = new Vec3T[num_pts];
 
 		num_pts_cell_ = new atomic<int>[grid_.ijk_res_];
 		start_idx_cell_ = new atomic<int>[grid_.ijk_res_];
@@ -98,8 +103,7 @@ public:
 
 	void DelParticle(int ix)
 	{
-		T max_pos = FLT_MAX;
-		position_array_[ix] = Vec3T(max_pos, max_pos, max_pos);
+		position_array_[ix] = Vec3T((T)FLT_MAX, (T)FLT_MAX, (T)FLT_MAX);
 	}
 
 	void RebuildParticleDataStructure()

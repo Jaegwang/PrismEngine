@@ -51,7 +51,7 @@ public:
 		wall_conditions_.Initialize(grid_);
 
 		mass_ = 1;
-		rest_density_ = 2;
+		rest_density_ = 1;
 		stiffness_ = 3;
 
 		density_field_  = new T[grid_.ijk_res_];
@@ -71,8 +71,6 @@ public:
 
 		for (int i = 0; i < steps; i++)
 		{			
-			ApplyExternalForce(dt);
-
 			RasterizeParticlesDensityAndVelocityToGrid();
 			ComputeParticleDenistyFromGrid();
 
@@ -89,24 +87,8 @@ public:
 
 	void SourceParticles()
 	{
-		SourceFormSphere(Vec3T(0.2, 0.7, 0.5), Vec3T( 2, 0.0, 0.0), 0.05, 1000);
-		SourceFormSphere(Vec3T(0.8, 0.7, 0.5), Vec3T(-2, 0.0, 0.0), 0.05, 1000);
-	}
-
-	void ApplyExternalForce(const T dt)
-	{
-		if(particle_manager_.num_of_pts_ == 0) return;
-
-		BEGIN_CPU_THREADS_1D(particle_manager_.num_of_pts_)
-		{
-			for (int p = ix_begin; p <= ix_end; p++)
-			{
-				Vec3T& pts_force = particle_manager_.force_array_[p];
-
-				pts_force += gravity_*mass_;
-			}
-		}
-		END_CPU_THREADS_1D;
+		SourceFormSphere(Vec3T(0.2, 0.7, 0.5), Vec3T( 2, 0.0, 0.0), 0.05, 500);
+		SourceFormSphere(Vec3T(0.8, 0.7, 0.5), Vec3T(-2, 0.0, 0.0), 0.05, 500);
 	}
 
 	void AdvectParticles(const T dt)
@@ -118,14 +100,14 @@ public:
 			for (int p = ix_begin; p <= ix_end; p++)
 			{
 				Vec3T& pts_pos = particle_manager_.position_array_[p];
-				Vec3T& adv_vel = particle_manager_.force_array_[p];
+				Vec3T& grid_vel = particle_manager_.grid_velocity_array_[p];
 
 				Vec3T& pts_vel = particle_manager_.velocity_array_[p];
+				Vec3T& pts_force = particle_manager_.force_array_[p];
 
-				pts_pos += adv_vel * dt;
+				pts_pos += grid_vel * dt;
 
-				adv_vel = Vec3T();
-				wall_conditions_.ClampPositionAndVelocity(pts_pos, pts_vel);
+				wall_conditions_.ClampPositionAndVelocity(pts_pos, pts_vel, pts_force);
 			}
 		}
 		END_CPU_THREADS_1D;
@@ -314,7 +296,17 @@ public:
 					}
 				}
 
-				force_field_[g_ix] = -pressure + external_force;
+				force_field_[g_ix] = -pressure + (gravity_*rho_i) + external_force;
+			}
+		}
+		END_CPU_THREADS_1D;
+
+
+		BEGIN_CPU_THREADS_1D(particle_manager_.num_of_pts_)
+		{
+			for (int p = ix_begin; p <= ix_end; p++)
+			{
+				particle_manager_.force_array_[p] = Vec3T();
 			}
 		}
 		END_CPU_THREADS_1D;
@@ -376,11 +368,11 @@ public:
 				}
 
 				Vec3T& pts_vel = particle_manager_.velocity_array_[p];
-				Vec3T& adv_vel = particle_manager_.force_array_[p];
+				Vec3T& grid_vel = particle_manager_.grid_velocity_array_[p];
 
 				const T density_p = particle_manager_.density_array_[p];
 
-				adv_vel = vel_weighted;
+				grid_vel = vel_weighted;
 
 				pts_vel += force_weighted / density_p * dt;
 				pts_vel = pts_vel*((T)1-smoothing_) + vel_weighted*smoothing_;
