@@ -8,6 +8,7 @@
 #include "GL\glut.h"
 #include "iostream"
 #include "PARALLEL_MACRO.h"
+#include "GENERAL_MACRO.h"
 
 using namespace std;
 using namespace concurrency;
@@ -15,17 +16,16 @@ using namespace concurrency;
 class PARTICLE_MANAGER_3D
 {
 public:
-
 	GRID_UNIFORM_3D grid_;
 
 	// particle properties
-	Vec3T *position_array_, *velocity_array_, *force_array_;
-	Vec3T *position_array_old_, *velocity_array_old_, *force_array_old_;
+	Vec3T *position_array_, *velocity_array_;
 
-	T *density_array_;
-	T *density_array_old_;
+	std::vector<Vec3T**> vector_data_;
+	std::vector<T**>     scalar_data_;
 
-	Vec3T *grid_velocity_array_;
+	std::vector<Vec3T*>  vector_data_temp_;
+	std::vector<T*>      scalar_data_temp_;
 
 	int* particle_id_array_;
 	int* particle_index_array_;
@@ -36,64 +36,68 @@ public:
 	atomic<int>* num_pts_cell_;
 	atomic<int>* start_idx_cell_;
 
+	// array for cell including particles
+	int* pts_cell_index_array_;
+	atomic<int> num_of_pts_cell_;
+
 public:
 
 	PARTICLE_MANAGER_3D() : 
-		position_array_(0), position_array_old_(0), velocity_array_(0), velocity_array_old_(0), density_array_(0), density_array_old_(0),
-		force_array_(0), force_array_old_(0), grid_velocity_array_(0),
-		num_pts_cell_(0), start_idx_cell_(0), particle_id_array_(0), particle_index_array_(0), max_of_pts_(0)
+		position_array_(0), velocity_array_(0), num_pts_cell_(0), start_idx_cell_(0), particle_id_array_(0), particle_index_array_(0), max_of_pts_(0), num_of_pts_cell_(0)
 	{}
 
 	~PARTICLE_MANAGER_3D()
 	{
-		if (position_array_) delete[] position_array_;
-		if (position_array_old_) delete[] position_array_old_;
-
-		if (velocity_array_) delete[] velocity_array_;
-		if (velocity_array_old_) delete[] velocity_array_old_;
-
-		if (force_array_) delete[] force_array_;
-		if (force_array_old_) delete[] force_array_old_;
-
-		if (density_array_) delete[] density_array_;
-		if (density_array_old_) delete[] density_array_old_;
-
-		if(particle_id_array_) delete[] particle_id_array_;
-		if(particle_index_array_) delete[] particle_index_array_;
-
-		if (grid_velocity_array_) delete[] grid_velocity_array_;
-
-		if(num_pts_cell_) delete[] num_pts_cell_;
-		if(start_idx_cell_) delete[] start_idx_cell_;
+		Finalize();
 	}
 
-	void Initialize(const GRID_UNIFORM_3D& grid_input, const int num_pts)
+	void Initialize(const GRID_UNIFORM_3D& grid_input, Vec3T** pos_arr_input, Vec3T** vel_arr_input, const int num_pts)
 	{
 		grid_ = grid_input;
 		max_of_pts_ = num_pts;
 
-		position_array_ = new Vec3T[num_pts];
-		position_array_old_ = new Vec3T[num_pts];
+		position_array_ = *pos_arr_input;
+		vector_data_.push_back(pos_arr_input);
+		vector_data_temp_.push_back(new Vec3T[num_pts]);
 
-		velocity_array_ = new Vec3T[num_pts];
-		velocity_array_old_ = new Vec3T[num_pts];
-
-		force_array_ = new Vec3T[num_pts];
-		force_array_old_ = new Vec3T[num_pts];
-
-		density_array_ = new T[num_pts];
-		density_array_old_ = new T[num_pts];
+		velocity_array_ = *vel_arr_input;
+		vector_data_.push_back(vel_arr_input);
+		vector_data_temp_.push_back(new Vec3T[num_pts]);
 
 		particle_id_array_ = new int[num_pts];
 		particle_index_array_ = new int[num_pts];
 
-		grid_velocity_array_ = new Vec3T[num_pts];
-
 		num_pts_cell_ = new atomic<int>[grid_.ijk_res_];
 		start_idx_cell_ = new atomic<int>[grid_.ijk_res_];
 
-		memset((void*)density_array_, 0, sizeof(T)*max_of_pts_);
-		memset((void*)density_array_old_, 0, sizeof(T)*max_of_pts_);
+		pts_cell_index_array_ = new int[grid_.ijk_res_];
+	}
+
+	void Finalize()
+	{
+		SAFE_DELETE_ARRAY(particle_id_array_);
+		SAFE_DELETE_ARRAY(particle_index_array_);
+		SAFE_DELETE_ARRAY(num_pts_cell_);
+		SAFE_DELETE_ARRAY(start_idx_cell_);
+		SAFE_DELETE_ARRAY(pts_cell_index_array_);
+
+		for(int i = 0; i < (int)vector_data_temp_.size(); i++)
+			SAFE_DELETE_ARRAY(vector_data_temp_[i]);
+
+		for(int i = 0; i < (int)scalar_data_temp_.size(); i++)
+			SAFE_DELETE_ARRAY(scalar_data_temp_[i]);
+	}
+
+	void AddVectorData(Vec3T** data_arr_input, const int num_pts)
+	{
+		vector_data_.push_back(data_arr_input);
+		vector_data_temp_.push_back(new Vec3T[num_pts]);
+	}
+
+	void AddScalarData(T** data_arr_input, const int num_pts)
+	{
+		scalar_data_.push_back(data_arr_input);
+		scalar_data_temp_.push_back(new T[num_pts]);
 	}
 
 	int AddParticle()
@@ -112,10 +116,11 @@ public:
 
 		atomic<int> start_idx = 0;
 		atomic<int> count_pts = 0;
+		num_of_pts_cell_ = 0;
 
 		BEGIN_CPU_THREADS_1D(grid_.ijk_res_)
 		{
-			for (int p = ix_begin; p <= ix_end; p++)
+			THREAD_LOOPS_1D(p)
 			{
 				num_pts_cell_[p] = 0;
 				start_idx_cell_[p] = -1;
@@ -125,7 +130,7 @@ public:
 
 		BEGIN_CPU_THREADS_1D(num_of_pts_)
 		{
-			for (int p = ix_begin; p <= ix_end; p++)
+			THREAD_LOOPS_1D(p)
 			{
 				const Vec3T pos = position_array_[p];
 
@@ -145,17 +150,23 @@ public:
 
 		BEGIN_CPU_THREADS_1D(grid_.ijk_res_)
 		{
-			for (int p = ix_begin; p <= ix_end; p++)
+			THREAD_LOOPS_1D(p)
 			{
 				const atomic<int>& num = num_pts_cell_[p];
 				start_idx_cell_[p] = std::atomic_fetch_add(&start_idx, num);
+
+				if (num > 0)
+				{
+					int ix = std::atomic_fetch_add(&num_of_pts_cell_, 1);
+					pts_cell_index_array_[ix] = p;
+				}
 			}
 		}
 		END_CPU_THREADS_1D;
 
 		BEGIN_CPU_THREADS_1D(num_of_pts_)
 		{
-			for (int p = ix_begin; p <= ix_end; p++)
+			THREAD_LOOPS_1D(p)
 			{
 				const Vec3T pos = position_array_[p];
 				const int pts_id = particle_id_array_[p];
@@ -166,7 +177,6 @@ public:
 				grid_.CellCenterIndex(pos, i, j, k);
 
 				int g_ix = grid_.Index3Dto1D(i, j, k);
-
 				int b_ix = start_idx_cell_[g_ix];
 
 				particle_index_array_[b_ix + pts_id] = p;
@@ -176,7 +186,7 @@ public:
 
 		BEGIN_CPU_THREADS_1D(grid_.ijk_res_)
 		{
-			for (int p = ix_begin; p <= ix_end; p++)
+			THREAD_LOOPS_1D(p)
 			{
 				const int& num = num_pts_cell_[p];
 				const int& b_ix = start_idx_cell_[p];
@@ -184,23 +194,40 @@ public:
 				for (int n = 0; n < num; n++)
 				{
 					int v_ix = particle_index_array_[b_ix + n];
-
-					force_array_old_[b_ix + n] = force_array_[v_ix];
-					position_array_old_[b_ix + n] = position_array_[v_ix];
-					velocity_array_old_[b_ix + n] = velocity_array_[v_ix];
-					density_array_old_[b_ix + n]  = density_array_[v_ix];
+					
+					for (int m = 0; m < (int)vector_data_.size(); m++)
+					{
+						Vec3T* data = *(vector_data_[m]);
+						Vec3T* data_temp = vector_data_temp_[m];
+						data_temp[b_ix + n] = data[v_ix];
+					}
+					for (int m = 0; m < (int)scalar_data_.size(); m++)
+					{
+						T* data = *(scalar_data_[m]);
+						T* data_temp = scalar_data_temp_[m];
+						data_temp[b_ix + n] = data[v_ix];
+					}
 				}
 			}
 		}
 		END_CPU_THREADS_1D;
 
-		Vec3T* v_temp = 0; T* t_temp = 0;
+		for (int m = 0; m < (int)vector_data_.size(); m++)
+		{
+			Vec3T* temp = vector_data_temp_[m];
+			vector_data_temp_[m] = (*vector_data_[m]);
+			(*vector_data_[m]) = temp;
+		}
+		for (int m = 0; m < (int)scalar_data_.size(); m++)
+		{
+			T* temp = scalar_data_temp_[m];
+			scalar_data_temp_[m] = (*scalar_data_[m]);
+			(*scalar_data_[m]) = temp;
+		}
 
-		SWAP(position_array_, position_array_old_, v_temp);
-		SWAP(velocity_array_, velocity_array_old_, v_temp);
-		SWAP(force_array_, force_array_old_, v_temp);
-		SWAP(density_array_, density_array_old_, t_temp);
-
+		position_array_ = (*vector_data_[0]);
+		velocity_array_ = (*vector_data_[1]);
+		
 		num_of_pts_ = (int)count_pts;
 	}
 

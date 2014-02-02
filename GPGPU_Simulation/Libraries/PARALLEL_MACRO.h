@@ -22,7 +22,10 @@ static std::mutex _mutex_cv;
 #define END_CPU_THREADS_1D		     })); } for(auto& thread : threads) { thread.join(); }}
 
 
+#define THREAD_LOOPS_1D(_i) for (int _i = ix_begin; _i <= ix_end; _i++)
+
+
 #define SYNC_CPU_THREADS {std::unique_lock<std::mutex> _lk(_mutex_cv); _sync_threads++;\
-							if (_sync_threads == _num_threads) { _sync_threads = 0; _thread_cv.notify_all(); }\
-							else { _thread_cv.wait(_lk); }}
+								if (_sync_threads == _num_threads) { _sync_threads = 0; _thread_cv.notify_all(); }\
+								else { _thread_cv.wait(_lk); }}
 

@@ -21,6 +21,13 @@ public:
 	T stiffness_;
 	T smoothing_;
 
+	Vec3T* pts_position_arr_;
+	Vec3T* pts_velocity_arr_;
+	Vec3T* pts_force_arr_;
+	Vec3T* pts_grid_vel_arr_;
+	T*     pts_density_arr_;
+
+
 	T*     density_field_;
 	Vec3T* velocity_field_;
 	Vec3T* force_field_;
@@ -46,7 +53,15 @@ public:
 	{
 		grid_.Initialize(min, max, i_res, j_res, k_res, ghost_width);
 
-		particle_manager_.Initialize(grid_, num_pts_res);		
+		pts_position_arr_ = new Vec3T[num_pts_res];
+		pts_velocity_arr_ = new Vec3T[num_pts_res];
+		pts_force_arr_    = new Vec3T[num_pts_res];
+		pts_grid_vel_arr_ = new Vec3T[num_pts_res];
+		pts_density_arr_  = new T    [num_pts_res];
+
+		particle_manager_.Initialize(grid_, &pts_position_arr_, &pts_velocity_arr_, num_pts_res);
+		particle_manager_.AddVectorData(&pts_force_arr_, num_pts_res);
+		particle_manager_.AddScalarData(&pts_density_arr_, num_pts_res);
 
 		wall_conditions_.Initialize(grid_);
 
@@ -60,6 +75,7 @@ public:
 
 		gravity_ = Vec3T(0, -5, 0);
 
+	//	memset((void*)pts_density_arr_, 0, sizeof(T)*num_pts_res);
 		memset((void*)density_field_, 0, sizeof(T)*grid_.ijk_res_);
 		memset((void*)force_field_, 0, sizeof(Vec3T)*grid_.ijk_res_);
 		memset((void*)velocity_field_, 0, sizeof(Vec3T)*grid_.ijk_res_);
@@ -99,11 +115,11 @@ public:
 		{
 			for (int p = ix_begin; p <= ix_end; p++)
 			{
-				Vec3T& pts_pos = particle_manager_.position_array_[p];
-				Vec3T& grid_vel = particle_manager_.grid_velocity_array_[p];
+				Vec3T& pts_pos = pts_position_arr_[p];
+				Vec3T& grid_vel = pts_grid_vel_arr_[p];
 
-				Vec3T& pts_vel = particle_manager_.velocity_array_[p];
-				Vec3T& pts_force = particle_manager_.force_array_[p];
+				Vec3T& pts_vel = pts_velocity_arr_[p];
+				Vec3T& pts_force = pts_force_arr_[p];
 
 				pts_pos += grid_vel * dt;
 
@@ -230,7 +246,7 @@ public:
 					density_weighted += density_g * w;
 				}
 
-				particle_manager_.density_array_[p] = density_weighted;
+				pts_density_arr_[p] = density_weighted;
 			}
 		}
 		END_CPU_THREADS_1D;
@@ -283,9 +299,9 @@ public:
 					{
 						const Vec3T& pos   = particle_manager_.position_array_[b_ix + p];
 						const Vec3T& vel   = particle_manager_.velocity_array_[b_ix + p];
-						const Vec3T& force = particle_manager_.force_array_[b_ix + p];
+						const Vec3T& force = pts_force_arr_[b_ix + p];
 
-						T rho_j = particle_manager_.density_array_[b_ix + p];
+						T rho_j = pts_density_arr_[b_ix + p];
 						T p_j = ComputePressure(rho_j);
 
 						T w = MPMSplineKernel(cell_center - pos, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
@@ -306,7 +322,7 @@ public:
 		{
 			for (int p = ix_begin; p <= ix_end; p++)
 			{
-				particle_manager_.force_array_[p] = Vec3T();
+				pts_force_arr_[p] = Vec3T();
 			}
 		}
 		END_CPU_THREADS_1D;
@@ -368,9 +384,9 @@ public:
 				}
 
 				Vec3T& pts_vel = particle_manager_.velocity_array_[p];
-				Vec3T& grid_vel = particle_manager_.grid_velocity_array_[p];
+				Vec3T& grid_vel = pts_grid_vel_arr_[p];
 
-				const T density_p = particle_manager_.density_array_[p];
+				const T density_p = pts_density_arr_[p];
 
 				grid_vel = vel_weighted;
 

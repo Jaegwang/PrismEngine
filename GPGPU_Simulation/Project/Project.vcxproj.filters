@@ -77,5 +77,8 @@
     <ClInclude Include="..\Libraries\FILE_UTILITIES.h">
       <Filter>Libraries</Filter>
     </ClInclude>
+    <ClInclude Include="..\Libraries\GENERAL_MACRO.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
