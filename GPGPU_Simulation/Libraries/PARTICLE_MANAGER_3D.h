@@ -21,8 +21,11 @@ public:
 	// particle properties
 	Vec3T *position_array_, *velocity_array_;
 
-	std::vector<Vec3T**> vector_data_;
-	std::vector<T**>     scalar_data_;
+	std::vector<Vec3T**> vector_data_pointer_;
+	std::vector<T**>     scalar_data_pointer_;
+
+	std::vector<Vec3T*>  vector_data_;
+	std::vector<T*>      scalar_data_;
 
 	std::vector<Vec3T*>  vector_data_temp_;
 	std::vector<T*>      scalar_data_temp_;
@@ -57,11 +60,13 @@ public:
 		max_of_pts_ = num_pts;
 
 		position_array_ = *pos_arr_input;
-		vector_data_.push_back(pos_arr_input);
-		vector_data_temp_.push_back(new Vec3T[num_pts]);
+		vector_data_pointer_.push_back(pos_arr_input);
+		vector_data_.push_back(*pos_arr_input);
+		vector_data_temp_.push_back(new Vec3T[num_pts]);		
 
 		velocity_array_ = *vel_arr_input;
-		vector_data_.push_back(vel_arr_input);
+		vector_data_pointer_.push_back(vel_arr_input);
+		vector_data_.push_back(*vel_arr_input);
 		vector_data_temp_.push_back(new Vec3T[num_pts]);
 
 		particle_id_array_ = new int[num_pts];
@@ -90,13 +95,15 @@ public:
 
 	void AddVectorData(Vec3T** data_arr_input, const int num_pts)
 	{
-		vector_data_.push_back(data_arr_input);
+		vector_data_pointer_.push_back(data_arr_input);
+		vector_data_.push_back(*data_arr_input);
 		vector_data_temp_.push_back(new Vec3T[num_pts]);
 	}
 
 	void AddScalarData(T** data_arr_input, const int num_pts)
 	{
-		scalar_data_.push_back(data_arr_input);
+		scalar_data_pointer_.push_back(data_arr_input);
+		scalar_data_.push_back(*data_arr_input);
 		scalar_data_temp_.push_back(new T[num_pts]);
 	}
 
@@ -197,13 +204,13 @@ public:
 					
 					for (int m = 0; m < (int)vector_data_.size(); m++)
 					{
-						Vec3T* data = *(vector_data_[m]);
+						Vec3T* data = vector_data_[m];
 						Vec3T* data_temp = vector_data_temp_[m];
 						data_temp[b_ix + n] = data[v_ix];
 					}
 					for (int m = 0; m < (int)scalar_data_.size(); m++)
 					{
-						T* data = *(scalar_data_[m]);
+						T* data = scalar_data_[m];
 						T* data_temp = scalar_data_temp_[m];
 						data_temp[b_ix + n] = data[v_ix];
 					}
@@ -215,18 +222,22 @@ public:
 		for (int m = 0; m < (int)vector_data_.size(); m++)
 		{
 			Vec3T* temp = vector_data_temp_[m];
-			vector_data_temp_[m] = (*vector_data_[m]);
-			(*vector_data_[m]) = temp;
+			vector_data_temp_[m] = vector_data_[m];
+			vector_data_[m] = temp;
+
+			(*vector_data_pointer_[m]) = temp;
 		}
 		for (int m = 0; m < (int)scalar_data_.size(); m++)
 		{
 			T* temp = scalar_data_temp_[m];
-			scalar_data_temp_[m] = (*scalar_data_[m]);
-			(*scalar_data_[m]) = temp;
+			scalar_data_temp_[m] = scalar_data_[m];
+			scalar_data_[m] = temp;
+
+			(*scalar_data_pointer_[m]) = temp;
 		}
 
-		position_array_ = (*vector_data_[0]);
-		velocity_array_ = (*vector_data_[1]);
+		position_array_ = vector_data_[0];
+		velocity_array_ = vector_data_[1];
 		
 		num_of_pts_ = (int)count_pts;
 	}
