@@ -33,5 +33,5 @@ static std::mutex _mutex_cv;
 
 
 #define BEGIN_PARALLEL_FOR_EACH_1D(_i_res, _i) { concurrency::extent<1> view_ext(_i_res);  parallel_for_each(view_ext, [=](index<1> idx) restrict(amp) { int _i = idx[0];
-#define END_PARALLER_FOR_EACH_1D               });}
+#define END_PARALLEL_FOR_EACH_1D               });}
 
