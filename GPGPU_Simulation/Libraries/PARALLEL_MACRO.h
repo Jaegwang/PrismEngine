@@ -7,6 +7,8 @@
 #include <vector>
 #include <thread>
 
+using namespace concurrency;
+
 static int _CPU_MAX_THREADS = std::thread::hardware_concurrency();
 static std::condition_variable _thread_cv;
 static std::mutex _mutex_cv;
@@ -22,10 +24,14 @@ static std::mutex _mutex_cv;
 #define END_CPU_THREADS_1D		     })); } for(auto& thread : threads) { thread.join(); }}
 
 
-#define THREAD_LOOPS_1D(_i) for (int _i = ix_begin; _i <= ix_end; _i++)
+#define THREAD_LOOPS_1D(_i) for(int _i = ix_begin; _i <= ix_end; _i++)
 
 
 #define SYNC_CPU_THREADS {std::unique_lock<std::mutex> _lk(_mutex_cv); _sync_threads++;\
-								if (_sync_threads == _num_threads) { _sync_threads = 0; _thread_cv.notify_all(); }\
-								else { _thread_cv.wait(_lk); }}
+						  if (_sync_threads == _num_threads) { _sync_threads = 0; _thread_cv.notify_all(); }\
+						  else { _thread_cv.wait(_lk); }}
+
+
+#define BEGIN_PARALLEL_FOR_EACH_1D(_i_res, _i) { concurrency::extent<1> view_ext(_i_res);  parallel_for_each(view_ext, [=](index<1> idx) restrict(amp) { int _i = idx[0];
+#define END_PARALLER_FOR_EACH_1D               });}
 
