@@ -2,7 +2,10 @@
 
 #pragma once
 #include <GL\glut.h>
+#include <amp.h>
 #include "VECTOR3_T.h"
+
+using namespace concurrency;
 
 class GRID_UNIFORM_3D
 {
@@ -19,7 +22,8 @@ public:
 	int i_res_, j_res_, k_res_;
 	int ij_res_, ijk_res_;
 
-	int ghost_width_;	
+	int ghost_width_;
+	int g_;
 	
 public:
 	
@@ -46,6 +50,7 @@ public:
 		max_ = max + Vec3T(gx_, gy_, gz_);
 
 		ghost_width_ = g;
+		g_ = g;
 
 		i_res_ = i_res + g*2;
 		j_res_ = j_res + g*2;
@@ -55,23 +60,29 @@ public:
 		ijk_res_ = i_res_ * j_res_ * k_res_;
 	}
 
+	void UseGhostStartIndex(bool b)
+	{
+		if(b == true) g_ = 0;
+		else g_ = ghost_width_;
+	}
+
 	int Index3Dto1D(const int i, const int j, const int k) restrict(cpu,amp)
 	{
-		return i + j*i_res_ + k*ij_res_;
+		return (i+g_) + (j+g_)*i_res_ + (k+g_)*ij_res_;
 	}
 
 	void Index1Dto3D(const int idx, int& i, int& j, int& k) restrict(cpu,amp)
 	{
-		i = idx           % i_res_;
-		j = (idx/i_res_)  % j_res_;
-		k = (idx/ij_res_) % k_res_;
+		i = idx           % i_res_ - g_;
+		j = (idx/i_res_ ) % j_res_ - g_;
+		k = (idx/ij_res_) % k_res_ - g_;
 	}
 
 	bool IsGhostCell(const int i, const int j, const int k) restrict(cpu,amp)
 	{
-		if(i < ghost_width_ || i >= i_res_-ghost_width_) return true;
-		if(j < ghost_width_ || j >= j_res_-ghost_width_) return true;
-		if(k < ghost_width_ || k >= k_res_-ghost_width_) return true;
+		if((i+g_) < ghost_width_ || (i+g_) >= i_res_-ghost_width_) return true;
+		if((j+g_) < ghost_width_ || (j+g_) >= j_res_-ghost_width_) return true;
+		if((k+g_) < ghost_width_ || (k+g_) >= k_res_-ghost_width_) return true;
 
 		return false;
 	}
@@ -96,55 +107,56 @@ public:
 		return false;
 	}
 
-	void ClampValid(Vec3T& p)
+	/*
+	template<int _d0, int _d1, int _d2, class TT>
+	void GlobalToLocalMemory(const tiled_index<_d0, _d1, _d2>& idx, const array_view<TT, 3>& global_arr, TT* local_arr, const int pad = 0) restrict(amp)
 	{
+		int i_res = _d0 + pad*2, j_res = _d1 + pad*2, k_res = _d2 + pad*2;
+		int local_idx = (idx.local[0] + pad) + (idx.local[1] + pad)*i_res + (idx.local[2] + pad)*i_res*j_res;
+		int global_idx = Index3Dto1D(idx.global[0], idx.global[1], idx.global[2]);
 
+		local_arr[local_idx] = global_arr.data()
 	}
-
-	void ClampGhost(Vec3T& p)
-	{
-
-
-	}
+	*/
 
 	Vec3T CellCenterPosition(const int i, const int j, const int k) restrict(cpu,amp)
 	{
-		return min_ + Vec3T(((T)i+(T)0.5)*dx_, ((T)j+(T)0.5)*dy_, ((T)k+(T)0.5)*dz_);
+		return min_ + Vec3T(((T)(i+g_)+(T)0.5)*dx_, ((T)(j+g_)+(T)0.5)*dy_, ((T)(k+g_)+(T)0.5)*dz_);
 	}
 
 	void CellCenterIndex(const Vec3T& p, int& i, int& j, int& k) restrict(cpu,amp)
 	{
 		Vec3T v = p-min_;
-		i = (int)(v.x/dx_); 
-		j = (int)(v.y/dy_); 
-		k = (int)(v.z/dz_); 
+		i = (int)(v.x/dx_) - g_;
+		j = (int)(v.y/dy_) - g_;
+		k = (int)(v.z/dz_) - g_;
 	}
 
 	void LeftBottomIndex(const Vec3T& p, int& i, int& j, int& k) restrict(cpu,amp) 
 	{
 		Vec3T v = p-min_;
-		i = (int)((v.x/dx_)-(T)0.5);  
-		j = (int)((v.y/dy_)-(T)0.5);  
-		k = (int)((v.z/dz_)-(T)0.5); 
+		i = (int)((v.x/dx_)-(T)0.5) - g_;
+		j = (int)((v.y/dy_)-(T)0.5) - g_;
+		k = (int)((v.z/dz_)-(T)0.5) - g_;
 	}
 
 	void RightUpIndex(const Vec3T& p, int& i, int& j, int& k) restrict(cpu,amp)
 	{
 		Vec3T v = p-min_;
-		i = (int)((v.x/dx_)+(T)0.5); 
-		j = (int)((v.y/dy_)+(T)0.5); 
-		k = (int)((v.z/dz_)+(T)0.5); 
+		i = (int)((v.x/dx_)+(T)0.5) - g_; 
+		j = (int)((v.y/dy_)+(T)0.5) - g_;
+		k = (int)((v.z/dz_)+(T)0.5) - g_;
 	}
 
 	void StartEndIndices(const int l, const int m, const int n, int& start_l, int& start_m, int& start_n, int& end_l, int& end_m, int& end_n, const int pad=1) restrict(cpu,amp)
 	{
-		start_l = MAX(l-pad, 0);
-		start_m = MAX(m-pad, 0);
-		start_n = MAX(n-pad, 0);
+		start_l = MAX(l-pad, -g_);
+		start_m = MAX(m-pad, -g_);
+		start_n = MAX(n-pad, -g_);
 
-		end_l = MIN(l+pad, i_res_-1);
-		end_m = MIN(m+pad, j_res_-1);
-		end_n = MIN(n+pad, k_res_-1);
+		end_l = MIN(l+pad, i_res_-g_-1);
+		end_m = MIN(m+pad, j_res_-g_-1);
+		end_n = MIN(n+pad, k_res_-g_-1);
 	}
 
 	template<class TT>
@@ -217,7 +229,7 @@ public:
 			int i,j,k;
 			Index1Dto3D(x,i,j,k);
 
-			if(IsGhostCell(i,j,k))
+			if(!IsGhostCell(i,j,k))
 			{
 				Vec3T cell_center = CellCenterPosition(i,j,k);
 
