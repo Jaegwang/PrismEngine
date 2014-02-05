@@ -9,6 +9,9 @@
 
 using namespace concurrency;
 
+static const int _AMP_TILE_SIZE = 1024;
+static const int _AMP_MAX_THREADS = 30000000;
+
 static int _CPU_MAX_THREADS = std::thread::hardware_concurrency();
 static std::condition_variable _thread_cv;
 static std::mutex _mutex_cv;
@@ -32,6 +35,10 @@ static std::mutex _mutex_cv;
 						  else { _thread_cv.wait(_lk); }}
 
 
-#define BEGIN_PARALLEL_FOR_EACH_1D(_i_res, _i) { concurrency::extent<1> view_ext(_i_res);  parallel_for_each(view_ext, [=](index<1> idx) restrict(amp) { int _i = idx[0];
-#define END_PARALLEL_FOR_EACH_1D               });}
+#define BEGIN_PARALLEL_FOR_EACH_1D(_i_res, _i) { int amp_res = _i_res; int amp_num = amp_res/_AMP_MAX_THREADS+1; int amp_start_idx=0; \
+													for (int n = 0; n < amp_num; n++) { \
+														int size = MIN(_AMP_MAX_THREADS, amp_res-amp_start_idx); concurrency::extent<1> ext(size); \
+														parallel_for_each(ext.tile<_AMP_TILE_SIZE>().pad(), [=](tiled_index<_AMP_TILE_SIZE> tidx) restrict(amp) { \
+															int _i = amp_start_idx + tidx.global[0]; if (tidx.global[0] >= size) return;
+#define END_PARALLEL_FOR_EACH_1D			   }); amp_start_idx += size; }};
 
