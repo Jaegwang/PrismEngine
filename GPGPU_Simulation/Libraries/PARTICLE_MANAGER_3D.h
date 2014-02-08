@@ -125,18 +125,15 @@ public:
 		atomic<int> count_pts = 0;
 		num_of_pts_cell_ = 0;
 
-		array_view<int, 1> num_pts_cell_view(grid_.ijk_res_, (int*)num_pts_cell_);
-		array_view<int, 1> start_idx_cell_view(grid_.ijk_res_, (int*)start_idx_cell_);
-
-		BEGIN_PARALLEL_FOR_EACH_1D(grid_.ijk_res_, p)
+		BEGIN_CPU_THREADS_1D(grid_.ijk_res_)
 		{
-			num_pts_cell_view[p] = 0;
-			start_idx_cell_view[p] = -1;
+			THREAD_LOOPS_1D(p)
+			{
+				num_pts_cell_[p] = 0;
+				start_idx_cell_[p] = -1;
+			}
 		}
-		END_PARALLEL_FOR_EACH_1D
-
-		num_pts_cell_view.synchronize();
-		start_idx_cell_view.synchronize();
+		END_CPU_THREADS_1D
 
 		BEGIN_CPU_THREADS_1D(num_of_pts_)
 		{

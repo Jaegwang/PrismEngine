@@ -2,6 +2,7 @@
 #include "READ_WRITE_PNG.h"
 
 #include <GL\glut.h>
+#include <iostream>
 
 #include "VECTOR3_T.h"
 #include "MATRIX3_T.h"
@@ -52,6 +53,7 @@ int main(int argc, char **argv)
 	mpm_solver.Initialize(min0, max0, 128, 128, 128, 2, 5000000);
 	capture_manager.Initialize(path);
 
+	
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glutInitWindowSize(window_w, window_h);
