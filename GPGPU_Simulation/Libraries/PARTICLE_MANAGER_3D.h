@@ -127,17 +127,18 @@ public:
 
 		BEGIN_CPU_THREADS_1D(grid_.ijk_res_)
 		{
-			THREAD_LOOPS_1D(p)
+			BEGIN_THREAD_LOOP_1D(p)
 			{
 				num_pts_cell_[p] = 0;
 				start_idx_cell_[p] = -1;
 			}
+			END_THREAD_LOOP_1D
 		}
 		END_CPU_THREADS_1D
 
 		BEGIN_CPU_THREADS_1D(num_of_pts_)
 		{
-			THREAD_LOOPS_1D(p)
+			BEGIN_THREAD_LOOP_1D(p)
 			{
 				const Vec3T pos = position_array_[p];
 
@@ -152,12 +153,13 @@ public:
 
 				std::atomic_fetch_add(&count_pts, 1);
 			}
+			END_THREAD_LOOP_1D
 		}
 		END_CPU_THREADS_1D;
 
 		BEGIN_CPU_THREADS_1D(grid_.ijk_res_)
 		{
-			THREAD_LOOPS_1D(p)
+			BEGIN_THREAD_LOOP_1D(p)
 			{
 				const atomic<int>& num = num_pts_cell_[p];
 				start_idx_cell_[p] = std::atomic_fetch_add(&start_idx, num);
@@ -168,12 +170,13 @@ public:
 					pts_cell_index_array_[ix] = p;
 				}
 			}
+			END_THREAD_LOOP_1D
 		}
 		END_CPU_THREADS_1D;
 
 		BEGIN_CPU_THREADS_1D(num_of_pts_)
 		{
-			THREAD_LOOPS_1D(p)
+			BEGIN_THREAD_LOOP_1D(p)
 			{
 				const Vec3T pos = position_array_[p];
 				const int pts_id = particle_id_array_[p];
@@ -188,12 +191,13 @@ public:
 
 				particle_index_array_[b_ix + pts_id] = p;
 			}
+			END_THREAD_LOOP_1D
 		}
 		END_CPU_THREADS_1D;
 
 		BEGIN_CPU_THREADS_1D(grid_.ijk_res_)
 		{
-			THREAD_LOOPS_1D(p)
+			BEGIN_THREAD_LOOP_1D(p)
 			{
 				const int& num = num_pts_cell_[p];
 				const int& b_ix = start_idx_cell_[p];
@@ -216,6 +220,7 @@ public:
 					}
 				}
 			}
+			END_THREAD_LOOP_1D
 		}
 		END_CPU_THREADS_1D;
 
