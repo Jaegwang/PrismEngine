@@ -18,6 +18,15 @@ static int _CPU_MAX_THREADS = std::thread::hardware_concurrency();
 static std::condition_variable _thread_cv;
 static std::mutex _mutex_cv;
 
+
+#define BEGIN_CPU_THREADS(_i_res, _i) { vector<std::thread> threads; int _num_threads = MIN(_CPU_MAX_THREADS, (int)_i_res); const int _quotient = (int)_i_res/_num_threads; \
+												int _remainder=(int)_i_res%_num_threads, _ix_base=0, _thread_size=0; atomic<int> _sync_threads=0; \
+												for(int id = 0; id < _num_threads; ++id) { _thread_size = id < _remainder ? (_quotient + 1) : _quotient; \
+													auto _thread_func = [&](int tid, int ix_begin, int ix_end){ for(int _i = ix_begin; _i <= ix_end; _i++) {
+													// Thread Work.
+#define END_CPU_THREADS }}; threads.push_back(std::thread(_thread_func, id, _ix_base, _ix_base+_thread_size-1)); _ix_base+=_thread_size; } for(auto& thread : threads) { thread.join(); }}
+
+
 #define BEGIN_CPU_THREADS_1D(_i_res) { vector<std::thread> threads; int _num_threads = MIN(_CPU_MAX_THREADS, (int)_i_res); const int _quotient = (int)_i_res/_num_threads; \
 												int _remainder=(int)_i_res%_num_threads, _ix_base=0, _thread_size=0; atomic<int> _sync_threads=0; \
 												for(int id = 0; id < _num_threads; ++id) { _thread_size = id < _remainder ? (_quotient + 1) : _quotient; \
