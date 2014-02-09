@@ -131,11 +131,13 @@
     <ClInclude Include="..\Libraries\FILE_UTILITIES.h" />
     <ClInclude Include="..\Libraries\GENERAL_MACRO.h" />
     <ClInclude Include="..\Libraries\GRID_UNIFORM_3D.h" />
+    <ClInclude Include="..\Libraries\INDEX3.h" />
     <ClInclude Include="..\Libraries\KERNEL_FUNCTIONS.h" />
     <ClInclude Include="..\Libraries\MATH_CORE.h" />
     <ClInclude Include="..\Libraries\MATH_DEFINITION.h" />
     <ClInclude Include="..\Libraries\MATRIX3_T.h" />
     <ClInclude Include="..\Libraries\MPM_FLUID_SOLVER.h" />
+    <ClInclude Include="..\Libraries\MPM_WEIGHTS.h" />
     <ClInclude Include="..\Libraries\PARALLEL_MACRO.h" />
     <ClInclude Include="..\Libraries\PARTICLE.h" />
     <ClInclude Include="..\Libraries\PARTICLE_MANAGER_3D.h" />

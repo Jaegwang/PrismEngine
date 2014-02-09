@@ -4,6 +4,8 @@
 #include "KERNEL_FUNCTIONS.h"
 #include "PARTICLE_MANAGER_3D.h"
 #include "WALL_CONDITIONS.h"
+#include "MPM_WEIGHTS.h"
+#include "MATRIX3_T.h"
 
 #include "GL\glut.h"
 
@@ -26,7 +28,7 @@ public:
 	Vec3T* pts_force_arr_;
 	Vec3T* pts_grid_vel_arr_;
 	T*     pts_density_arr_;
-
+	Mat3T* pts_tensor_arr_;
 
 	T*     density_field_;
 	Vec3T* velocity_field_;
@@ -58,6 +60,7 @@ public:
 		pts_force_arr_    = new Vec3T[num_pts_res];
 		pts_grid_vel_arr_ = new Vec3T[num_pts_res];
 		pts_density_arr_  = new T    [num_pts_res];
+		pts_tensor_arr_   = new Mat3T[num_pts_res];
 
 		particle_manager_.Initialize(grid_, &pts_position_arr_, &pts_velocity_arr_, num_pts_res);
 		particle_manager_.AddVectorData(&pts_force_arr_, num_pts_res);
@@ -130,6 +133,48 @@ public:
 		END_CPU_THREADS_1D;
 	}
 
+	void ComputeStreesTensorParicles()
+	{
+		BEGIN_CPU_THREADS(particle_manager_.num_of_pts_, p)
+		{
+			T dudx((T)0), dudy((T)0), dudz((T)0), dvdx((T)0), dvdy((T)0), dvdz((T)0), dwdx((T)0), dwdy((T)0), dwdz((T)0);
+
+			const Vec3T& pts_pos = pts_position_arr_[p];
+			Mat3T& pts_tensor = pts_tensor_arr_[p];
+
+			int i, j, k, g_ix;
+			grid_.CellCenterIndex(pts_pos, i, j, k);
+
+			BEGIN_STENCIL_LOOP(grid_, i, j, k, l, m, n)
+			{
+				int s_ix = grid_.Index3Dto1D(l, m, n);
+
+				Vec3T cell_pos = grid_.CellCenterPosition(l, m, n);
+				Vec3T cell_vel = velocity_field_[s_ix];
+
+				Vec3T grad = MPMSplineKernelGradient(pts_pos - cell_pos, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
+
+				dudx += cell_vel.x * grad.x;
+				dudy += cell_vel.x * grad.y;
+				dudz += cell_vel.x * grad.z;
+
+				dvdx += cell_vel.y * grad.x;
+				dvdy += cell_vel.y * grad.y;
+				dvdz += cell_vel.y * grad.z;
+
+				dwdx += cell_vel.z * grad.x;
+				dwdy += cell_vel.z * grad.y;
+				dwdz += cell_vel.z * grad.z;
+			}
+			END_STENCIL_LOOP
+
+			pts_tensor.SetRow(0, Vec3T(dudx + dudx, dudy + dvdx, dudz + dwdx)*(T)0.5);
+			pts_tensor.SetRow(1, Vec3T(dvdx + dudy, dvdy + dvdy, dvdz + dwdy)*(T)0.5);
+			pts_tensor.SetRow(2, Vec3T(dwdx + dudz, dwdy + dvdz, dwdz + dwdz)*(T)0.5);
+		}
+		END_CPU_THREADS
+	}
+
 	void SourceFormSphere(const Vec3T& pos, const Vec3T& vel, const T rad, const int num)
 	{	
 		Vec3T* pos_arr = particle_manager_.position_array_;
@@ -171,17 +216,18 @@ public:
 					density_field_[g_ix] = rest_density_;
 					velocity_field_[g_ix] = Vec3T();
 					continue;
-				}				
+				}
 
 				Vec3T cell_center = grid_.CellCenterPosition(i, j, k);
 
 				Vec3T vel_weighted = Vec3T();
 				T mass_weighted = (T)0;
 
-				BEGIN_STENCIL_LOOP(grid_, i,j,k, s)
+				BEGIN_STENCIL_LOOP(grid_, i,j,k, l,m,n)
 				{
-					int num = particle_manager_.num_pts_cell_[s];
-					int b_ix = particle_manager_.start_idx_cell_[s];
+					int s_ix = grid_.Index3Dto1D(l, m, n);
+					int num = particle_manager_.num_pts_cell_[s_ix];
+					int b_ix = particle_manager_.start_idx_cell_[s_ix];
 
 					for (int p = 0; p < num; p++)
 					{
@@ -222,15 +268,17 @@ public:
 			BEGIN_THREAD_LOOP_1D(p)
 			{
 				const Vec3T& pts_pos = particle_manager_.position_array_[p];
+
 				int i, j, k;
 				grid_.CellCenterIndex(pts_pos, i, j, k);
 
 				T density_weighted = (T)0;
 
-				BEGIN_STENCIL_LOOP(grid_, i, j, k, s)
+				BEGIN_STENCIL_LOOP(grid_, i, j, k, l, m, n)
 				{
+					int s_ix = grid_.Index3Dto1D(l, m, n);
 					Vec3T cell_center = grid_.CellCenterPosition(l, m, n);
-					T density_g = density_field_[s];
+					T density_g = density_field_[s_ix];
 
 					Vec3T deviation = cell_center - pts_pos;
 
@@ -280,11 +328,11 @@ public:
 				Vec3T pressure((T)0,(T)0,(T)0);
 				Vec3T external_force((T)0, (T)0, (T)0);
 
-
-				BEGIN_STENCIL_LOOP(grid_, i,j,k, s)
+				BEGIN_STENCIL_LOOP(grid_, i,j,k, l,m,n)
 				{
-					int num = particle_manager_.num_pts_cell_[s];
-					int b_ix = particle_manager_.start_idx_cell_[s];
+					int s_ix = grid_.Index3Dto1D(l, m, n);
+					int num = particle_manager_.num_pts_cell_[s_ix];
+					int b_ix = particle_manager_.start_idx_cell_[s_ix];
 
 					for (int p = 0; p < num; p++)
 					{
@@ -352,13 +400,14 @@ public:
 				Vec3T force_weighted = Vec3T();
 				Vec3T vel_weighted = Vec3T();
 
-				BEGIN_STENCIL_LOOP(grid_, i,j,k, s)
+				BEGIN_STENCIL_LOOP(grid_, i, j, k, l, m, n)
 				{
+					int s_ix = grid_.Index3Dto1D(l, m, n);
 					Vec3T cell_center = grid_.CellCenterPosition(l, m, n);
 
-					Vec3T velocity_g = velocity_field_[s];
-					Vec3T force_g = force_field_[s];
-					T density_g = density_field_[s];
+					Vec3T velocity_g = velocity_field_[s_ix];
+					Vec3T force_g = force_field_[s_ix];
+					T density_g = density_field_[s_ix];
 
 					if (density_g > FLT_EPSILON)
 					{

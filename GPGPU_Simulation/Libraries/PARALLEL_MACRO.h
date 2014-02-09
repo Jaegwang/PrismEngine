@@ -51,10 +51,10 @@ static std::mutex _mutex_cv;
 #define END_PARALLEL_FOR_EACH_1D			   }); amp_start_idx += size; }};
 
 
-#define BEGIN_STENCIL_LOOP(_grid, _i, _j, _k, _p) { int _start_l, _start_m, _start_n, _end_l, _end_m, _end_n; \
-													_grid.StartEndIndices(_i, _j, _k, _start_l, _start_m, _start_n, _end_l, _end_m, _end_n); \
-													int _b_ix = _grid.Index3Dto1D(_start_l, _start_m, _start_n); \
-													for (int ns = 0, n = _start_n; n <= _end_n; ns += _grid.ij_res_, n++)\
-													for (int ms = 0, m = _start_m; m <= _end_m; ms += _grid.i_res_, m++)\
-													for (int ls = 0, l = _start_l; l <= _end_l; ls += 1, l++) { int _p = _b_ix + ns + ms + ls;
+#define BEGIN_STENCIL_LOOP(_grid, _i, _j, _k, _l, _m, _n) { int _start_l, _start_m, _start_n, _end_l, _end_m, _end_n; \
+															_grid.StartEndIndices(_i, _j, _k, _start_l, _start_m, _start_n, _end_l, _end_m, _end_n); \
+															int _b_ix = _grid.Index3Dto1D(_start_l, _start_m, _start_n); \
+															for (int _ns = 0, _n = _start_n; _n <= _end_n; _ns += _grid.ij_res_, _n++)\
+															for (int _ms = 0, _m = _start_m; _m <= _end_m; _ms += _grid.i_res_, _m++)\
+															for (int _ls = 0, _l = _start_l; _l <= _end_l; _ls += 1, _l++) { int _p = _b_ix + _ns + _ms + _ls;
 #define END_STENCIL_LOOP }}

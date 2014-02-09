@@ -80,5 +80,11 @@
     <ClInclude Include="..\Libraries\GENERAL_MACRO.h">
       <Filter>Libraries</Filter>
     </ClInclude>
+    <ClInclude Include="..\Libraries\MPM_WEIGHTS.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\INDEX3.h">
+      <Filter>Libraries\Math</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

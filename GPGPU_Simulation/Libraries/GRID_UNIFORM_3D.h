@@ -4,6 +4,7 @@
 #include <GL\glut.h>
 #include <amp.h>
 #include "VECTOR3_T.h"
+#include "INDEX3.h"
 
 using namespace concurrency;
 
@@ -24,6 +25,8 @@ public:
 
 	int ghost_width_;
 	int g_;
+
+	static INDEX3 stencil_offset_[27];
 	
 public:
 	
@@ -107,18 +110,6 @@ public:
 		return false;
 	}
 
-	/*
-	template<int _d0, int _d1, int _d2, class TT>
-	void GlobalToLocalMemory(const tiled_index<_d0, _d1, _d2>& idx, const array_view<TT, 3>& global_arr, TT* local_arr, const int pad = 0) restrict(amp)
-	{
-		int i_res = _d0 + pad*2, j_res = _d1 + pad*2, k_res = _d2 + pad*2;
-		int local_idx = (idx.local[0] + pad) + (idx.local[1] + pad)*i_res + (idx.local[2] + pad)*i_res*j_res;
-		int global_idx = Index3Dto1D(idx.global[0], idx.global[1], idx.global[2]);
-
-		local_arr[local_idx] = global_arr.data()
-	}
-	*/
-
 	Vec3T CellCenterPosition(const int i, const int j, const int k) restrict(cpu,amp)
 	{
 		return min_ + Vec3T(((T)(i+g_)+(T)0.5)*dx_, ((T)(j+g_)+(T)0.5)*dy_, ((T)(k+g_)+(T)0.5)*dz_);
@@ -157,6 +148,34 @@ public:
 		end_l = MIN(l+pad, i_res_-g_-1);
 		end_m = MIN(m+pad, j_res_-g_-1);
 		end_n = MIN(n+pad, k_res_-g_-1);
+	}
+
+	void StencilIndexBuffer(const int i, const int j, const int k, int* buf)
+	{
+		int start_l, start_m, start_n, end_l, end_m, end_n;
+		StartEndIndices(i, j, k, start_l, start_m, start_n, end_l, end_m, end_n, 1);
+
+		int ix = 0;
+
+		for (int n = start_n; n <= end_n; n++) for (int m = start_m; m <= end_m; m++) for (int l = start_l; n <= end_l; l++)
+		{
+			buf[ix++] = Index3Dto1D(l, m, n);
+		}
+	}
+
+	void StencilIndexBuffer(const int i, const int j, const int k, Idx3* buf)
+	{
+		int start_l, start_m, start_n, end_l, end_m, end_n;
+		StartEndIndices(i, j, k, start_l, start_m, start_n, end_l, end_m, end_n, 1);
+
+		int ix = 0;
+
+		for (int n = start_n; n <= end_n; n++) for (int m = start_m; m <= end_m; m++) for (int l = start_l; n <= end_l; l++)
+		{
+			buf[ix++].i_ = l;
+			buf[ix++].j_ = m;
+			buf[ix++].k_ = n;
+		}
 	}
 
 	template<class TT>
@@ -242,4 +261,19 @@ public:
 		glEnable(GL_LIGHTING);
 	}
 
+};
+
+INDEX3 GRID_UNIFORM_3D::stencil_offset_[27] =
+{
+	INDEX3(-1, -1, -1), INDEX3(-1, -1, 0), INDEX3(-1, -1, 1),
+	INDEX3(-1,  0, -1), INDEX3(-1,  0, 0), INDEX3(-1,  0, 1),
+	INDEX3(-1,  1, -1), INDEX3(-1,  1, 0), INDEX3(-1,  1, 1),
+
+	INDEX3( 0, -1, -1), INDEX3( 0, -1, 0), INDEX3( 0, -1, 1),
+	INDEX3( 0,  0, -1), INDEX3( 0,  0, 0), INDEX3( 0,  0, 1),
+	INDEX3( 0,  1, -1), INDEX3( 0,  1, 0), INDEX3( 0,  1, 1),
+
+	INDEX3( 1, -1, -1), INDEX3( 1, -1, 0), INDEX3( 1, -1, 1),
+	INDEX3( 1,  0, -1), INDEX3( 1,  0, 0), INDEX3( 1,  0, 1),
+	INDEX3( 1,  1, -1), INDEX3( 1,  1, 0), INDEX3( 1,  1, 1),
 };
