@@ -20,8 +20,8 @@ void MPM_FLUID_SOLVER::Initialize(const Vec3T min, const Vec3T max, const int i_
 	wall_conditions_.Initialize(grid_);
 
 	mass_ = 1;
-	rest_density_ = 1;
-	stiffness_ = 0.5;
+	rest_density_ = 2;
+	stiffness_ = 0.1;
 
 	density_field_  = new T[grid_.ijk_res_];
 	velocity_field_ = new Vec3T[grid_.ijk_res_];
@@ -58,10 +58,7 @@ void MPM_FLUID_SOLVER::RasterizeParticlesDensityAndVelocityToGrid()
 		Vec3T cell_center = grid_.CellCenterPosition(i, j, k);
 
 		Vec3T vel_weighted = Vec3T();
-		T mass_weighted = (T)0;
-
-		Vec3T vel_averaged = Vec3T();
-		T pts_count = (T)0;
+		T mass_weighted = (T)FLT_EPSILON;
 
 		BEGIN_STENCIL_LOOP(grid_, i,j,k, l,m,n)
 		{
@@ -79,23 +76,12 @@ void MPM_FLUID_SOLVER::RasterizeParticlesDensityAndVelocityToGrid()
 
 				mass_weighted += mass_ * w;
 				vel_weighted += vel * mass_ * w;
-
-				vel_averaged += vel;
-				pts_count += (T)1;
 			}
 		}
 		END_STENCIL_LOOP
 
 		density_field_[p] = mass_weighted;
-
-		if(mass_weighted > FLT_EPSILON)
-		{					
-			velocity_field_[p] = vel_weighted / mass_weighted;
-		}
-		else
-		{
-			velocity_field_[p] = vel_averaged / pts_count;
-		}
+		velocity_field_[p] = vel_weighted / mass_weighted;
 	}
 	END_CPU_THREADS;
 }
@@ -131,6 +117,24 @@ void MPM_FLUID_SOLVER::ComputeParticleDenistyFromGrid()
 	END_CPU_THREADS;
 }
 
+void MPM_FLUID_SOLVER::ComputeStressTensors()
+{
+	if (particle_manager_.num_of_pts_ == 0) return;
+
+	T e = 10000000;
+
+	BEGIN_CPU_THREADS(particle_manager_.num_of_pts_, p)
+	{
+		Vec3T& pts_pos = pts_position_arr_[p];
+		Mat3T& pts_tensor = pts_tensor_arr_[p];
+
+		ComputeStrainRate(pts_pos, pts_tensor);
+
+		pts_tensor = pts_tensor * (T)0;
+	}
+	END_CPU_THREADS;
+}
+
 void MPM_FLUID_SOLVER::ComputeGridForces()
 {
 	if (particle_manager_.num_of_pts_ == 0) return;
@@ -151,9 +155,6 @@ void MPM_FLUID_SOLVER::ComputeGridForces()
 		Vec3T int_force((T)0, (T)0, (T)0);
 		Vec3T ext_force((T)0, (T)0, (T)0);
 
-		const T density_g = density_field_[p];
-		const T pressure_g = ComputePressure(density_g);
-
 		BEGIN_STENCIL_LOOP(grid_, i,j,k, l,m,n)
 		{
 			int s_ix = grid_.Index3Dto1D(l, m, n);
@@ -162,94 +163,27 @@ void MPM_FLUID_SOLVER::ComputeGridForces()
 
 			for (int p = 0; p < num; p++)
 			{
-				const Vec3T& pos   = pts_position_arr_[b_ix + p];
-				const Vec3T& vel   = pts_velocity_arr_[b_ix + p];
-				const Vec3T& force = pts_force_arr_[b_ix + p];
-				const T density_p  = pts_density_arr_[b_ix + p];
+				const Vec3T& pos    = pts_position_arr_[b_ix + p];
+				const Vec3T& vel    = pts_velocity_arr_[b_ix + p];
+				const Vec3T& force  = pts_force_arr_[b_ix + p];
+				const Mat3T& tensor = pts_tensor_arr_[b_ix + p];
 
+				const T density_p  = pts_density_arr_[b_ix + p];
 				const T pressure_p = ComputePressure(density_p);
 	
 				T w = QuadBSplineKernel(cell_center-pos, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
 				Vec3T grad = QuadBSplineKernelGradient(cell_center-pos, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
 
-				int_force += -grad*mass_*(pressure_p + pressure_g)/(density_p + density_g);
-				ext_force +=  w*(force+gravity_*mass_);
+				int_force += grad*pressure_p + tensor*grad;
+				ext_force += w*(force+gravity_*mass_);
 			}
 		}
 		END_STENCIL_LOOP;
 
-		force_field_[p] = int_force + ext_force;
+		force_field_[p] = -int_force + ext_force;
 	}
 	END_CPU_THREADS;
 }
-
-
-void MPM_FLUID_SOLVER::UpdateGridVelocity(const T dt)
-{
-	BEGIN_CPU_THREADS(grid_.ijk_res_, p)
-	{
-		int i, j, k;
-		grid_.Index1Dto3D(p, i, j, k);
-
-		const T density_g = density_field_[p];
-		const Vec3T force_g = force_field_[p];
-
-		if(density_g > FLT_EPSILON)
-		{			
-			const Vec3T prev_velocity = velocity_field_[p];
-			velocity_field_[p] += force_g / density_g * dt;
-
-			force_field_[p] = velocity_field_[p] - prev_velocity;
-		}
-		else
-		{
-			force_field_[p] = Vec3T();
-		}
-	}
-	END_CPU_THREADS;
-}
-
-
-void MPM_FLUID_SOLVER::UpdateParticleVelocity(const T dt)
-{
-	if(particle_manager_.num_of_pts_ == 0) return;
-
-	BEGIN_CPU_THREADS(particle_manager_.num_of_pts_, p)
-	{
-		const Vec3T& pts_pos = pts_position_arr_[p];
-
-		int i, j, k;
-		grid_.CellCenterIndex(pts_pos, i, j, k);
-
-		Vec3T force_weighted = Vec3T();
-		Vec3T vel_weighted = Vec3T();
-
-		BEGIN_STENCIL_LOOP(grid_, i, j, k, l, m, n)
-		{
-			int s_ix = grid_.Index3Dto1D(l, m, n);
-			Vec3T cell_center = grid_.CellCenterPosition(l, m, n);
-
-			Vec3T velocity_g = velocity_field_[s_ix];
-			Vec3T force_g = force_field_[s_ix];
-
-			T w = QuadBSplineKernel(cell_center-pts_pos, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
-
-			force_weighted += force_g*w;
-			vel_weighted += velocity_g*w;
-		}
-		END_STENCIL_LOOP;
-
-		Vec3T& pts_vel = pts_velocity_arr_[p];
-		Vec3T& grid_vel = pts_grid_vel_arr_[p];
-
-		grid_vel = vel_weighted;
-
-		pts_vel += force_weighted;
-		pts_vel = pts_vel*((T)1-smoothing_) + grid_vel*smoothing_;
-	}
-	END_CPU_THREADS;
-}
-
 
 void MPM_FLUID_SOLVER::UpdateParticleAndGridVelocity(const T dt)
 {
@@ -263,7 +197,7 @@ void MPM_FLUID_SOLVER::UpdateParticleAndGridVelocity(const T dt)
 		const T density_g = density_field_[p];
 		const Vec3T force_g = force_field_[p];
 
-		if (density_g > FLT_EPSILON) velocity_field_[p] += force_g / density_g * dt;
+		velocity_field_[p] += force_g / (density_g+(T)FLT_EPSILON) * dt;
 	}
 	END_CPU_THREADS;
 

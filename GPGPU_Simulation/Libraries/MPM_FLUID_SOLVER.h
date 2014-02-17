@@ -40,7 +40,7 @@ public:
 
 public:
 
-	MPM_FLUID_SOLVER() : density_field_(0), velocity_field_(0), force_field_(0), mass_(1), rest_density_(1), smoothing_((T)0.3)
+	MPM_FLUID_SOLVER() : density_field_(0), velocity_field_(0), force_field_(0), mass_(1), rest_density_(1), smoothing_((T)0.2)
 	{}
 
 	~MPM_FLUID_SOLVER()
@@ -62,13 +62,11 @@ public:
 
 			ComputeParticleDenistyFromGrid();
 
+			ComputeStressTensors();
+
 			ComputeGridForces();
 
-//			UpdateParticleAndGridVelocity(dt);
-
-			UpdateGridVelocity(dt);
-			UpdateParticleVelocity(dt);
-
+			UpdateParticleAndGridVelocity(dt);
 
 			AdvectParticles(dt);			
 
@@ -82,11 +80,9 @@ public:
 
 	void ComputeParticleDenistyFromGrid();
 
+	void ComputeStressTensors();
+
 	void ComputeGridForces();
-
-	void UpdateGridVelocity(const T dt);
-
-	void UpdateParticleVelocity(const T dt);
 
 	void UpdateParticleAndGridVelocity(const T dt);
 

@@ -404,5 +404,16 @@ static MATRIX3_T operator * (const MATRIX3_T& x, const MATRIX3_T& y) restrict(cp
 	return product;
 }
 
+static MATRIX3_T operator * (const MATRIX3_T& x, const T& s) restrict(cpu, amp)
+{
+	MATRIX3_T product; // zeroes
+	for( int i = 0; i < 9; ++i )
+	{
+		product.m_elements[i] = x.m_elements[i]*s;
+	}
+
+	return product;
+}
+
 typedef MATRIX3_T Matrix3T;
 typedef MATRIX3_T Mat3T;
