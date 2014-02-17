@@ -27,6 +27,9 @@
     <ClCompile Include="..\Libraries\CAPTURE_MANAGER.cpp">
       <Filter>Libraries</Filter>
     </ClCompile>
+    <ClCompile Include="..\Libraries\MPM_FLUID_SOLVER.cpp">
+      <Filter>Libraries</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Libraries\MATH_CORE.h">

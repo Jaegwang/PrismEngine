@@ -124,6 +124,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Libraries\CAPTURE_MANAGER.cpp" />
+    <ClCompile Include="..\Libraries\MPM_FLUID_SOLVER.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>

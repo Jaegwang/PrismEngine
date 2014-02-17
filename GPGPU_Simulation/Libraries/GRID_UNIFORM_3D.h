@@ -4,7 +4,6 @@
 #include <GL\glut.h>
 #include <amp.h>
 #include "VECTOR3_T.h"
-#include "INDEX3.h"
 
 using namespace concurrency;
 
@@ -25,8 +24,6 @@ public:
 
 	int ghost_width_;
 	int g_;
-
-	static INDEX3 stencil_offset_[27];
 	
 public:
 	
@@ -163,21 +160,6 @@ public:
 		}
 	}
 
-	void StencilIndexBuffer(const int i, const int j, const int k, Idx3* buf)
-	{
-		int start_l, start_m, start_n, end_l, end_m, end_n;
-		StartEndIndices(i, j, k, start_l, start_m, start_n, end_l, end_m, end_n, 1);
-
-		int ix = 0;
-
-		for (int n = start_n; n <= end_n; n++) for (int m = start_m; m <= end_m; m++) for (int l = start_l; n <= end_l; l++)
-		{
-			buf[ix++].i_ = l;
-			buf[ix++].j_ = m;
-			buf[ix++].k_ = n;
-		}
-	}
-
 	template<class TT>
 	TT TriLinearInterpolate(const Vec3T& p, TT* arr) restrict(cpu,amp)
 	{ //http://en.wikipedia.org/wiki/Trilinear_interpolation
@@ -261,19 +243,4 @@ public:
 		glEnable(GL_LIGHTING);
 	}
 
-};
-
-INDEX3 GRID_UNIFORM_3D::stencil_offset_[27] =
-{
-	INDEX3(-1, -1, -1), INDEX3(-1, -1, 0), INDEX3(-1, -1, 1),
-	INDEX3(-1,  0, -1), INDEX3(-1,  0, 0), INDEX3(-1,  0, 1),
-	INDEX3(-1,  1, -1), INDEX3(-1,  1, 0), INDEX3(-1,  1, 1),
-
-	INDEX3( 0, -1, -1), INDEX3( 0, -1, 0), INDEX3( 0, -1, 1),
-	INDEX3( 0,  0, -1), INDEX3( 0,  0, 0), INDEX3( 0,  0, 1),
-	INDEX3( 0,  1, -1), INDEX3( 0,  1, 0), INDEX3( 0,  1, 1),
-
-	INDEX3( 1, -1, -1), INDEX3( 1, -1, 0), INDEX3( 1, -1, 1),
-	INDEX3( 1,  0, -1), INDEX3( 1,  0, 0), INDEX3( 1,  0, 1),
-	INDEX3( 1,  1, -1), INDEX3( 1,  1, 0), INDEX3( 1,  1, 1),
 };

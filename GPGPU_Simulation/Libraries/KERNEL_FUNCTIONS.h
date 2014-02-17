@@ -3,6 +3,38 @@
 
 #include "VECTOR3_T.h"
 
+static T QuadBSplineKernel(const T d, const T one_over_h) restrict(cpu, amp)
+{
+	const T q = d*one_over_h;
+
+	if(q < -(T)3/(T)2) return 0;
+	else if(q <= -(T)1/(T)2) return (T)0.5*q*q + (T)3/(T)2*q + (T)9/(T)8; 
+	else if(q <=  (T)1/(T)2) return -q*q + (T)3/(T)4;
+	else if(q <=  (T)3/(T)2) return (T)0.5*q*q - (T)3/(T)2*q + (T)9/(T)8; 
+	else return 0;
+}
+
+static T QuadBSplineKernelGradient(const T d, const T one_over_h) restrict(cpu, amp)
+{
+	const T q = d*one_over_h;
+
+	if(q < -(T)3/(T)2) return 0;
+	else if(q <= -(T)1/(T)2) return (T)q + (T)3/(T)2;
+	else if(q <=  (T)1/(T)2) return -(T)2*q;
+	else if(q <=  (T)3/(T)2) return (T)q - (T)3/(T)2; 
+	else return 0;
+}
+
+static T QuadBSplineKernel(const Vec3T d, const T one_over_dx, const T one_over_dy, const T one_over_dz) restrict(cpu, amp)
+{
+	return QuadBSplineKernel(d.x, one_over_dx)*QuadBSplineKernel(d.y, one_over_dy)*QuadBSplineKernel(d.z, one_over_dz);
+}
+
+static Vec3T QuadBSplineKernelGradient(const Vec3T d, const T one_over_dx, const T one_over_dy, const T one_over_dz) restrict(cpu, amp)
+{
+	return Vec3T(QuadBSplineKernelGradient(d.x, one_over_dx), QuadBSplineKernelGradient(d.y, one_over_dy), QuadBSplineKernelGradient(d.z, one_over_dz));
+}
+
 
 /*
 static T MPMSplineKernel(const T d, const T one_over_h) restrict(cpu,amp)

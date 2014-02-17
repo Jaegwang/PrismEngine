@@ -50,11 +50,7 @@ int main(int argc, char **argv)
 
 	std::string path = "no";
 
-	atomic<float> ddd;
-
-	ddd = 1.0f;
-
-	mpm_solver.Initialize(min0, max0, 128, 128, 128, 2, 5000000);
+	mpm_solver.Initialize(min0, max0, 100, 100, 100, 2, 5000000);
 	capture_manager.Initialize(path);
 
 	
@@ -130,7 +126,7 @@ void idle()
 
 	if (is_playing == true)
 	{
-		mpm_solver.AdvanceTimeStep((T)0.01, 1);
+		mpm_solver.AdvanceTimeStep((T)0.01, 2);
 
 		is_capture_flag = true;
 	}
