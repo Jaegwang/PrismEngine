@@ -23,6 +23,9 @@ void MPM_FLUID_SOLVER::Initialize(const Vec3T min, const Vec3T max, const int i_
 	rest_density_ = 2;
 	stiffness_ = 0.1;
 
+	normal_stress_coef_ = (T)0;
+	shear_stress_coef_ = (T)2;
+
 	density_field_  = new T[grid_.ijk_res_];
 	velocity_field_ = new Vec3T[grid_.ijk_res_];
 	force_field_    = new Vec3T[grid_.ijk_res_];
@@ -58,7 +61,7 @@ void MPM_FLUID_SOLVER::RasterizeParticlesDensityAndVelocityToGrid()
 		Vec3T cell_center = grid_.CellCenterPosition(i, j, k);
 
 		Vec3T vel_weighted = Vec3T();
-		T mass_weighted = (T)FLT_EPSILON;
+		T mass_weighted = (T)0;
 
 		BEGIN_STENCIL_LOOP(grid_, i,j,k, l,m,n)
 		{
@@ -81,7 +84,7 @@ void MPM_FLUID_SOLVER::RasterizeParticlesDensityAndVelocityToGrid()
 		END_STENCIL_LOOP
 
 		density_field_[p] = mass_weighted;
-		velocity_field_[p] = vel_weighted / mass_weighted;
+		velocity_field_[p] = vel_weighted / (mass_weighted+FLT_EPSILON);
 	}
 	END_CPU_THREADS;
 }
@@ -121,16 +124,28 @@ void MPM_FLUID_SOLVER::ComputeStressTensors()
 {
 	if (particle_manager_.num_of_pts_ == 0) return;
 
-	T e = 10000000;
-
 	BEGIN_CPU_THREADS(particle_manager_.num_of_pts_, p)
 	{
-		Vec3T& pts_pos = pts_position_arr_[p];
+		const Vec3T& pts_pos = pts_position_arr_[p];
+		const Vec3T& pts_force = pts_force_arr_[p];
+		const T& pts_density = pts_density_arr_[p];
+
 		Mat3T& pts_tensor = pts_tensor_arr_[p];
+
+		T pressure = ComputePressure(pts_density);
 
 		ComputeStrainRate(pts_pos, pts_tensor);
 
-		pts_tensor = pts_tensor * (T)0;
+		pts_tensor(0,0) = pts_tensor(0,0)*normal_stress_coef_ + pressure;
+		pts_tensor(1,1) = pts_tensor(1,1)*normal_stress_coef_ + pressure;
+		pts_tensor(2,2) = pts_tensor(2,2)*normal_stress_coef_ + pressure;
+
+		pts_tensor(0,1) = pts_tensor(0,1)*shear_stress_coef_;
+		pts_tensor(0,2) = pts_tensor(0,2)*shear_stress_coef_;
+		pts_tensor(1,0) = pts_tensor(1,0)*shear_stress_coef_;
+		pts_tensor(1,2) = pts_tensor(1,2)*shear_stress_coef_;
+		pts_tensor(2,0) = pts_tensor(2,0)*shear_stress_coef_;
+		pts_tensor(2,1) = pts_tensor(2,1)*shear_stress_coef_;
 	}
 	END_CPU_THREADS;
 }
@@ -164,17 +179,13 @@ void MPM_FLUID_SOLVER::ComputeGridForces()
 			for (int p = 0; p < num; p++)
 			{
 				const Vec3T& pos    = pts_position_arr_[b_ix + p];
-				const Vec3T& vel    = pts_velocity_arr_[b_ix + p];
 				const Vec3T& force  = pts_force_arr_[b_ix + p];
 				const Mat3T& tensor = pts_tensor_arr_[b_ix + p];
-
-				const T density_p  = pts_density_arr_[b_ix + p];
-				const T pressure_p = ComputePressure(density_p);
 	
 				T w = QuadBSplineKernel(cell_center-pos, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
 				Vec3T grad = QuadBSplineKernelGradient(cell_center-pos, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
 
-				int_force += grad*pressure_p + tensor*grad;
+				int_force += tensor*grad;
 				ext_force += w*(force+gravity_*mass_);
 			}
 		}

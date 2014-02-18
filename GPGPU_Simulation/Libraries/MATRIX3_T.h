@@ -361,6 +361,15 @@ public:
 			);
 	}
 
+	MATRIX3_T& operator *= ( T f ) restrict(amp,cpu)
+	{
+		for( int i = 0; i < 9; ++i )
+		{
+			m_elements[i] *= f;
+		}
+		return *this;
+	}
+
 public:
 
 	T m_elements[ 9 ];

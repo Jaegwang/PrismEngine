@@ -22,6 +22,9 @@ public:
 	T stiffness_;
 	T smoothing_;
 
+	T normal_stress_coef_;
+	T shear_stress_coef_;
+
 	Vec3T* pts_position_arr_;
 	Vec3T* pts_velocity_arr_;
 	Vec3T* pts_force_arr_;
@@ -37,10 +40,9 @@ public:
 
 	WALL_CONDITIONS wall_conditions_;
 
-
 public:
 
-	MPM_FLUID_SOLVER() : density_field_(0), velocity_field_(0), force_field_(0), mass_(1), rest_density_(1), smoothing_((T)0.2)
+	MPM_FLUID_SOLVER() : density_field_(0), velocity_field_(0), force_field_(0), mass_(1), rest_density_(1), normal_stress_coef_((T)0), shear_stress_coef_((T)0), smoothing_((T)0.3)
 	{}
 
 	~MPM_FLUID_SOLVER()
