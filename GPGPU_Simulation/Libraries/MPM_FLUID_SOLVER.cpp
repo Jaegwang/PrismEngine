@@ -21,10 +21,10 @@ void MPM_FLUID_SOLVER::Initialize(const Vec3T min, const Vec3T max, const int i_
 
 	mass_ = 1;
 	rest_density_ = 2;
-	stiffness_ = 0.1;
+	stiffness_ = 1;
 
 	normal_stress_coef_ = (T)0;
-	shear_stress_coef_ = (T)2;
+	shear_stress_coef_ = (T)3;
 
 	density_field_  = new T[grid_.ijk_res_];
 	velocity_field_ = new Vec3T[grid_.ijk_res_];
@@ -186,12 +186,20 @@ void MPM_FLUID_SOLVER::ComputeGridForces()
 				Vec3T grad = QuadBSplineKernelGradient(cell_center-pos, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
 
 				int_force += tensor*grad;
-				ext_force += w*(force+gravity_*mass_);
+				ext_force += w*force;
 			}
 		}
 		END_STENCIL_LOOP;
 
 		force_field_[p] = -int_force + ext_force;
+	}
+	END_CPU_THREADS;
+
+	Vec3T gravity_force = gravity_ * mass_;
+
+	BEGIN_CPU_THREADS(particle_manager_.num_of_pts_, p)
+	{
+		pts_force_arr_[p] = gravity_force;
 	}
 	END_CPU_THREADS;
 }

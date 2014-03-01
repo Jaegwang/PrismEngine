@@ -56,8 +56,10 @@ public:
 
 	void AdvanceTimeStep(const T spf, const int steps)
 	{
-		const T dt = spf / (T)steps;
+		SourceParticles();
+		particle_manager_.RebuildParticleDataStructure();
 
+		const T dt = spf / (T)steps;
 		for (int i = 0; i < steps; i++)
 		{			
 			RasterizeParticlesDensityAndVelocityToGrid();
@@ -71,8 +73,6 @@ public:
 			UpdateParticleAndGridVelocity(dt);
 
 			AdvectParticles(dt);			
-
-			SourceParticles();
 
 			particle_manager_.RebuildParticleDataStructure();
 		}
