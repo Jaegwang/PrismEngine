@@ -21,10 +21,10 @@ void MPM_FLUID_SOLVER::Initialize(const Vec3T min, const Vec3T max, const int i_
 
 	mass_ = 1;
 	rest_density_ = 2;
-	stiffness_ = 1;
+	stiffness_ = 2;
 
 	normal_stress_coef_ = (T)0;
-	shear_stress_coef_ = (T)3;
+	shear_stress_coef_ = (T)0;
 
 	density_field_  = new T[grid_.ijk_res_];
 	velocity_field_ = new Vec3T[grid_.ijk_res_];
