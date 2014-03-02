@@ -92,5 +92,8 @@
     <ClInclude Include="..\Libraries\PARTICLE_WORLD_BUILDER.h">
       <Filter>Libraries</Filter>
     </ClInclude>
+    <ClInclude Include="..\Libraries\PARTICLE_OBJECT.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

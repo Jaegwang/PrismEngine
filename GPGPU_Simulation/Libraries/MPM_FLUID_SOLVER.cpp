@@ -19,8 +19,13 @@ void MPM_FLUID_SOLVER::Initialize(const Vec3T min, const Vec3T max, const int i_
 
 	wall_conditions_.Initialize(grid_);
 
+	cube_object_.InitializeCube(Vec3T(0.4, 0.3, 0.4),Vec3T(0.6, 0.5, 0.6), grid_.dx_, grid_.dy_, grid_.dz_);
+	particle_world_.Initialize(grid_);
+
+	particle_world_.RasterizeParticles(cube_object_.position_array_, cube_object_.velocity_array_, (T)1, cube_object_.pts_num_);
+
 	mass_ = 1;
-	rest_density_ = 2;
+	rest_density_ = 3;
 	stiffness_ = 0.2;
 
 	normal_stress_coef_ = (T)0;
@@ -279,8 +284,29 @@ void MPM_FLUID_SOLVER::AdvectParticles(const T dt)
 		Vec3T& pts_force = pts_force_arr_[p];
 
 		pts_pos += grid_vel * dt;
+	}
+	END_CPU_THREADS;
+}
+
+void MPM_FLUID_SOLVER::CouplingWithObjects(const T dt)
+{
+	if (particle_manager_.num_of_pts_ == 0) return;
+
+	BEGIN_CPU_THREADS(particle_manager_.num_of_pts_, p)
+	{
+		Vec3T& pts_pos   = pts_position_arr_[p];
+		Vec3T& pts_vel   = pts_velocity_arr_[p];
+		Vec3T& pts_force = pts_force_arr_[p];
 
 		wall_conditions_.ClampPositionAndVelocity(pts_pos, pts_vel, pts_force);
+
+		T object_density = particle_world_.world_grid_.TriLinearInterpolate(pts_pos, particle_world_.density_field_);
+		Vec3T object_normal = particle_world_.world_grid_.TriLinearInterpolate(pts_pos, particle_world_.normal_field_); 
+
+		if(object_density > FLT_EPSILON && Vec3T::DotProduct(pts_vel, object_normal) < (T)0)
+		{
+			pts_force += object_normal.Normalized() * object_density * mass_ * (T)500;
+		}		
 	}
 	END_CPU_THREADS;
 }

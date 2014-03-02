@@ -9,7 +9,6 @@
 #include "iostream"
 #include "PARALLEL_MACRO.h"
 #include "GENERAL_MACRO.h"
-#include "PARTICLE_WORLD_BUILDER.h"
 
 using namespace std;
 using namespace concurrency;
@@ -67,6 +66,8 @@ public:
 
 		num_pts_cell_ = new atomic<int>[grid_.ijk_res_];
 		start_idx_cell_ = new atomic<int>[grid_.ijk_res_];
+
+
 	}
 
 	void Finalize()
@@ -178,6 +179,8 @@ public:
 
 		glPushMatrix();
 		glColor3f(0.3, 0.3, 1);
+
+		glPointSize(1.2);
 
 		T dt = (T)0.01;
 		T dist = MAX(grid_.dx_*(T)3, grid_.dy_*(T)3, grid_.dz_*(T)3);

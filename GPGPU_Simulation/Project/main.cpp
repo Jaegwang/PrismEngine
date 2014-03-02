@@ -105,6 +105,7 @@ void display()
 	mpm_solver.particle_manager_.Rendering();
 //	mpm_solver.RenderDensityField();
 	mpm_solver.grid_.RenderGrid();
+	mpm_solver.particle_world_.Render();
 
 	// capture image and video
 	if(is_capture && is_capture_flag)

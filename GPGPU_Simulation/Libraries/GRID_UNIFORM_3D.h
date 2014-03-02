@@ -169,21 +169,21 @@ public:
 		LeftBottomIndex(p, b_i, b_j, b_k);
 		int ix = Index3Dto1D(b_i, b_j, b_k);
 
-		Vec3 p_0 = CellCenter(b_i ,b_j ,b_k);
+		Vec3T p_0 = CellCenterPosition(b_i ,b_j ,b_k);
 
-		T_ x_d = (p.x-p_0.x)/dx_;
-		T_ y_d = (p.y-p_0.y)/dy_;
-		T_ z_d = (p.z-p_0.z)/dz_;
+		T x_d = (p.x-p_0.x)/dx_;
+		T y_d = (p.y-p_0.y)/dy_;
+		T z_d = (p.z-p_0.z)/dz_;
 
-		TT c_00 = arr[ix]*((T_)1-x_d) + arr[ix+1]*(x_d);
-		TT c_10 = arr[ix+i_res_]*((T_)1-x_d) + arr[ix+i_res_+1]*(x_d);
-		TT c_01 = arr[ix+ij_res_]*((T_)1-x_d) + arr[ix+ij_res_+1]*(x_d);
-		TT c_11 = arr[ix+i_res_+ij_res_]*((T_)1-x_d) + arr[ix+i_res_+ij_res_+1]*(x_d);
+		TT c_00 = arr[ix]*((T)1-x_d) + arr[ix+1]*(x_d);
+		TT c_10 = arr[ix+i_res_]*((T)1-x_d) + arr[ix+i_res_+1]*(x_d);
+		TT c_01 = arr[ix+ij_res_]*((T)1-x_d) + arr[ix+ij_res_+1]*(x_d);
+		TT c_11 = arr[ix+i_res_+ij_res_]*((T)1-x_d) + arr[ix+i_res_+ij_res_+1]*(x_d);
 
-		TT c_0 = c_00*((T_)1-y_d) + c_10*y_d;
-		TT c_1 = c_01*((T_)1-y_d) + c_11*y_d;
+		TT c_0 = c_00*((T)1-y_d) + c_10*y_d;
+		TT c_1 = c_01*((T)1-y_d) + c_11*y_d;
 
-		return c_0*((T_)1-z_d) + c_1*z_d;
+		return c_0*((T)1-z_d) + c_1*z_d;
 	}
 
 

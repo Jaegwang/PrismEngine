@@ -3,6 +3,7 @@
 #pragma once 
 
 #include "MATH_DEFINITION.h"
+#include <assert.h>
 
 class VECTOR3_T;
 

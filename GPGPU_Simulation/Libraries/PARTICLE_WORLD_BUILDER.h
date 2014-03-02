@@ -37,10 +37,17 @@ public:
 
 		density_field_  = new T[world_grid_.ijk_res_];
 		velocity_field_ = new Vec3T[world_grid_.ijk_res_];
+		normal_field_   = new Vec3T[world_grid_.ijk_res_];
+
+		pts_num_buffer_   = new atomic<int>[world_grid_.ijk_res_];
+		start_idx_buffer_ = new atomic<int>[world_grid_.ijk_res_];
 	}
 
 	void RasterizeParticles(const Vec3T* pos_arr, const Vec3T* vel_arr, const T pts_mass, const int num_pts)
 	{
+		index_array_ = new atomic<int>[num_pts];
+		id_array_ = new atomic<int>[num_pts];
+
 		BuildParticleDataStructure(pos_arr, num_pts);
 
 		BEGIN_CPU_THREADS(world_grid_.ijk_res_, p)
@@ -51,6 +58,7 @@ public:
 			Vec3T cell_center = world_grid_.CellCenterPosition(i,j,k);
 
 			Vec3T velocity_weighted = Vec3T();
+			Vec3T normal_weighted = Vec3T();
 			T mass_weighted = (T)0;
 
 			BEGIN_STENCIL_LOOP(world_grid_, i, j, k, l, m, n)
@@ -67,16 +75,19 @@ public:
 					const Vec3T& pos = pos_arr[v_ix];
 					const Vec3T& vel = vel_arr[v_ix];
 
-					T w = QuadBSplineKernel(pos-cell_center, world_grid_.one_over_dx_, world_grid_.one_over_dy_, world_grid_.one_over_dz_);			
+					T w = QuadBSplineKernel(pos-cell_center, world_grid_.one_over_dx_, world_grid_.one_over_dy_, world_grid_.one_over_dz_);		
+					Vec3T grad = QuadBSplineKernelGradient(pos-cell_center, world_grid_.one_over_dx_, world_grid_.one_over_dy_, world_grid_.one_over_dz_);	
 
-					mass_weighted = pts_mass * w;
-					velocity_weighted = vel * pts_mass * w;
+					mass_weighted += pts_mass * w;
+					velocity_weighted += vel * pts_mass * w;
+					normal_weighted += grad * pts_mass;
 				}
 			}
 			END_STENCIL_LOOP;
 
 			density_field_[p] = mass_weighted;
 			velocity_field_[p] = velocity_weighted / (mass_weighted + FLT_EPSILON);
+			normal_field_[p] = normal_weighted;
 		}
 		END_CPU_THREADS;
 	}
@@ -124,5 +135,56 @@ public:
 			index_array_[s_ix + id] = p;
 		}
 		END_CPU_THREADS;				
+	}
+
+	void Render()
+	{
+		glDisable(GL_LIGHTING);
+
+		glPushMatrix();
+		glColor3f(0, 1, 0);
+
+		glPointSize(3);
+
+		glBegin(GL_POINTS);
+		for (int c = 0; c < world_grid_.ijk_res_; c++)
+		{
+			int i, j, k;
+			world_grid_.Index1Dto3D(c, i, j, k);
+
+			Vec3T cell_center = world_grid_.CellCenterPosition(i, j, k);
+
+			const T& density = density_field_[c];
+
+			if (density > FLT_EPSILON)
+			{
+				glVertex3f(cell_center.x, cell_center.y, cell_center.z);
+			}
+		}
+		glEnd();
+/*
+		glColor3f(1, 0, 0);
+		glBegin(GL_LINES);
+		for (int c = 0; c < world_grid_.ijk_res_; c++)
+		{
+			int i, j, k;
+			world_grid_.Index1Dto3D(c, i, j, k);
+
+			Vec3T cell_center = world_grid_.CellCenterPosition(i, j, k);
+
+			const T& density = density_field_[c];
+
+			const Vec3T n = normal_field_[c];
+			const T d = (T)0.01;
+
+			if(density > FLT_EPSILON)
+			{
+				glVertex3f(cell_center.x, cell_center.y, cell_center.z);
+				glVertex3f(cell_center.x+n.x*d, cell_center.y+n.y*d, cell_center.z+n.z*d);
+			}
+		}
+		glEnd();
+*/
+		glPopMatrix();
 	}
 };

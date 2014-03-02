@@ -6,6 +6,9 @@
 #include "WALL_CONDITIONS.h"
 #include "MATRIX3_T.h"
 
+#include "PARTICLE_OBJECT.h"
+#include "PARTICLE_WORLD_BUILDER.h"
+
 #include "GL\glut.h"
 
 class MPM_FLUID_SOLVER
@@ -43,6 +46,10 @@ public:
 
 	WALL_CONDITIONS wall_conditions_;
 
+	// Object properties
+	PARTICLE_OBJECT cube_object_;
+	PARTICLE_WORLD_BUILDER particle_world_;
+
 public:
 
 	MPM_FLUID_SOLVER() : density_field_(0), velocity_field_(0), force_field_(0), mass_(1), rest_density_(1), normal_stress_coef_((T)0), shear_stress_coef_((T)0), smoothing_((T)0.3)
@@ -77,6 +84,8 @@ public:
 
 			AdvectParticles(dt);			
 
+			CouplingWithObjects(dt);
+
 			RebuildParticleDataStructure();
 		}
 	}
@@ -95,10 +104,12 @@ public:
 
 	void AdvectParticles(const T dt);
 
+	void CouplingWithObjects(const T dt);
+
 	void SourceParticles()
 	{
-		SourceFormSphere(Vec3T(0.2, 0.7, 0.5), Vec3T( 2, 0.0, 0.0), 0.05, 500);
-		SourceFormSphere(Vec3T(0.8, 0.7, 0.5), Vec3T(-2, 0.0, 0.0), 0.05, 500);
+		SourceFormSphere(Vec3T(0.2, 0.7, 0.5), Vec3T( 2, 0.0, 0.0), 0.05, 1000);
+		SourceFormSphere(Vec3T(0.8, 0.7, 0.5), Vec3T(-2, 0.0, 0.0), 0.05, 1000);
 	}
 
 	void SourceFormSphere(const Vec3T& pos, const Vec3T& vel, const T rad, const int num)

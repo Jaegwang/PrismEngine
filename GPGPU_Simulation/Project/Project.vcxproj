@@ -142,6 +142,7 @@
     <ClInclude Include="..\Libraries\PARALLEL_MACRO.h" />
     <ClInclude Include="..\Libraries\PARTICLE.h" />
     <ClInclude Include="..\Libraries\PARTICLE_MANAGER_3D.h" />
+    <ClInclude Include="..\Libraries\PARTICLE_OBJECT.h" />
     <ClInclude Include="..\Libraries\PARTICLE_WORLD_BUILDER.h" />
     <ClInclude Include="..\Libraries\QUATERNION_T.h" />
     <ClInclude Include="..\Libraries\READ_WRITE_PNG.h" />
