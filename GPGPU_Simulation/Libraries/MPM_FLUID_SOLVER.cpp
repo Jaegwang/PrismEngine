@@ -15,7 +15,7 @@ void MPM_FLUID_SOLVER::Initialize(const Vec3T min, const Vec3T max, const int i_
 	pts_density_arr_  = new T    [num_pts_res];
 	pts_tensor_arr_   = new Mat3T[num_pts_res];
 
-	particle_manager_.Initialize(grid_, &pts_position_arr_, &pts_velocity_arr_, &vector_temp_arr_, num_pts_res);
+	particle_manager_.Initialize(grid_, &pts_position_arr_, &pts_velocity_arr_, num_pts_res);
 
 	wall_conditions_.Initialize(grid_);
 
@@ -213,7 +213,9 @@ void MPM_FLUID_SOLVER::RebuildParticleDataStructure()
 {
 	particle_manager_.RebuildParticleDataStructure();
 	
-	particle_manager_.RearrangeParticleData(&pts_force_arr_, &vector_temp_arr_);
+	particle_manager_.RearrangeParticleData(&pts_position_arr_, &vector_temp_arr_);
+	particle_manager_.RearrangeParticleData(&pts_velocity_arr_, &vector_temp_arr_);
+	particle_manager_.RearrangeParticleData(&pts_force_arr_   , &vector_temp_arr_);
 }
 
 void MPM_FLUID_SOLVER::UpdateParticleAndGridVelocity(const T dt)

@@ -114,8 +114,8 @@ public:
 
 	void SourceFormSphere(const Vec3T& pos, const Vec3T& vel, const T rad, const int num)
 	{	
-		Vec3T* pos_arr = particle_manager_.position_array_;
-		Vec3T* vel_arr = particle_manager_.velocity_array_;
+		Vec3T* pos_arr = pts_position_arr_;
+		Vec3T* vel_arr = pts_velocity_arr_;
 
 		int num_pts = 0;
 		while (num_pts < num)

@@ -19,13 +19,8 @@ public:
 	GRID_UNIFORM_3D grid_;
 
 	// particle properties
-	Vec3T *position_array_;
-	Vec3T *velocity_array_;
-	Vec3T *temp_array_;
-
 	Vec3T **position_array_pointer_;
 	Vec3T **velocity_array_pointer_;
-	Vec3T **temp_array_pointer_;
 
 	int* particle_id_array_;
 	int* particle_index_array_;
@@ -39,7 +34,7 @@ public:
 public:
 
 	PARTICLE_MANAGER_3D() : 
-		position_array_(0), velocity_array_(0), temp_array_(0), position_array_pointer_(0), velocity_array_pointer_(0), temp_array_pointer_(0),
+		position_array_pointer_(0), velocity_array_pointer_(0),
 		num_pts_cell_(0), start_idx_cell_(0), particle_id_array_(0), particle_index_array_(0), max_of_pts_(0)
 	{}
 
@@ -48,32 +43,26 @@ public:
 		Finalize();
 	}
 
-	void Initialize(const GRID_UNIFORM_3D& grid_input, Vec3T** pos_arr_input, Vec3T** vel_arr_input, Vec3T** temp_arr_input, const int num_pts)
+	void Initialize(const GRID_UNIFORM_3D& grid_input, Vec3T** pos_arr_input, Vec3T** vel_arr_input, const int num_pts)
 	{
 		grid_ = grid_input;
 		max_of_pts_ = num_pts;
 
-		position_array_ = *pos_arr_input;
-		velocity_array_ = *vel_arr_input;
-		temp_array_     = *temp_arr_input;
-
 		position_array_pointer_ = pos_arr_input;
 		velocity_array_pointer_ = vel_arr_input;
-		temp_array_pointer_     = temp_arr_input;
 
 		particle_id_array_ = new int[num_pts];
 		particle_index_array_ = new int[num_pts];
 
 		num_pts_cell_ = new atomic<int>[grid_.ijk_res_];
 		start_idx_cell_ = new atomic<int>[grid_.ijk_res_];
-
-
 	}
 
 	void Finalize()
 	{
 		SAFE_DELETE_ARRAY(particle_id_array_);
 		SAFE_DELETE_ARRAY(particle_index_array_);
+
 		SAFE_DELETE_ARRAY(num_pts_cell_);
 		SAFE_DELETE_ARRAY(start_idx_cell_);
 	}
@@ -85,7 +74,7 @@ public:
 
 	void DelParticle(int ix)
 	{
-		position_array_[ix] = Vec3T((T)FLT_MAX, (T)FLT_MAX, (T)FLT_MAX);
+		(*position_array_pointer_)[ix] = Vec3T((T)FLT_MAX, (T)FLT_MAX, (T)FLT_MAX);
 	}
 
 	template<class TT>
@@ -113,6 +102,8 @@ public:
 	{
 		if (num_of_pts_ == 0) return;
 
+		Vec3T *pos_arr = *position_array_pointer_;
+
 		atomic<int> start_idx = 0;
 		atomic<int> count_pts = 0;
 
@@ -125,7 +116,7 @@ public:
 
 		BEGIN_CPU_THREADS(num_of_pts_, p)
 		{			
-			const Vec3T pos = position_array_[p];
+			const Vec3T pos = pos_arr[p];
 			if (grid_.IsInsideValid(pos) == false) continue;
 
 			int i, j, k;
@@ -148,7 +139,7 @@ public:
 
 		BEGIN_CPU_THREADS(num_of_pts_, p)
 		{
-			const Vec3T pos = position_array_[p];
+			const Vec3T pos = pos_arr[p];
 			const int id = particle_id_array_[p];
 
 			if (grid_.IsInsideValid(pos) == false) continue;
@@ -163,13 +154,6 @@ public:
 		}
 		END_CPU_THREADS;
 
-		// Rearrange Paritlce array for position and velocity
-		RearrangeParticleData(position_array_pointer_, temp_array_pointer_);
-		RearrangeParticleData(velocity_array_pointer_, temp_array_pointer_);
-
-		position_array_ = *position_array_pointer_;
-		velocity_array_ = *velocity_array_pointer_;
-
 		num_of_pts_ = (int)count_pts;
 	}
 
@@ -180,7 +164,7 @@ public:
 		glPushMatrix();
 		glColor3f(0.3, 0.3, 1);
 
-		glPointSize(1.2);
+		glPointSize(1.3);
 
 		T dt = (T)0.01;
 		T dist = MAX(grid_.dx_*(T)3, grid_.dy_*(T)3, grid_.dz_*(T)3);
@@ -190,8 +174,8 @@ public:
 
 		for (int i = 0; i < num_of_pts_; i++)
 		{
-			const Vec3T& pos = position_array_[i];
-			const T v = velocity_array_[i].Magnitude();
+			const Vec3T& pos =(*position_array_pointer_)[i];
+			const T v = (*velocity_array_pointer_)[i].Magnitude();
 			const T g = v / max_vel;
 
 			glColor3f(g, g, (T)1);
