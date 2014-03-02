@@ -6,6 +6,8 @@ void MPM_FLUID_SOLVER::Initialize(const Vec3T min, const Vec3T max, const int i_
 {
 	grid_.Initialize(min, max, i_res, j_res, k_res, ghost_width);
 
+	vector_temp_arr_  = new Vec3T[num_pts_res]; 
+
 	pts_position_arr_ = new Vec3T[num_pts_res];
 	pts_velocity_arr_ = new Vec3T[num_pts_res];
 	pts_force_arr_    = new Vec3T[num_pts_res];
@@ -13,15 +15,13 @@ void MPM_FLUID_SOLVER::Initialize(const Vec3T min, const Vec3T max, const int i_
 	pts_density_arr_  = new T    [num_pts_res];
 	pts_tensor_arr_   = new Mat3T[num_pts_res];
 
-	particle_manager_.Initialize(grid_, &pts_position_arr_, &pts_velocity_arr_, num_pts_res);
-	particle_manager_.AddVectorData(&pts_force_arr_, num_pts_res);
-	particle_manager_.AddScalarData(&pts_density_arr_, num_pts_res);
+	particle_manager_.Initialize(grid_, &pts_position_arr_, &pts_velocity_arr_, &vector_temp_arr_, num_pts_res);
 
 	wall_conditions_.Initialize(grid_);
 
 	mass_ = 1;
 	rest_density_ = 2;
-	stiffness_ = 2;
+	stiffness_ = 0.2;
 
 	normal_stress_coef_ = (T)0;
 	shear_stress_coef_ = (T)0;
@@ -70,10 +70,10 @@ void MPM_FLUID_SOLVER::RasterizeParticlesDensityAndVelocityToGrid()
 			int num = particle_manager_.num_pts_cell_[s_ix];
 			int b_ix = particle_manager_.start_idx_cell_[s_ix];
 
-			for (int p = 0; p < num; p++)
+			for (int x = 0; x < num; x++)
 			{
-				const Vec3T& pos = pts_position_arr_[b_ix + p];
-				const Vec3T& vel = pts_velocity_arr_[b_ix + p];
+				const Vec3T& pos = pts_position_arr_[b_ix + x];
+				const Vec3T& vel = pts_velocity_arr_[b_ix + x];
 
 				T w = QuadBSplineKernel(pos-cell_center, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
 
@@ -202,6 +202,13 @@ void MPM_FLUID_SOLVER::ComputeGridForces()
 		pts_force_arr_[p] = gravity_force;
 	}
 	END_CPU_THREADS;
+}
+
+void MPM_FLUID_SOLVER::RebuildParticleDataStructure()
+{
+	particle_manager_.RebuildParticleDataStructure();
+	
+	particle_manager_.RearrangeParticleData(&pts_force_arr_, &vector_temp_arr_);
 }
 
 void MPM_FLUID_SOLVER::UpdateParticleAndGridVelocity(const T dt)

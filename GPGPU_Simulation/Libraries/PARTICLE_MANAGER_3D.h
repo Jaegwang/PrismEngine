@@ -9,6 +9,7 @@
 #include "iostream"
 #include "PARALLEL_MACRO.h"
 #include "GENERAL_MACRO.h"
+#include "PARTICLE_WORLD_BUILDER.h"
 
 using namespace std;
 using namespace concurrency;
@@ -19,16 +20,13 @@ public:
 	GRID_UNIFORM_3D grid_;
 
 	// particle properties
-	Vec3T *position_array_, *velocity_array_;
+	Vec3T *position_array_;
+	Vec3T *velocity_array_;
+	Vec3T *temp_array_;
 
-	std::vector<Vec3T**> vector_data_pointer_;
-	std::vector<T**>     scalar_data_pointer_;
-
-	std::vector<Vec3T*>  vector_data_;
-	std::vector<T*>      scalar_data_;
-
-	std::vector<Vec3T*>  vector_data_temp_;
-	std::vector<T*>      scalar_data_temp_;
+	Vec3T **position_array_pointer_;
+	Vec3T **velocity_array_pointer_;
+	Vec3T **temp_array_pointer_;
 
 	int* particle_id_array_;
 	int* particle_index_array_;
@@ -39,14 +37,11 @@ public:
 	atomic<int>* num_pts_cell_;
 	atomic<int>* start_idx_cell_;
 
-	// array for cell including particles
-	int* pts_cell_index_array_;
-	atomic<int> num_of_pts_cell_;
-
 public:
 
 	PARTICLE_MANAGER_3D() : 
-		position_array_(0), velocity_array_(0), num_pts_cell_(0), start_idx_cell_(0), particle_id_array_(0), particle_index_array_(0), max_of_pts_(0), num_of_pts_cell_(0)
+		position_array_(0), velocity_array_(0), temp_array_(0), position_array_pointer_(0), velocity_array_pointer_(0), temp_array_pointer_(0),
+		num_pts_cell_(0), start_idx_cell_(0), particle_id_array_(0), particle_index_array_(0), max_of_pts_(0)
 	{}
 
 	~PARTICLE_MANAGER_3D()
@@ -54,28 +49,24 @@ public:
 		Finalize();
 	}
 
-	void Initialize(const GRID_UNIFORM_3D& grid_input, Vec3T** pos_arr_input, Vec3T** vel_arr_input, const int num_pts)
+	void Initialize(const GRID_UNIFORM_3D& grid_input, Vec3T** pos_arr_input, Vec3T** vel_arr_input, Vec3T** temp_arr_input, const int num_pts)
 	{
 		grid_ = grid_input;
 		max_of_pts_ = num_pts;
 
 		position_array_ = *pos_arr_input;
-		vector_data_pointer_.push_back(pos_arr_input);
-		vector_data_.push_back(*pos_arr_input);
-		vector_data_temp_.push_back(new Vec3T[num_pts]);		
-
 		velocity_array_ = *vel_arr_input;
-		vector_data_pointer_.push_back(vel_arr_input);
-		vector_data_.push_back(*vel_arr_input);
-		vector_data_temp_.push_back(new Vec3T[num_pts]);
+		temp_array_     = *temp_arr_input;
+
+		position_array_pointer_ = pos_arr_input;
+		velocity_array_pointer_ = vel_arr_input;
+		temp_array_pointer_     = temp_arr_input;
 
 		particle_id_array_ = new int[num_pts];
 		particle_index_array_ = new int[num_pts];
 
 		num_pts_cell_ = new atomic<int>[grid_.ijk_res_];
 		start_idx_cell_ = new atomic<int>[grid_.ijk_res_];
-
-		pts_cell_index_array_ = new int[grid_.ijk_res_];
 	}
 
 	void Finalize()
@@ -84,27 +75,6 @@ public:
 		SAFE_DELETE_ARRAY(particle_index_array_);
 		SAFE_DELETE_ARRAY(num_pts_cell_);
 		SAFE_DELETE_ARRAY(start_idx_cell_);
-		SAFE_DELETE_ARRAY(pts_cell_index_array_);
-
-		for(int i = 0; i < (int)vector_data_temp_.size(); i++)
-			SAFE_DELETE_ARRAY(vector_data_temp_[i]);
-
-		for(int i = 0; i < (int)scalar_data_temp_.size(); i++)
-			SAFE_DELETE_ARRAY(scalar_data_temp_[i]);
-	}
-
-	void AddVectorData(Vec3T** data_arr_input, const int num_pts)
-	{
-		vector_data_pointer_.push_back(data_arr_input);
-		vector_data_.push_back(*data_arr_input);
-		vector_data_temp_.push_back(new Vec3T[num_pts]);
-	}
-
-	void AddScalarData(T** data_arr_input, const int num_pts)
-	{
-		scalar_data_pointer_.push_back(data_arr_input);
-		scalar_data_.push_back(*data_arr_input);
-		scalar_data_temp_.push_back(new T[num_pts]);
 	}
 
 	int AddParticle()
@@ -117,133 +87,88 @@ public:
 		position_array_[ix] = Vec3T((T)FLT_MAX, (T)FLT_MAX, (T)FLT_MAX);
 	}
 
+	template<class TT>
+	void RearrangeParticleData(TT** pts_arr, TT** pts_arr_temp)
+	{
+		BEGIN_CPU_THREADS(grid_.ijk_res_, p)
+		{
+			const int& num = num_pts_cell_[p];
+			const int& b_ix = start_idx_cell_[p];
+
+			for(int n = 0; n < num; n++)
+			{
+				int v_ix = particle_index_array_[b_ix + n];
+				(*pts_arr_temp)[b_ix + n] = (*pts_arr)[v_ix];
+			}
+		}
+		END_CPU_THREADS;	
+
+		TT* temp = (*pts_arr_temp);
+		(*pts_arr_temp) = (*pts_arr);
+		(*pts_arr) = temp;
+	}
+
 	void RebuildParticleDataStructure()
 	{
 		if (num_of_pts_ == 0) return;
 
 		atomic<int> start_idx = 0;
 		atomic<int> count_pts = 0;
-		num_of_pts_cell_ = 0;
 
-		BEGIN_CPU_THREADS_1D(grid_.ijk_res_)
+		BEGIN_CPU_THREADS(grid_.ijk_res_, p)
 		{
-			BEGIN_THREAD_LOOP_1D(p)
-			{
-				num_pts_cell_[p] = 0;
-				start_idx_cell_[p] = -1;
-			}
-			END_THREAD_LOOP_1D
+			num_pts_cell_[p] = 0;
+			start_idx_cell_[p] = -1;
 		}
-		END_CPU_THREADS_1D
+		END_CPU_THREADS;
 
-		BEGIN_CPU_THREADS_1D(num_of_pts_)
+		BEGIN_CPU_THREADS(num_of_pts_, p)
+		{			
+			const Vec3T pos = position_array_[p];
+			if (grid_.IsInsideValid(pos) == false) continue;
+
+			int i, j, k;
+			grid_.CellCenterIndex(pos, i, j, k);
+
+			int g_ix = grid_.Index3Dto1D(i, j, k);
+
+			particle_id_array_[p] = std::atomic_fetch_add(&num_pts_cell_[g_ix], 1);
+
+			std::atomic_fetch_add(&count_pts, 1);
+		}
+		END_CPU_THREADS;
+
+		BEGIN_CPU_THREADS(grid_.ijk_res_, p)
 		{
-			BEGIN_THREAD_LOOP_1D(p)
-			{
-				const Vec3T pos = position_array_[p];
-
-				if (grid_.IsInsideValid(pos) == false) continue;
-
-				int i, j, k;
-				grid_.CellCenterIndex(pos, i, j, k);
-
-				int g_ix = grid_.Index3Dto1D(i, j, k);
-
-				particle_id_array_[p] = std::atomic_fetch_add(&num_pts_cell_[g_ix], 1);
-
-				std::atomic_fetch_add(&count_pts, 1);
-			}
-			END_THREAD_LOOP_1D
+			const atomic<int>& num = num_pts_cell_[p];
+			start_idx_cell_[p] = std::atomic_fetch_add(&start_idx, num);
 		}
-		END_CPU_THREADS_1D;
+		END_CPU_THREADS;
 
-		BEGIN_CPU_THREADS_1D(grid_.ijk_res_)
+		BEGIN_CPU_THREADS(num_of_pts_, p)
 		{
-			BEGIN_THREAD_LOOP_1D(p)
-			{
-				const atomic<int>& num = num_pts_cell_[p];
-				start_idx_cell_[p] = std::atomic_fetch_add(&start_idx, num);
+			const Vec3T pos = position_array_[p];
+			const int id = particle_id_array_[p];
 
-				if (num > 0)
-				{
-					int ix = std::atomic_fetch_add(&num_of_pts_cell_, 1);
-					pts_cell_index_array_[ix] = p;
-				}
-			}
-			END_THREAD_LOOP_1D
+			if (grid_.IsInsideValid(pos) == false) continue;
+
+			int i, j, k;
+			grid_.CellCenterIndex(pos, i, j, k);
+
+			int g_ix = grid_.Index3Dto1D(i, j, k);
+			int b_ix = start_idx_cell_[g_ix];
+
+			particle_index_array_[b_ix + id] = p;
 		}
-		END_CPU_THREADS_1D;
+		END_CPU_THREADS;
 
-		BEGIN_CPU_THREADS_1D(num_of_pts_)
-		{
-			BEGIN_THREAD_LOOP_1D(p)
-			{
-				const Vec3T pos = position_array_[p];
-				const int pts_id = particle_id_array_[p];
+		// Rearrange Paritlce array for position and velocity
+		RearrangeParticleData(position_array_pointer_, temp_array_pointer_);
+		RearrangeParticleData(velocity_array_pointer_, temp_array_pointer_);
 
-				if (grid_.IsInsideValid(pos) == false) continue;
+		position_array_ = *position_array_pointer_;
+		velocity_array_ = *velocity_array_pointer_;
 
-				int i, j, k;
-				grid_.CellCenterIndex(pos, i, j, k);
-
-				int g_ix = grid_.Index3Dto1D(i, j, k);
-				int b_ix = start_idx_cell_[g_ix];
-
-				particle_index_array_[b_ix + pts_id] = p;
-			}
-			END_THREAD_LOOP_1D
-		}
-		END_CPU_THREADS_1D;
-
-		BEGIN_CPU_THREADS_1D(grid_.ijk_res_)
-		{
-			BEGIN_THREAD_LOOP_1D(p)
-			{
-				const int& num = num_pts_cell_[p];
-				const int& b_ix = start_idx_cell_[p];
-
-				for (int n = 0; n < num; n++)
-				{
-					int v_ix = particle_index_array_[b_ix + n];
-					
-					for (int m = 0; m < (int)vector_data_.size(); m++)
-					{
-						Vec3T* data = vector_data_[m];
-						Vec3T* data_temp = vector_data_temp_[m];
-						data_temp[b_ix + n] = data[v_ix];
-					}
-					for (int m = 0; m < (int)scalar_data_.size(); m++)
-					{
-						T* data = scalar_data_[m];
-						T* data_temp = scalar_data_temp_[m];
-						data_temp[b_ix + n] = data[v_ix];
-					}
-				}
-			}
-			END_THREAD_LOOP_1D
-		}
-		END_CPU_THREADS_1D;
-
-		for (int m = 0; m < (int)vector_data_.size(); m++)
-		{
-			Vec3T* temp = vector_data_temp_[m];
-			vector_data_temp_[m] = vector_data_[m];
-			vector_data_[m] = temp;
-
-			(*vector_data_pointer_[m]) = temp;
-		}
-		for (int m = 0; m < (int)scalar_data_.size(); m++)
-		{
-			T* temp = scalar_data_temp_[m];
-			scalar_data_temp_[m] = scalar_data_[m];
-			scalar_data_[m] = temp;
-
-			(*scalar_data_pointer_[m]) = temp;
-		}
-
-		position_array_ = vector_data_[0];
-		velocity_array_ = vector_data_[1];
-		
 		num_of_pts_ = (int)count_pts;
 	}
 

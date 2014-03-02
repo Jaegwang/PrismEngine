@@ -32,6 +32,9 @@ public:
 	T*     pts_density_arr_;
 	Mat3T* pts_tensor_arr_;
 
+	Vec3T* vector_temp_arr_;
+	Vec3T* scalar_temp_arr_;
+
 	T*     density_field_;
 	Vec3T* velocity_field_;
 	Vec3T* force_field_;
@@ -57,7 +60,7 @@ public:
 	void AdvanceTimeStep(const T spf, const int steps)
 	{
 		SourceParticles();
-		particle_manager_.RebuildParticleDataStructure();
+		RebuildParticleDataStructure();
 
 		const T dt = spf / (T)steps;
 		for (int i = 0; i < steps; i++)
@@ -74,11 +77,13 @@ public:
 
 			AdvectParticles(dt);			
 
-			particle_manager_.RebuildParticleDataStructure();
+			RebuildParticleDataStructure();
 		}
 	}
 
 	void RasterizeParticlesDensityAndVelocityToGrid();
+
+	void RebuildParticleDataStructure();
 
 	void ComputeParticleDenistyFromGrid();
 
