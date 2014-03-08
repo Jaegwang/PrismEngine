@@ -1,13 +1,13 @@
 
 #pragma once
 
-#include "VECTOR3_T.h"
+#include "MATH_CORE.h"
 
 class PARTICLE
 {
 public:
 
-	Vec3T position_;
-	Vec3T velocity_;
+	Vec3 position_;
+	Vec3 velocity_;
 
 };

@@ -2,15 +2,14 @@
 
 #pragma once 
 #include <Windows.h>
-#include <VECTOR3_T.h>
-#include <QUATERNION_T.h>
+#include "MATH_CORE.h"
 
 class TRACK_BALL_CONTROL
 {
 public:
 	
-	Vec3T position;
-	QuaterT rotation;
+	Vec3 position;
+	Quat rotation;
 
 	POINT pre_mouse_point;
 	POINT cur_mouse_point;
@@ -21,8 +20,8 @@ public:
 
 	TRACK_BALL_CONTROL()
 	{
-		position = Vec3T(0.0f, 0.0f, 0.0f);
-		rotation = QuaterT::IDENTITY;
+		position = Vec3(0.0f, 0.0f, 0.0f);
+		rotation = Quat();
 
 		dx = dy = dz = 0.0f;
 		dt = 0.005f;
@@ -49,22 +48,23 @@ public:
 
 		if(GetAsyncKeyState(VK_MENU) & 0x8001 && GetAsyncKeyState(VK_LBUTTON) & 0x8001)
 		{
-			Vec3T angular_vector = Vec3T(1,0,0) * dy * dt + Vec3T(0,1,0) * dx * dt;
+			Vec3 angular_vector = Vec3(1,0,0) * dy * dt + Vec3(0,1,0) * dx * dt;
 
-			QuaterT q; q = QuaterT::IDENTITY;
+			Quat q;
 
-			const float magnitude = angular_vector.Magnitude();
+			const float magnitude = glm::length(angular_vector);
 
 			if(magnitude > FLT_EPSILON)
 			{
 				q.w = cos(magnitude*0.5);
 
-				Vec3T axis = (sinf(0.5*magnitude)/magnitude)*angular_vector;
+				Vec3 axis = (sinf(0.5*magnitude)/magnitude)*angular_vector;
 
 				q.x = axis.x; q.y = axis.y; q.z = axis.z;
 			}
 
-			rotation =  q * rotation; rotation.Normalize();
+			rotation =  q * rotation; 
+			rotation = glm::normalize(rotation);
 		}
 
 		if(GetAsyncKeyState(VK_MENU) & 0x8001 && GetAsyncKeyState(VK_MBUTTON) & 0x8001)

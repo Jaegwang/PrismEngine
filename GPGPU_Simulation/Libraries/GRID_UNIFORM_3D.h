@@ -3,7 +3,7 @@
 #pragma once
 #include <GL\glut.h>
 #include <amp.h>
-#include "VECTOR3_T.h"
+#include "MATH_CORE.h"
 
 using namespace concurrency;
 
@@ -11,13 +11,13 @@ class GRID_UNIFORM_3D
 {
 public:
 	
-	Vec3T min_, max_;
+	Vec3 min_, max_;
 
-	T dx_, dy_, dz_;
+	FLT dx_, dy_, dz_;
 
-	T gx_, gy_, gz_;
+	FLT gx_, gy_, gz_;
 
-	T one_over_dx_, one_over_dy_, one_over_dz_;
+	FLT one_over_dx_, one_over_dy_, one_over_dz_;
 
 	int i_res_, j_res_, k_res_;
 	int ij_res_, ijk_res_;
@@ -32,22 +32,22 @@ public:
 	~GRID_UNIFORM_3D()
 	{}
 
-	void Initialize(const Vec3T& min, const Vec3T& max, const int i_res, const int j_res, const int k_res, const int g) restrict(cpu,amp)
+	void Initialize(const Vec3& min, const Vec3& max, const int i_res, const int j_res, const int k_res, const int g)
 	{
-		dx_ = (max.x-min.x)/(T)i_res;
-		dy_ = (max.y-min.y)/(T)j_res;
-		dz_ = (max.z-min.z)/(T)k_res;
+		dx_ = (max.x-min.x)/(FLT)i_res;
+		dy_ = (max.y-min.y)/(FLT)j_res;
+		dz_ = (max.z-min.z)/(FLT)k_res;
 
-		one_over_dx_ = (T)1 / dx_;
-		one_over_dy_ = (T)1 / dy_;
-		one_over_dz_ = (T)1 / dz_;
+		one_over_dx_ = (FLT)1 / dx_;
+		one_over_dy_ = (FLT)1 / dy_;
+		one_over_dz_ = (FLT)1 / dz_;
 
-		gx_ = dx_*(T)g;
-		gy_ = dy_*(T)g;
-		gz_ = dz_*(T)g;
+		gx_ = dx_*(FLT)g;
+		gy_ = dy_*(FLT)g;
+		gz_ = dz_*(FLT)g;
 		
-		min_ = min - Vec3T(gx_, gy_, gz_);
-		max_ = max + Vec3T(gx_, gy_, gz_);
+		min_ = min - Vec3(gx_, gy_, gz_);
+		max_ = max + Vec3(gx_, gy_, gz_);
 
 		ghost_width_ = g;
 		g_ = g;
@@ -66,19 +66,19 @@ public:
 		else g_ = ghost_width_;
 	}
 
-	int Index3Dto1D(const int i, const int j, const int k) restrict(cpu,amp)
+	int Index3Dto1D(const int i, const int j, const int k) 
 	{
 		return (i+g_) + (j+g_)*i_res_ + (k+g_)*ij_res_;
 	}
 
-	void Index1Dto3D(const int idx, int& i, int& j, int& k) restrict(cpu,amp)
+	void Index1Dto3D(const int idx, int& i, int& j, int& k) 
 	{
 		i = idx           % i_res_ - g_;
 		j = (idx/i_res_ ) % j_res_ - g_;
 		k = (idx/ij_res_) % k_res_ - g_;
 	}
 
-	bool IsGhostCell(const int i, const int j, const int k) restrict(cpu,amp)
+	bool IsGhostCell(const int i, const int j, const int k) 
 	{
 		if((i+g_) < ghost_width_ || (i+g_) >= i_res_-ghost_width_) return true;
 		if((j+g_) < ghost_width_ || (j+g_) >= j_res_-ghost_width_) return true;
@@ -87,7 +87,7 @@ public:
 		return false;
 	}
 
-	bool IsInsideValid(const Vec3T& p) restrict(cpu, amp)
+	bool IsInsideValid(const Vec3& p)
 	{
 		if (min_.x+gx_ < p.x && max_.x-gx_ > p.x &&
 			min_.y+gy_ < p.y && max_.y-gy_ > p.y &&
@@ -97,7 +97,7 @@ public:
 		return false;
 	}
 
-	bool IsInsideGhost(const Vec3T& p) restrict(cpu, amp)
+	bool IsInsideGhost(const Vec3& p)
 	{
 		if (min_.x < p.x && max_.x > p.x &&
 			min_.y < p.y && max_.y > p.y &&
@@ -107,36 +107,36 @@ public:
 		return false;
 	}
 
-	Vec3T CellCenterPosition(const int i, const int j, const int k) restrict(cpu,amp)
+	Vec3 CellCenterPosition(const int i, const int j, const int k) 
 	{
-		return min_ + Vec3T(((T)(i+g_)+(T)0.5)*dx_, ((T)(j+g_)+(T)0.5)*dy_, ((T)(k+g_)+(T)0.5)*dz_);
+		return min_ + Vec3(((FLT)(i+g_)+(FLT)0.5)*dx_, ((FLT)(j+g_)+(FLT)0.5)*dy_, ((FLT)(k+g_)+(FLT)0.5)*dz_);
 	}
 
-	void CellCenterIndex(const Vec3T& p, int& i, int& j, int& k) restrict(cpu,amp)
+	void CellCenterIndex(const Vec3& p, int& i, int& j, int& k) 
 	{
-		Vec3T v = p-min_;
+		Vec3 v = p-min_;
 		i = (int)(v.x/dx_) - g_;
 		j = (int)(v.y/dy_) - g_;
 		k = (int)(v.z/dz_) - g_;
 	}
 
-	void LeftBottomIndex(const Vec3T& p, int& i, int& j, int& k) restrict(cpu,amp) 
+	void LeftBottomIndex(const Vec3& p, int& i, int& j, int& k)  
 	{
-		Vec3T v = p-min_;
-		i = (int)((v.x/dx_)-(T)0.5) - g_;
-		j = (int)((v.y/dy_)-(T)0.5) - g_;
-		k = (int)((v.z/dz_)-(T)0.5) - g_;
+		Vec3 v = p-min_;
+		i = (int)((v.x/dx_)-(FLT)0.5) - g_;
+		j = (int)((v.y/dy_)-(FLT)0.5) - g_;
+		k = (int)((v.z/dz_)-(FLT)0.5) - g_;
 	}
 
-	void RightUpIndex(const Vec3T& p, int& i, int& j, int& k) restrict(cpu,amp)
+	void RightUpIndex(const Vec3& p, int& i, int& j, int& k) 
 	{
-		Vec3T v = p-min_;
-		i = (int)((v.x/dx_)+(T)0.5) - g_; 
-		j = (int)((v.y/dy_)+(T)0.5) - g_;
-		k = (int)((v.z/dz_)+(T)0.5) - g_;
+		Vec3 v = p-min_;
+		i = (int)((v.x/dx_)+(FLT)0.5) - g_; 
+		j = (int)((v.y/dy_)+(FLT)0.5) - g_;
+		k = (int)((v.z/dz_)+(FLT)0.5) - g_;
 	}
 
-	void StartEndIndices(const int l, const int m, const int n, int& start_l, int& start_m, int& start_n, int& end_l, int& end_m, int& end_n, const int pad=1) restrict(cpu,amp)
+	void StartEndIndices(const int l, const int m, const int n, int& start_l, int& start_m, int& start_n, int& end_l, int& end_m, int& end_n, const int pad=1) 
 	{
 		start_l = MAX(l-pad, -g_);
 		start_m = MAX(m-pad, -g_);
@@ -161,7 +161,7 @@ public:
 	}
 
 	template<class TT>
-	TT TriLinearInterpolate(const Vec3T& p, TT* arr) restrict(cpu,amp)
+	TT TriLinearInterpolate(const Vec3& p, TT* arr) 
 	{ //http://en.wikipedia.org/wiki/Trilinear_interpolation
 
 		int b_i, b_j, b_k;
@@ -169,21 +169,21 @@ public:
 		LeftBottomIndex(p, b_i, b_j, b_k);
 		int ix = Index3Dto1D(b_i, b_j, b_k);
 
-		Vec3T p_0 = CellCenterPosition(b_i ,b_j ,b_k);
+		Vec3 p_0 = CellCenterPosition(b_i ,b_j ,b_k);
 
-		T x_d = (p.x-p_0.x)/dx_;
-		T y_d = (p.y-p_0.y)/dy_;
-		T z_d = (p.z-p_0.z)/dz_;
+		FLT x_d = (p.x-p_0.x)/dx_;
+		FLT y_d = (p.y-p_0.y)/dy_;
+		FLT z_d = (p.z-p_0.z)/dz_;
 
-		TT c_00 = arr[ix]*((T)1-x_d) + arr[ix+1]*(x_d);
-		TT c_10 = arr[ix+i_res_]*((T)1-x_d) + arr[ix+i_res_+1]*(x_d);
-		TT c_01 = arr[ix+ij_res_]*((T)1-x_d) + arr[ix+ij_res_+1]*(x_d);
-		TT c_11 = arr[ix+i_res_+ij_res_]*((T)1-x_d) + arr[ix+i_res_+ij_res_+1]*(x_d);
+		TT c_00 = arr[ix]*((FLT)1-x_d) + arr[ix+1]*(x_d);
+		TT c_10 = arr[ix+i_res_]*((FLT)1-x_d) + arr[ix+i_res_+1]*(x_d);
+		TT c_01 = arr[ix+ij_res_]*((FLT)1-x_d) + arr[ix+ij_res_+1]*(x_d);
+		TT c_11 = arr[ix+i_res_+ij_res_]*((FLT)1-x_d) + arr[ix+i_res_+ij_res_+1]*(x_d);
 
-		TT c_0 = c_00*((T)1-y_d) + c_10*y_d;
-		TT c_1 = c_01*((T)1-y_d) + c_11*y_d;
+		TT c_0 = c_00*((FLT)1-y_d) + c_10*y_d;
+		TT c_1 = c_01*((FLT)1-y_d) + c_11*y_d;
 
-		return c_0*((T)1-z_d) + c_1*z_d;
+		return c_0*((FLT)1-z_d) + c_1*z_d;
 	}
 
 
@@ -191,8 +191,8 @@ public:
 	{
 		glDisable(GL_LIGHTING);
 
-		Vec3T grid_center = (min_ + max_)*0.5;
-		Vec3T deviation = max_-min_;
+		Vec3 grid_center = (min_+max_)*(FLT)0.5;
+		Vec3 deviation = max_-min_;
 
 		glColor3f(0.5, 0.5, 0.5);
 
@@ -203,7 +203,7 @@ public:
 		glutWireCube(1);
 		glPopMatrix();
 		
-		deviation -= Vec3T(gx_*(T)2, gy_*(T)2, gz_*(T)2);
+		deviation -= Vec3(gx_*(FLT)2, gy_*(FLT)2, gz_*(FLT)2);
 
 		glColor3f(0, 0, 0);
 
@@ -232,7 +232,7 @@ public:
 
 			if(!IsGhostCell(i,j,k))
 			{
-				Vec3T cell_center = CellCenterPosition(i,j,k);
+				Vec3 cell_center = CellCenterPosition(i,j,k);
 
 				glVertex3f(cell_center.x, cell_center.y, cell_center.z);
 			}

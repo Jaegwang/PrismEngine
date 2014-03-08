@@ -4,7 +4,7 @@
 #include "KERNEL_FUNCTIONS.h"
 #include "PARTICLE_MANAGER_3D.h"
 #include "WALL_CONDITIONS.h"
-#include "MATRIX3_T.h"
+#include "MATH_CORE.h"
 
 #include "PARTICLE_OBJECT.h"
 #include "PARTICLE_WORLD_BUILDER.h"
@@ -19,30 +19,30 @@ public:
 
 	PARTICLE_MANAGER_3D particle_manager_;
 
-	T mass_;
-	T rest_density_;
+	FLT mass_;
+	FLT rest_density_;
 
-	T stiffness_;
-	T smoothing_;
+	FLT stiffness_;
+	FLT smoothing_;
 
-	T normal_stress_coef_;
-	T shear_stress_coef_;
+	FLT normal_stress_coef_;
+	FLT shear_stress_coef_;
 
-	Vec3T* pts_position_arr_;
-	Vec3T* pts_velocity_arr_;
-	Vec3T* pts_force_arr_;
-	Vec3T* pts_grid_vel_arr_;
-	T*     pts_density_arr_;
-	Mat3T* pts_tensor_arr_;
+	Vec3* pts_position_arr_;
+	Vec3* pts_velocity_arr_;
+	Vec3* pts_force_arr_;
+	Vec3* pts_grid_vel_arr_;
+	FLT*  pts_density_arr_;
+	Mat3* pts_tensor_arr_;
 
-	Vec3T* vector_temp_arr_;
-	Vec3T* scalar_temp_arr_;
+	Vec3* vector_temp_arr_;
+	Vec3* scalar_temp_arr_;
 
-	T*     density_field_;
-	Vec3T* velocity_field_;
-	Vec3T* force_field_;
+	FLT*  density_field_;
+	Vec3* velocity_field_;
+	Vec3* force_field_;
 
-	Vec3T gravity_;
+	Vec3 gravity_;
 
 	WALL_CONDITIONS wall_conditions_;
 
@@ -52,7 +52,7 @@ public:
 
 public:
 
-	MPM_FLUID_SOLVER() : density_field_(0), velocity_field_(0), force_field_(0), mass_(1), rest_density_(1), normal_stress_coef_((T)0), shear_stress_coef_((T)0), smoothing_((T)0.3)
+	MPM_FLUID_SOLVER() : density_field_(0), velocity_field_(0), force_field_(0), mass_(1), rest_density_(1), normal_stress_coef_((FLT)0), shear_stress_coef_((FLT)0), smoothing_((FLT)0.3)
 	{}
 
 	~MPM_FLUID_SOLVER()
@@ -62,14 +62,14 @@ public:
 		if (force_field_)    delete[] force_field_;
 	}
 
-	void Initialize(const Vec3T min, const Vec3T max, const int i_res, const int j_res, const int k_res, const int ghost_width, const int num_pts_res);
+	void Initialize(const Vec3 min, const Vec3 max, const int i_res, const int j_res, const int k_res, const int ghost_width, const int num_pts_res);
 
-	void AdvanceTimeStep(const T spf, const int steps)
+	void AdvanceTimeStep(const FLT spf, const int steps)
 	{
 		SourceParticles();
 		RebuildParticleDataStructure();
 
-		const T dt = spf / (T)steps;
+		const FLT dt = spf / (FLT)steps;
 		for (int i = 0; i < steps; i++)
 		{			
 			RasterizeParticlesDensityAndVelocityToGrid();
@@ -100,29 +100,29 @@ public:
 
 	void ComputeGridForces();
 
-	void UpdateParticleAndGridVelocity(const T dt);
+	void UpdateParticleAndGridVelocity(const FLT dt);
 
-	void AdvectParticles(const T dt);
+	void AdvectParticles(const FLT dt);
 
-	void CouplingWithObjects(const T dt);
+	void CouplingWithObjects(const FLT dt);
 
 	void SourceParticles()
 	{
-		SourceFormSphere(Vec3T(0.2, 0.7, 0.5), Vec3T( 2, 0.0, 0.0), 0.05, 1000);
-		SourceFormSphere(Vec3T(0.8, 0.7, 0.5), Vec3T(-2, 0.0, 0.0), 0.05, 1000);
+		SourceFormSphere(Vec3(0.2, 0.7, 0.5), Vec3( 2, 0.0, 0.0), 0.05, 1000);
+		SourceFormSphere(Vec3(0.8, 0.7, 0.5), Vec3(-2, 0.0, 0.0), 0.05, 1000);
 	}
 
-	void SourceFormSphere(const Vec3T& pos, const Vec3T& vel, const T rad, const int num)
+	void SourceFormSphere(const Vec3& pos, const Vec3& vel, const FLT rad, const int num)
 	{	
-		Vec3T* pos_arr = pts_position_arr_;
-		Vec3T* vel_arr = pts_velocity_arr_;
+		Vec3* pos_arr = pts_position_arr_;
+		Vec3* vel_arr = pts_velocity_arr_;
 
 		int num_pts = 0;
 		while (num_pts < num)
 		{
-			Vec3T new_pos = pos + RandomVector()*rad;
+			Vec3 new_pos = pos + RandomVector()*rad;
 
-			T dist = (new_pos - pos).Magnitude();
+			FLT dist = glm::length((new_pos - pos));
 			if (dist <= rad)
 			{
 				num_pts++;
@@ -134,27 +134,27 @@ public:
 		}
 	}
 
-	T ComputePressure(const T density)
+	FLT ComputePressure(const FLT density)
 	{
-//		return (stiffness_*rest_density_) * ((density / rest_density_) - (T)1);
-		return (stiffness_*rest_density_ / (T)3) * (POW3(density / rest_density_) - (T)1);
+//		return (stiffness_*rest_density_) * ((density / rest_density_) - (FLT)1);
+		return (stiffness_*rest_density_ / (FLT)3) * (POW3(density / rest_density_) - (FLT)1);
 	}
 
-	void ComputeStrainRate(const Vec3T& pos, Mat3T& tensor)
+	void ComputeStrainRate(const Vec3& pos, Mat3& tensor)
 	{
 		int i, j, k;
 		grid_.CellCenterIndex(pos, i, j, k);
 
-		T dudx((T)0), dudy((T)0), dudz((T)0), dvdx((T)0), dvdy((T)0), dvdz((T)0), dwdx((T)0), dwdy((T)0), dwdz((T)0);
+		FLT dudx((FLT)0), dudy((FLT)0), dudz((FLT)0), dvdx((FLT)0), dvdy((FLT)0), dvdz((FLT)0), dwdx((FLT)0), dwdy((FLT)0), dwdz((FLT)0);
 
 		BEGIN_STENCIL_LOOP(grid_, i, j, k, l, m, n)
 		{
 			int s_ix = grid_.Index3Dto1D(l, m, n);
 
-			Vec3T cell_pos = grid_.CellCenterPosition(l, m, n);
-			Vec3T cell_vel = velocity_field_[s_ix];
+			Vec3 cell_pos = grid_.CellCenterPosition(l, m, n);
+			Vec3 cell_vel = velocity_field_[s_ix];
 
-			Vec3T grad = QuadBSplineKernelGradient(cell_pos-pos, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
+			Vec3 grad = QuadBSplineKernelGradient(cell_pos-pos, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
 
 			dudx += cell_vel.x * grad.x;
 			dudy += cell_vel.x * grad.y;
@@ -170,16 +170,16 @@ public:
 		}
 		END_STENCIL_LOOP;
 
-		T D00 = dudx;
-		T D11 = dvdy;
-		T D22 = dwdz;
-		T D01 = (dudy+dvdx)*(T)0.5;
-		T D02 = (dudz+dwdx)*(T)0.5;
-		T D12 = (dvdz+dwdy)*(T)0.5;
+		FLT D00 = dudx;
+		FLT D11 = dvdy;
+		FLT D22 = dwdz;
+		FLT D01 = (dudy+dvdx)*(FLT)0.5;
+		FLT D02 = (dudz+dwdx)*(FLT)0.5;
+		FLT D12 = (dvdz+dwdy)*(FLT)0.5;
 
-		tensor.SetRow(0, Vec3T(D00, D01, D02));
-		tensor.SetRow(1, Vec3T(D01, D11, D12));
-		tensor.SetRow(2, Vec3T(D02, D12, D22));		
+		tensor[0] = Vec3(D00, D01, D02);
+		tensor[1] = Vec3(D01, D11, D12);
+		tensor[2] = Vec3(D02, D12, D22);		
 	}
 
 	void RenderDensityField()
@@ -195,9 +195,9 @@ public:
 			int i, j, k;
 			grid_.Index1Dto3D(c, i, j, k);
 
-			Vec3T cell_center = grid_.CellCenterPosition(i, j, k);
+			Vec3 cell_center = grid_.CellCenterPosition(i, j, k);
 
-			T density = density_field_[c];
+			FLT density = density_field_[c];
 
 			if (density > FLT_EPSILON)
 			{

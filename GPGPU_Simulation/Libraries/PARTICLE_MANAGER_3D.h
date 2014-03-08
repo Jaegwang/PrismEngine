@@ -4,11 +4,11 @@
 #include <amp.h>
 #include "GRID_UNIFORM_3D.h"
 #include "PARTICLE.h"
-#include "VECTOR3_T.h"
 #include "GL\glut.h"
 #include "iostream"
 #include "PARALLEL_MACRO.h"
 #include "GENERAL_MACRO.h"
+#include "MATH_CORE.h"
 
 using namespace std;
 using namespace concurrency;
@@ -19,8 +19,8 @@ public:
 	GRID_UNIFORM_3D grid_;
 
 	// particle properties
-	Vec3T **position_array_pointer_;
-	Vec3T **velocity_array_pointer_;
+	Vec3 **position_array_pointer_;
+	Vec3 **velocity_array_pointer_;
 
 	int* particle_id_array_;
 	int* particle_index_array_;
@@ -43,7 +43,7 @@ public:
 		Finalize();
 	}
 
-	void Initialize(const GRID_UNIFORM_3D& grid_input, Vec3T** pos_arr_input, Vec3T** vel_arr_input, const int num_pts)
+	void Initialize(const GRID_UNIFORM_3D& grid_input, Vec3** pos_arr_input, Vec3** vel_arr_input, const int num_pts)
 	{
 		grid_ = grid_input;
 		max_of_pts_ = num_pts;
@@ -74,7 +74,7 @@ public:
 
 	void DelParticle(int ix)
 	{
-		(*position_array_pointer_)[ix] = Vec3T((T)FLT_MAX, (T)FLT_MAX, (T)FLT_MAX);
+		(*position_array_pointer_)[ix] = Vec3((FLT)FLT_MAX, (FLT)FLT_MAX, (FLT)FLT_MAX);
 	}
 
 	template<class TT>
@@ -102,7 +102,7 @@ public:
 	{
 		if (num_of_pts_ == 0) return;
 
-		Vec3T *pos_arr = *position_array_pointer_;
+		Vec3 *pos_arr = *position_array_pointer_;
 
 		atomic<int> start_idx = 0;
 		atomic<int> count_pts = 0;
@@ -116,7 +116,7 @@ public:
 
 		BEGIN_CPU_THREADS(num_of_pts_, p)
 		{			
-			const Vec3T pos = pos_arr[p];
+			const Vec3 pos = pos_arr[p];
 			if (grid_.IsInsideValid(pos) == false) continue;
 
 			int i, j, k;
@@ -139,7 +139,7 @@ public:
 
 		BEGIN_CPU_THREADS(num_of_pts_, p)
 		{
-			const Vec3T pos = pos_arr[p];
+			const Vec3 pos = pos_arr[p];
 			const int id = particle_id_array_[p];
 
 			if (grid_.IsInsideValid(pos) == false) continue;
@@ -166,19 +166,19 @@ public:
 
 		glPointSize(1.3);
 
-		T dt = (T)0.01;
-		T dist = MAX(grid_.dx_*(T)3, grid_.dy_*(T)3, grid_.dz_*(T)3);
-		T max_vel = dist / dt;
+		FLT dt = (FLT)0.01;
+		FLT dist = MAX(grid_.dx_*(FLT)3, grid_.dy_*(FLT)3, grid_.dz_*(FLT)3);
+		FLT max_vel = dist / dt;
 
 		glBegin(GL_POINTS);
 
 		for (int i = 0; i < num_of_pts_; i++)
 		{
-			const Vec3T& pos =(*position_array_pointer_)[i];
-			const T v = (*velocity_array_pointer_)[i].Magnitude();
-			const T g = v / max_vel;
+			const Vec3& pos =(*position_array_pointer_)[i];
+			const FLT v = glm::length((*velocity_array_pointer_)[i]);
+			const FLT g = v / max_vel;
 
-			glColor3f(g, g, (T)1);
+			glColor3f(g, g, (FLT)1);
 
 			glVertex3f(pos.x, pos.y, pos.z);
 		}

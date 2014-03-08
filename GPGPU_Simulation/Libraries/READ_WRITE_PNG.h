@@ -5,7 +5,7 @@
 #include <iostream>
 #include <png.h>
 #include <zlib.h>
-#include "VECTOR3_T.h"
+#include "MATH_CORE.h"
 
 class READ_WRITE_PNG
 {
@@ -374,7 +374,7 @@ public:
 	}
 
 
-	static bool PngSaveImage (char *pstrFileName, const int i_res, const int j_res, const Vec3T* data)
+	static bool PngSaveImage (char *pstrFileName, const int i_res, const int j_res, const Vec3* data)
 	{
 		png_structp png_ptr = NULL;
 		png_infop info_ptr = NULL;

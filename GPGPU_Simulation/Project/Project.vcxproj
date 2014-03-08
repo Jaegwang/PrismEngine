@@ -81,7 +81,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\3rd_party\cg\include;..\libraries;..\3rd_party\libpng-1.5.7\include;..\3rd_party\zlib-1.2.5\include;..\3rd_party\glew-1.7.0\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\3rd_party\cg\include;..\libraries;..\3rd_party\libpng-1.5.7\include;..\3rd_party\zlib-1.2.5\include;..\3rd_party\glew-1.7.0\include;..\3rd_party</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -111,7 +111,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\3rd_party\cg\include;..\libraries;..\3rd_party\libpng-1.5.7\include;..\3rd_party\zlib-1.2.5\include;..\3rd_party\glew-1.7.0\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\3rd_party\cg\include;..\libraries;..\3rd_party\libpng-1.5.7\include;..\3rd_party\zlib-1.2.5\include;..\3rd_party\glew-1.7.0\include;..\3rd_party\</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -132,11 +132,9 @@
     <ClInclude Include="..\Libraries\FILE_UTILITIES.h" />
     <ClInclude Include="..\Libraries\GENERAL_MACRO.h" />
     <ClInclude Include="..\Libraries\GRID_UNIFORM_3D.h" />
-    <ClInclude Include="..\Libraries\INDEX3.h" />
     <ClInclude Include="..\Libraries\KERNEL_FUNCTIONS.h" />
     <ClInclude Include="..\Libraries\MATH_CORE.h" />
     <ClInclude Include="..\Libraries\MATH_DEFINITION.h" />
-    <ClInclude Include="..\Libraries\MATRIX3_T.h" />
     <ClInclude Include="..\Libraries\MPM_FLUID_SOLVER.h" />
     <ClInclude Include="..\Libraries\MPM_WEIGHTS.h" />
     <ClInclude Include="..\Libraries\PARALLEL_MACRO.h" />
@@ -144,10 +142,8 @@
     <ClInclude Include="..\Libraries\PARTICLE_MANAGER_3D.h" />
     <ClInclude Include="..\Libraries\PARTICLE_OBJECT.h" />
     <ClInclude Include="..\Libraries\PARTICLE_WORLD_BUILDER.h" />
-    <ClInclude Include="..\Libraries\QUATERNION_T.h" />
     <ClInclude Include="..\Libraries\READ_WRITE_PNG.h" />
     <ClInclude Include="..\Libraries\TRACK_BALL_CONTROL.h" />
-    <ClInclude Include="..\Libraries\VECTOR3_T.h" />
     <ClInclude Include="..\Libraries\WALL_CONDITIONS.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

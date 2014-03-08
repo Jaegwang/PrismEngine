@@ -4,9 +4,6 @@
 #include <GL\glut.h>
 #include <iostream>
 
-#include "VECTOR3_T.h"
-#include "MATRIX3_T.h"
-#include "QUATERNION_T.h"
 #include "PARTICLE_MANAGER_3D.h"
 #include "PARTICLE.h"
 #include "MPM_FLUID_SOLVER.h"
@@ -45,8 +42,8 @@ void light();
 
 int main(int argc, char **argv)
 {
-	Vec3T min0(0,0,0);
-	Vec3T max0(1,1,1);
+	Vec3 min0(0,0,0);
+	Vec3 max0(1,1,1);
 
 	std::string path = "no";
 
@@ -83,13 +80,13 @@ void display()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	const Vec3T& world_center = (mpm_solver.grid_.max_ + mpm_solver.grid_.min_)*(T)0.5;
+	const Vec3& world_center = (mpm_solver.grid_.max_ + mpm_solver.grid_.min_)*(FLT)0.5;
 
 	glTranslatef(0, 0, -2.0f);
 	
 	glTranslatef(track_ball.position.x, track_ball.position.y, track_ball.position.z);	
 
-	glRotatef( (float)acos(track_ball.rotation.w)*360/(float)3.141592, track_ball.rotation.x, track_ball.rotation.y, track_ball.rotation.z);	
+	glRotatef((float)acos(track_ball.rotation.w)*(float)360/(float)3.141592, track_ball.rotation.x, track_ball.rotation.y, track_ball.rotation.z);	
 	glTranslatef(-world_center.x, -world_center.y, -world_center.z);
 
 
@@ -127,7 +124,7 @@ void idle()
 
 	if (is_playing == true)
 	{
-		mpm_solver.AdvanceTimeStep((T)0.01, 1);
+		mpm_solver.AdvanceTimeStep((FLT)0.01, 1);
 
 		is_capture_flag = true;
 	}

@@ -1,6 +1,6 @@
 
 #include "GRID_UNIFORM_3D.h"
-#include "MATRIX3_T.h"
+#include "MATH_CORE.h"
 #include "PARALLEL_MACRO.h"
 #include "KERNEL_FUNCTIONS.h"
 
@@ -13,9 +13,9 @@ public:
 
 	GRID_UNIFORM_3D world_grid_;
 
-	T*     density_field_;
-	Vec3T* velocity_field_;
-	Vec3T* normal_field_;
+	FLT*  density_field_;
+	Vec3* velocity_field_;
+	Vec3* normal_field_;
 
 	atomic<int>*  pts_num_buffer_;
 	atomic<int>*  start_idx_buffer_;
@@ -35,15 +35,15 @@ public:
 	{
 		world_grid_ = grid;
 
-		density_field_  = new T[world_grid_.ijk_res_];
-		velocity_field_ = new Vec3T[world_grid_.ijk_res_];
-		normal_field_   = new Vec3T[world_grid_.ijk_res_];
+		density_field_  = new FLT[world_grid_.ijk_res_];
+		velocity_field_ = new Vec3[world_grid_.ijk_res_];
+		normal_field_   = new Vec3[world_grid_.ijk_res_];
 
 		pts_num_buffer_   = new atomic<int>[world_grid_.ijk_res_];
 		start_idx_buffer_ = new atomic<int>[world_grid_.ijk_res_];
 	}
 
-	void RasterizeParticles(const Vec3T* pos_arr, const Vec3T* vel_arr, const T pts_mass, const int num_pts)
+	void RasterizeParticles(const Vec3* pos_arr, const Vec3* vel_arr, const FLT pts_mass, const int num_pts)
 	{
 		index_array_ = new atomic<int>[num_pts];
 		id_array_ = new atomic<int>[num_pts];
@@ -55,11 +55,11 @@ public:
 			int i, j, k;
 			world_grid_.Index1Dto3D(p, i, j, k);
 
-			Vec3T cell_center = world_grid_.CellCenterPosition(i,j,k);
+			Vec3 cell_center = world_grid_.CellCenterPosition(i,j,k);
 
-			Vec3T velocity_weighted = Vec3T();
-			Vec3T normal_weighted = Vec3T();
-			T mass_weighted = (T)0;
+			Vec3 velocity_weighted = Vec3();
+			Vec3 normal_weighted = Vec3();
+			FLT mass_weighted = (FLT)0;
 
 			BEGIN_STENCIL_LOOP(world_grid_, i, j, k, l, m, n)
 			{
@@ -72,11 +72,11 @@ public:
 				{
 					int v_ix = index_array_[b_ix+x];
 
-					const Vec3T& pos = pos_arr[v_ix];
-					const Vec3T& vel = vel_arr[v_ix];
+					const Vec3& pos = pos_arr[v_ix];
+					const Vec3& vel = vel_arr[v_ix];
 
-					T w = QuadBSplineKernel(pos-cell_center, world_grid_.one_over_dx_, world_grid_.one_over_dy_, world_grid_.one_over_dz_);		
-					Vec3T grad = QuadBSplineKernelGradient(pos-cell_center, world_grid_.one_over_dx_, world_grid_.one_over_dy_, world_grid_.one_over_dz_);	
+					FLT w = QuadBSplineKernel(pos-cell_center, world_grid_.one_over_dx_, world_grid_.one_over_dy_, world_grid_.one_over_dz_);		
+					Vec3 grad = QuadBSplineKernelGradient(pos-cell_center, world_grid_.one_over_dx_, world_grid_.one_over_dy_, world_grid_.one_over_dz_);	
 
 					mass_weighted += pts_mass * w;
 					velocity_weighted += vel * pts_mass * w;
@@ -92,7 +92,7 @@ public:
 		END_CPU_THREADS;
 	}
 
-	void BuildParticleDataStructure(const Vec3T* pos_arr, const int num_pts)
+	void BuildParticleDataStructure(const Vec3* pos_arr, const int num_pts)
 	{
 		BEGIN_CPU_THREADS(world_grid_.ijk_res_, p)
 		{
@@ -152,9 +152,9 @@ public:
 			int i, j, k;
 			world_grid_.Index1Dto3D(c, i, j, k);
 
-			Vec3T cell_center = world_grid_.CellCenterPosition(i, j, k);
+			Vec3 cell_center = world_grid_.CellCenterPosition(i, j, k);
 
-			const T& density = density_field_[c];
+			const FLT& density = density_field_[c];
 
 			if (density > FLT_EPSILON)
 			{
@@ -170,12 +170,12 @@ public:
 			int i, j, k;
 			world_grid_.Index1Dto3D(c, i, j, k);
 
-			Vec3T cell_center = world_grid_.CellCenterPosition(i, j, k);
+			Vec3 cell_center = world_grid_.CellCenterPosition(i, j, k);
 
-			const T& density = density_field_[c];
+			const FLT& density = density_field_[c];
 
-			const Vec3T n = normal_field_[c];
-			const T d = (T)0.01;
+			const Vec3 n = normal_field_[c];
+			const FLT d = (FLT)0.01;
 
 			if(density > FLT_EPSILON)
 			{
