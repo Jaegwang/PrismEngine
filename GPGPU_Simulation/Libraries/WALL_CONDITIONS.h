@@ -36,12 +36,12 @@ public:
 		if (grid_.min_.y + grid_.gy_ + grid_.dy_*(FLT)0.5 >= pos.y)
 		{
 			pos.y = grid_.min_.y + grid_.gy_ + grid_.dy_*(FLT)0.5 + (FLT)FLT_EPSILON;
-			vel.y = (FLT)0;
+			vel.y = -vel.y;
 		}
 		if (grid_.max_.y - grid_.gy_ - grid_.dy_*(FLT)0.5 <= pos.y)
 		{
 			pos.y = grid_.max_.y - grid_.gy_ - grid_.dy_*(FLT)0.5 - (FLT)FLT_EPSILON;
-			vel.y = (FLT)0;
+			vel.y = -vel.y;
 		}
 
 

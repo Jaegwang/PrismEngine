@@ -6,7 +6,6 @@
 #include "PARTICLE.h"
 #include "GL\glut.h"
 #include "iostream"
-#include "PARALLEL_MACRO.h"
 #include "GENERAL_MACRO.h"
 #include "MATH_CORE.h"
 
@@ -80,7 +79,8 @@ public:
 	template<class TT>
 	void RearrangeParticleData(TT** pts_arr, TT** pts_arr_temp)
 	{
-		BEGIN_CPU_THREADS(grid_.ijk_res_, p)
+		#pragma omp parallel for
+		for(int p=0; p<grid_.ijk_res_; p++)
 		{
 			const int& num = num_pts_cell_[p];
 			const int& b_ix = start_idx_cell_[p];
@@ -91,7 +91,6 @@ public:
 				(*pts_arr_temp)[b_ix + n] = (*pts_arr)[v_ix];
 			}
 		}
-		END_CPU_THREADS;	
 
 		TT* temp = (*pts_arr_temp);
 		(*pts_arr_temp) = (*pts_arr);
@@ -107,14 +106,15 @@ public:
 		atomic<int> start_idx = 0;
 		atomic<int> count_pts = 0;
 
-		BEGIN_CPU_THREADS(grid_.ijk_res_, p)
+		#pragma omp for 
+		for (int p = 0 ; p < grid_.ijk_res_ ; p++) 
 		{
 			num_pts_cell_[p] = 0;
 			start_idx_cell_[p] = -1;
 		}
-		END_CPU_THREADS;
 
-		BEGIN_CPU_THREADS(num_of_pts_, p)
+		#pragma omp for 
+		for (int p = 0 ; p < num_of_pts_; p++) 
 		{			
 			const Vec3 pos = pos_arr[p];
 			if (grid_.IsInsideValid(pos) == false) continue;
@@ -128,16 +128,16 @@ public:
 
 			std::atomic_fetch_add(&count_pts, 1);
 		}
-		END_CPU_THREADS;
 
-		BEGIN_CPU_THREADS(grid_.ijk_res_, p)
+		#pragma omp for 
+		for (int p = 0 ; p < grid_.ijk_res_; p++) 
 		{
 			const atomic<int>& num = num_pts_cell_[p];
 			start_idx_cell_[p] = std::atomic_fetch_add(&start_idx, num);
 		}
-		END_CPU_THREADS;
 
-		BEGIN_CPU_THREADS(num_of_pts_, p)
+		#pragma omp for 
+		for (int p = 0 ; p < num_of_pts_; p++) 
 		{
 			const Vec3 pos = pos_arr[p];
 			const int id = particle_id_array_[p];
@@ -152,7 +152,6 @@ public:
 
 			particle_index_array_[b_ix + id] = p;
 		}
-		END_CPU_THREADS;
 
 		num_of_pts_ = (int)count_pts;
 	}
@@ -167,7 +166,7 @@ public:
 		glPointSize(1.3);
 
 		FLT dt = (FLT)0.01;
-		FLT dist = MAX(grid_.dx_*(FLT)3, grid_.dy_*(FLT)3, grid_.dz_*(FLT)3);
+		FLT dist = MAX3(grid_.dx_*(FLT)3, grid_.dy_*(FLT)3, grid_.dz_*(FLT)3);
 		FLT max_vel = dist / dt;
 
 		glBegin(GL_POINTS);

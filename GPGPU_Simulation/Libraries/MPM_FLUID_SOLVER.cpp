@@ -26,16 +26,16 @@ void MPM_FLUID_SOLVER::Initialize(const Vec3 min, const Vec3 max, const int i_re
 
 	mass_ = 1;
 	rest_density_ = 3;
-	stiffness_ = 0.2;
+	stiffness_ = 0.3;
 
 	normal_stress_coef_ = (FLT)0;
-	shear_stress_coef_ = (FLT)0;
+	shear_stress_coef_  = (FLT)0;
 
 	density_field_  = new FLT[grid_.ijk_res_];
 	velocity_field_ = new Vec3[grid_.ijk_res_];
 	force_field_    = new Vec3[grid_.ijk_res_];
 
-	gravity_ = Vec3(0, -5, 0);
+	gravity_ = Vec3(0, -3, 0);
 
 //	memset((void*)pts_density_arr_, 0, sizeof(FLT)*num_pts_res);
 	memset((void*)density_field_, 0, sizeof(FLT)*grid_.ijk_res_);
@@ -51,7 +51,8 @@ void MPM_FLUID_SOLVER::RasterizeParticlesDensityAndVelocityToGrid()
 {
 	if(particle_manager_.num_of_pts_ == 0) return;
 
-	BEGIN_CPU_THREADS(grid_.ijk_res_, p)
+	#pragma omp parallel for
+	for (int p = 0 ; p < grid_.ijk_res_ ; p++) 
 	{
 		int i, j, k;
 		grid_.Index1Dto3D(p, i, j, k);
@@ -91,14 +92,14 @@ void MPM_FLUID_SOLVER::RasterizeParticlesDensityAndVelocityToGrid()
 		density_field_[p] = mass_weighted;
 		velocity_field_[p] = vel_weighted / (mass_weighted+FLT_EPSILON);
 	}
-	END_CPU_THREADS;
 }
 
 void MPM_FLUID_SOLVER::ComputeParticleDenistyFromGrid()
 {
 	if(particle_manager_.num_of_pts_ == 0) return;
 
-	BEGIN_CPU_THREADS(particle_manager_.num_of_pts_, p)
+	#pragma omp parallel for
+	for(int p=0; p<particle_manager_.num_of_pts_; p++)
 	{
 		const Vec3& pts_pos = pts_position_arr_[p];
 
@@ -122,14 +123,14 @@ void MPM_FLUID_SOLVER::ComputeParticleDenistyFromGrid()
 
 		pts_density_arr_[p] = density_weighted;
 	}
-	END_CPU_THREADS;
 }
 
 void MPM_FLUID_SOLVER::ComputeStressTensors()
 {
 	if (particle_manager_.num_of_pts_ == 0) return;
 
-	BEGIN_CPU_THREADS(particle_manager_.num_of_pts_, p)
+	#pragma omp parallel for
+	for(int p=0; p<particle_manager_.num_of_pts_; p++)
 	{
 		const Vec3& pts_pos = pts_position_arr_[p];
 		const Vec3& pts_force = pts_force_arr_[p];
@@ -152,14 +153,14 @@ void MPM_FLUID_SOLVER::ComputeStressTensors()
 		pts_tensor[2][0] = pts_tensor[2][0]*shear_stress_coef_;
 		pts_tensor[2][1] = pts_tensor[2][1]*shear_stress_coef_;
 	}
-	END_CPU_THREADS;
 }
 
 void MPM_FLUID_SOLVER::ComputeGridForces()
 {
 	if (particle_manager_.num_of_pts_ == 0) return;
 
-	BEGIN_CPU_THREADS(grid_.ijk_res_, p)
+	#pragma omp parallel for
+	for(int p=0; p<grid_.ijk_res_; p++)
 	{
 		int i, j, k;
 		grid_.Index1Dto3D(p, i, j, k);
@@ -198,15 +199,14 @@ void MPM_FLUID_SOLVER::ComputeGridForces()
 
 		force_field_[p] = -int_force + ext_force;
 	}
-	END_CPU_THREADS;
 
 	Vec3 gravity_force = gravity_ * mass_;
 
-	BEGIN_CPU_THREADS(particle_manager_.num_of_pts_, p)
+	#pragma omp parallel for
+	for(int p=0; p<particle_manager_.num_of_pts_; p++)
 	{
 		pts_force_arr_[p] = gravity_force;
 	}
-	END_CPU_THREADS;
 }
 
 void MPM_FLUID_SOLVER::RebuildParticleDataStructure()
@@ -222,7 +222,8 @@ void MPM_FLUID_SOLVER::UpdateParticleAndGridVelocity(const FLT dt)
 {
 	if (particle_manager_.num_of_pts_ == 0) return;
 
-	BEGIN_CPU_THREADS(grid_.ijk_res_, p)
+	#pragma omp parallel for
+	for(int p=0; p<grid_.ijk_res_; p++)
 	{
 		int i, j, k;
 		grid_.Index1Dto3D(p, i, j, k);
@@ -232,9 +233,9 @@ void MPM_FLUID_SOLVER::UpdateParticleAndGridVelocity(const FLT dt)
 
 		velocity_field_[p] += force_g / (density_g+(FLT)FLT_EPSILON) * dt;
 	}
-	END_CPU_THREADS;
 
-	BEGIN_CPU_THREADS(particle_manager_.num_of_pts_, p)
+	#pragma omp parallel for
+	for(int p=0; p<particle_manager_.num_of_pts_; p++)
 	{
 		const Vec3& pts_pos = pts_position_arr_[p];
 
@@ -269,7 +270,6 @@ void MPM_FLUID_SOLVER::UpdateParticleAndGridVelocity(const FLT dt)
 		pts_vel += force_weighted / density_p * dt;
 		pts_vel = pts_vel*((FLT)1-smoothing_) + grid_vel*smoothing_;
 	}
-	END_CPU_THREADS;
 }
 
 
@@ -277,7 +277,8 @@ void MPM_FLUID_SOLVER::AdvectParticles(const FLT dt)
 {
 	if (particle_manager_.num_of_pts_ == 0) return;
 
-	BEGIN_CPU_THREADS(particle_manager_.num_of_pts_, p)
+	#pragma omp parallel for
+	for(int p=0; p<particle_manager_.num_of_pts_; p++)
 	{
 		Vec3& pts_pos = pts_position_arr_[p];
 		Vec3& grid_vel = pts_grid_vel_arr_[p];
@@ -287,14 +288,14 @@ void MPM_FLUID_SOLVER::AdvectParticles(const FLT dt)
 
 		pts_pos += grid_vel * dt;
 	}
-	END_CPU_THREADS;
 }
 
 void MPM_FLUID_SOLVER::CouplingWithObjects(const FLT dt)
 {
 	if (particle_manager_.num_of_pts_ == 0) return;
 
-	BEGIN_CPU_THREADS(particle_manager_.num_of_pts_, p)
+	#pragma omp parallel for
+	for(int p=0; p<particle_manager_.num_of_pts_; p++)
 	{
 		Vec3& pts_pos   = pts_position_arr_[p];
 		Vec3& pts_vel   = pts_velocity_arr_[p];
@@ -310,5 +311,4 @@ void MPM_FLUID_SOLVER::CouplingWithObjects(const FLT dt)
 			pts_force += glm::normalize(object_normal) * object_density * mass_ * (FLT)500;
 		}		
 	}
-	END_CPU_THREADS;
 }

@@ -23,7 +23,6 @@ public:
 	int ij_res_, ijk_res_;
 
 	int ghost_width_;
-	int g_;
 	
 public:
 	
@@ -50,7 +49,6 @@ public:
 		max_ = max + Vec3(gx_, gy_, gz_);
 
 		ghost_width_ = g;
-		g_ = g;
 
 		i_res_ = i_res + g*2;
 		j_res_ = j_res + g*2;
@@ -60,29 +58,23 @@ public:
 		ijk_res_ = i_res_ * j_res_ * k_res_;
 	}
 
-	void UseGhostStartIndex(bool b)
-	{
-		if(b == true) g_ = 0;
-		else g_ = ghost_width_;
-	}
-
 	int Index3Dto1D(const int i, const int j, const int k) 
 	{
-		return (i+g_) + (j+g_)*i_res_ + (k+g_)*ij_res_;
+		return i + j*i_res_ + k*ij_res_;
 	}
 
 	void Index1Dto3D(const int idx, int& i, int& j, int& k) 
 	{
-		i = idx           % i_res_ - g_;
-		j = (idx/i_res_ ) % j_res_ - g_;
-		k = (idx/ij_res_) % k_res_ - g_;
+		i = idx           % i_res_;
+		j = (idx/i_res_ ) % j_res_;
+		k = (idx/ij_res_) % k_res_;
 	}
 
 	bool IsGhostCell(const int i, const int j, const int k) 
 	{
-		if((i+g_) < ghost_width_ || (i+g_) >= i_res_-ghost_width_) return true;
-		if((j+g_) < ghost_width_ || (j+g_) >= j_res_-ghost_width_) return true;
-		if((k+g_) < ghost_width_ || (k+g_) >= k_res_-ghost_width_) return true;
+		if(i < ghost_width_ || i >= i_res_-ghost_width_) return true;
+		if(j < ghost_width_ || j >= j_res_-ghost_width_) return true;
+		if(k < ghost_width_ || k >= k_res_-ghost_width_) return true;
 
 		return false;
 	}
@@ -109,42 +101,42 @@ public:
 
 	Vec3 CellCenterPosition(const int i, const int j, const int k) 
 	{
-		return min_ + Vec3(((FLT)(i+g_)+(FLT)0.5)*dx_, ((FLT)(j+g_)+(FLT)0.5)*dy_, ((FLT)(k+g_)+(FLT)0.5)*dz_);
+		return min_ + Vec3(((FLT)i+(FLT)0.5)*dx_, ((FLT)j+(FLT)0.5)*dy_, ((FLT)k+(FLT)0.5)*dz_);
 	}
 
 	void CellCenterIndex(const Vec3& p, int& i, int& j, int& k) 
 	{
 		Vec3 v = p-min_;
-		i = (int)(v.x/dx_) - g_;
-		j = (int)(v.y/dy_) - g_;
-		k = (int)(v.z/dz_) - g_;
+		i = (int)(v.x/dx_);
+		j = (int)(v.y/dy_);
+		k = (int)(v.z/dz_);
 	}
 
 	void LeftBottomIndex(const Vec3& p, int& i, int& j, int& k)  
 	{
 		Vec3 v = p-min_;
-		i = (int)((v.x/dx_)-(FLT)0.5) - g_;
-		j = (int)((v.y/dy_)-(FLT)0.5) - g_;
-		k = (int)((v.z/dz_)-(FLT)0.5) - g_;
+		i = (int)((v.x/dx_)-(FLT)0.5);
+		j = (int)((v.y/dy_)-(FLT)0.5);
+		k = (int)((v.z/dz_)-(FLT)0.5);
 	}
 
 	void RightUpIndex(const Vec3& p, int& i, int& j, int& k) 
 	{
 		Vec3 v = p-min_;
-		i = (int)((v.x/dx_)+(FLT)0.5) - g_; 
-		j = (int)((v.y/dy_)+(FLT)0.5) - g_;
-		k = (int)((v.z/dz_)+(FLT)0.5) - g_;
+		i = (int)((v.x/dx_)+(FLT)0.5); 
+		j = (int)((v.y/dy_)+(FLT)0.5);
+		k = (int)((v.z/dz_)+(FLT)0.5);
 	}
 
 	void StartEndIndices(const int l, const int m, const int n, int& start_l, int& start_m, int& start_n, int& end_l, int& end_m, int& end_n, const int pad=1) 
 	{
-		start_l = MAX(l-pad, -g_);
-		start_m = MAX(m-pad, -g_);
-		start_n = MAX(n-pad, -g_);
+		start_l = MAX(l-pad, 0);
+		start_m = MAX(m-pad, 0);
+		start_n = MAX(n-pad, 0);
 
-		end_l = MIN(l+pad, i_res_-g_-1);
-		end_m = MIN(m+pad, j_res_-g_-1);
-		end_n = MIN(n+pad, k_res_-g_-1);
+		end_l = MIN(l+pad, i_res_-1);
+		end_m = MIN(m+pad, j_res_-1);
+		end_n = MIN(n+pad, k_res_-1);
 	}
 
 	void StencilIndexBuffer(const int i, const int j, const int k, int* buf)
@@ -244,3 +236,12 @@ public:
 	}
 
 };
+
+
+#define BEGIN_STENCIL_LOOP(_grid, _i, _j, _k, _l, _m, _n) { int _start_l, _start_m, _start_n, _end_l, _end_m, _end_n; \
+															_grid.StartEndIndices(_i, _j, _k, _start_l, _start_m, _start_n, _end_l, _end_m, _end_n); \
+															int _b_ix = _grid.Index3Dto1D(_start_l, _start_m, _start_n); \
+															for (int _ns = 0, _n = _start_n; _n <= _end_n; _ns += _grid.ij_res_, _n++)\
+															for (int _ms = 0, _m = _start_m; _m <= _end_m; _ms += _grid.i_res_, _m++)\
+															for (int _ls = 0, _l = _start_l; _l <= _end_l; _ls += 1, _l++) { int _p = _b_ix + _ns + _ms + _ls;
+#define END_STENCIL_LOOP }}

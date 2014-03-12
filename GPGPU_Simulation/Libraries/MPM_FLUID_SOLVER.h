@@ -108,8 +108,8 @@ public:
 
 	void SourceParticles()
 	{
-		SourceFormSphere(Vec3(0.2, 0.7, 0.5), Vec3( 2, 0.0, 0.0), 0.05, 1000);
-		SourceFormSphere(Vec3(0.8, 0.7, 0.5), Vec3(-2, 0.0, 0.0), 0.05, 1000);
+		SourceFormSphere(Vec3(0.2, 0.7, 0.5), Vec3( 2, 0.0, 0.0), 0.05, 500);
+		SourceFormSphere(Vec3(0.8, 0.7, 0.5), Vec3(-2, 0.0, 0.0), 0.05, 500);
 	}
 
 	void SourceFormSphere(const Vec3& pos, const Vec3& vel, const FLT rad, const int num)

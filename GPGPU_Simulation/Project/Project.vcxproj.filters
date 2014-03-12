@@ -47,9 +47,6 @@
     <ClInclude Include="..\Libraries\KERNEL_FUNCTIONS.h">
       <Filter>Libraries</Filter>
     </ClInclude>
-    <ClInclude Include="..\Libraries\PARALLEL_MACRO.h">
-      <Filter>Libraries</Filter>
-    </ClInclude>
     <ClInclude Include="..\Libraries\WALL_CONDITIONS.h">
       <Filter>Libraries</Filter>
     </ClInclude>

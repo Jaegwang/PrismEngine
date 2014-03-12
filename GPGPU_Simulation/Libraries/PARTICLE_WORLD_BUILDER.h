@@ -1,7 +1,6 @@
 
 #include "GRID_UNIFORM_3D.h"
 #include "MATH_CORE.h"
-#include "PARALLEL_MACRO.h"
 #include "KERNEL_FUNCTIONS.h"
 
 using namespace std;
@@ -50,7 +49,8 @@ public:
 
 		BuildParticleDataStructure(pos_arr, num_pts);
 
-		BEGIN_CPU_THREADS(world_grid_.ijk_res_, p)
+		#pragma omp parallel for
+		for(int p=0; p<world_grid_.ijk_res_; p++)
 		{
 			int i, j, k;
 			world_grid_.Index1Dto3D(p, i, j, k);
@@ -89,19 +89,19 @@ public:
 			velocity_field_[p] = velocity_weighted / (mass_weighted + FLT_EPSILON);
 			normal_field_[p] = normal_weighted;
 		}
-		END_CPU_THREADS;
 	}
 
 	void BuildParticleDataStructure(const Vec3* pos_arr, const int num_pts)
 	{
-		BEGIN_CPU_THREADS(world_grid_.ijk_res_, p)
+		#pragma omp parallel for
+		for(int p=0; p<world_grid_.ijk_res_; p++)
 		{
 			pts_num_buffer_[p] = 0;
 			start_idx_buffer_[p] = -1;
 		}
-		END_CPU_THREADS;
 
-		BEGIN_CPU_THREADS(num_pts, p)
+		#pragma omp parallel for
+		for(int p=0; p<num_pts; p++)
 		{
 			int i, j, k, ix;
 			if(world_grid_.IsInsideGhost(pos_arr[p]) == false) continue;
@@ -111,17 +111,18 @@ public:
 
 			id_array_[p] = atomic_fetch_add(&pts_num_buffer_[ix], 1);
 		}
-		END_CPU_THREADS;
 
 		atomic<int> start_idx = 0;		
-		BEGIN_CPU_THREADS(world_grid_.ijk_res_, p)
+
+		#pragma omp parallel for
+		for(int p=0; p<world_grid_.ijk_res_; p++)
 		{
 			const atomic<int>& num = pts_num_buffer_[p];
 			start_idx_buffer_[p] = std::atomic_fetch_add(&start_idx, num);
 		}
-		END_CPU_THREADS;
 
-		BEGIN_CPU_THREADS(num_pts, p)
+		#pragma omp parallel for
+		for(int p=0; p<num_pts; p++)
 		{
 			int i, j, k, ix;
 			if(world_grid_.IsInsideGhost(pos_arr[p]) == false) continue;
@@ -134,7 +135,6 @@ public:
 
 			index_array_[s_ix + id] = p;
 		}
-		END_CPU_THREADS;				
 	}
 
 	void Render()
