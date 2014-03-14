@@ -124,7 +124,7 @@ void idle()
 
 	if (is_playing == true)
 	{
-		mpm_solver.AdvanceTimeStep((FLT)0.01, 1);
+		mpm_solver.AdvanceTimeStep((FLT)0.01, 10);
 
 		is_capture_flag = true;
 	}

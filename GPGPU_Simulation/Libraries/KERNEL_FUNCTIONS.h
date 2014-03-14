@@ -35,6 +35,19 @@ static Vec3 QuadBSplineKernelGradient(const Vec3 d, const FLT one_over_dx, const
 	return Vec3(QuadBSplineKernelGradient(d.x, one_over_dx), QuadBSplineKernelGradient(d.y, one_over_dy), QuadBSplineKernelGradient(d.z, one_over_dz));
 }
 
+static void QuadBSplineKernel(const Vec3& d, const Vec3& one_over_h, Vec3& w)
+{
+	w.x = QuadBSplineKernel(d.x, one_over_h.x);
+	w.y = QuadBSplineKernel(d.y, one_over_h.y);
+	w.z = QuadBSplineKernel(d.z, one_over_h.z);
+}
+
+static void QuadBSplineKernelGradient(const Vec3& d, const Vec3& one_over_h, Vec3& w)
+{ 
+	w.x = QuadBSplineKernelGradient(d.x, one_over_h.x);
+	w.y = QuadBSplineKernelGradient(d.y, one_over_h.y);
+	w.z = QuadBSplineKernelGradient(d.z, one_over_h.z);
+}
 
 /*
 static FLT MPMSplineKernel(const FLT d, const FLT one_over_h) 

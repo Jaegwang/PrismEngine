@@ -12,7 +12,7 @@ void MPM_FLUID_SOLVER::Initialize(const Vec3 min, const Vec3 max, const int i_re
 	pts_velocity_arr_ = new Vec3[num_pts_res];
 	pts_force_arr_    = new Vec3[num_pts_res];
 	pts_grid_vel_arr_ = new Vec3[num_pts_res];
-	pts_density_arr_  = new FLT    [num_pts_res];
+	pts_density_arr_  = new FLT [num_pts_res];
 	pts_tensor_arr_   = new Mat3[num_pts_res];
 
 	particle_manager_.Initialize(grid_, &pts_position_arr_, &pts_velocity_arr_, num_pts_res);
@@ -25,11 +25,11 @@ void MPM_FLUID_SOLVER::Initialize(const Vec3 min, const Vec3 max, const int i_re
 	particle_world_.RasterizeParticles(cube_object_.position_array_, cube_object_.velocity_array_, (FLT)1, cube_object_.pts_num_);
 
 	mass_ = 1;
-	rest_density_ = 3;
-	stiffness_ = 0.3;
+	rest_density_ = 10;
+	stiffness_ = 0.0001;
 
-	normal_stress_coef_ = (FLT)0;
-	shear_stress_coef_  = (FLT)0;
+	normal_stress_coef_ = (FLT)300;
+	shear_stress_coef_  = (FLT)300;
 
 	density_field_  = new FLT[grid_.ijk_res_];
 	velocity_field_ = new Vec3[grid_.ijk_res_];
@@ -140,7 +140,7 @@ void MPM_FLUID_SOLVER::ComputeStressTensors()
 
 		FLT pressure = ComputePressure(pts_density);
 
-		ComputeStrainRate(pts_pos, pts_tensor);
+		ComputeStrainTensor(pts_pos, pts_tensor);
 
 		pts_tensor[0][0] = pts_tensor[0][0]*normal_stress_coef_ + pressure;
 		pts_tensor[1][1] = pts_tensor[1][1]*normal_stress_coef_ + pressure;

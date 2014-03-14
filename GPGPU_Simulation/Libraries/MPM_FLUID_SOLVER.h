@@ -108,8 +108,8 @@ public:
 
 	void SourceParticles()
 	{
-		SourceFormSphere(Vec3(0.2, 0.7, 0.5), Vec3( 2, 0.0, 0.0), 0.05, 500);
-		SourceFormSphere(Vec3(0.8, 0.7, 0.5), Vec3(-2, 0.0, 0.0), 0.05, 500);
+		SourceFormSphere(Vec3(0.2, 0.7, 0.5), Vec3( 0.7, 0.0, 0.0), 0.05, 500);
+		SourceFormSphere(Vec3(0.8, 0.7, 0.5), Vec3(-0.7, 0.0, 0.0), 0.05, 500);
 	}
 
 	void SourceFormSphere(const Vec3& pos, const Vec3& vel, const FLT rad, const int num)
@@ -140,35 +140,72 @@ public:
 		return (stiffness_*rest_density_ / (FLT)3) * (POW3(density / rest_density_) - (FLT)1);
 	}
 
-	void ComputeStrainRate(const Vec3& pos, Mat3& tensor)
+	void ComputeWeightStencil(const Vec3& pos, const Vec3& cell, FLT wx[3],  FLT wy[3],  FLT wz[3])
 	{
-		int i, j, k;
-		grid_.CellCenterIndex(pos, i, j, k);
+		wx[0] = QuadBSplineKernel(cell.x-grid_.dx_ - pos.x, grid_.one_over_dx_);	
+		wx[1] = QuadBSplineKernel(cell.x           - pos.x, grid_.one_over_dx_);
+		wx[2] = QuadBSplineKernel(cell.x+grid_.dx_ - pos.x, grid_.one_over_dx_);
 
-		FLT dudx((FLT)0), dudy((FLT)0), dudz((FLT)0), dvdx((FLT)0), dvdy((FLT)0), dvdz((FLT)0), dwdx((FLT)0), dwdy((FLT)0), dwdz((FLT)0);
+		wy[0] = QuadBSplineKernel(cell.y-grid_.dy_ - pos.y, grid_.one_over_dy_);	
+		wy[1] = QuadBSplineKernel(cell.y           - pos.y, grid_.one_over_dy_);
+		wy[2] = QuadBSplineKernel(cell.y+grid_.dy_ - pos.y, grid_.one_over_dy_);
 
-		BEGIN_STENCIL_LOOP(grid_, i, j, k, l, m, n)
+		wz[0] = QuadBSplineKernel(cell.z-grid_.dz_ - pos.z, grid_.one_over_dz_);	
+		wz[1] = QuadBSplineKernel(cell.z           - pos.z, grid_.one_over_dz_);
+		wz[2] = QuadBSplineKernel(cell.z+grid_.dz_ - pos.z, grid_.one_over_dz_);
+	}
+
+	void ComputeGradientStencil(const Vec3& pos, const Vec3& cell, FLT gx[3],  FLT gy[3],  FLT gz[3])
+	{
+		gx[0] = QuadBSplineKernelGradient(cell.x-grid_.dx_ - pos.x, grid_.one_over_dx_);	
+		gx[1] = QuadBSplineKernelGradient(cell.x           - pos.x, grid_.one_over_dx_);
+		gx[2] = QuadBSplineKernelGradient(cell.x+grid_.dx_ - pos.x, grid_.one_over_dx_);
+
+		gy[0] = QuadBSplineKernelGradient(cell.y-grid_.dy_ - pos.y, grid_.one_over_dy_);	
+		gy[1] = QuadBSplineKernelGradient(cell.y           - pos.y, grid_.one_over_dy_);
+		gy[2] = QuadBSplineKernelGradient(cell.y+grid_.dy_ - pos.y, grid_.one_over_dy_);
+
+		gz[0] = QuadBSplineKernelGradient(cell.z-grid_.dz_ - pos.z, grid_.one_over_dz_);	
+		gz[1] = QuadBSplineKernelGradient(cell.z           - pos.z, grid_.one_over_dz_);
+		gz[2] = QuadBSplineKernelGradient(cell.z+grid_.dz_ - pos.z, grid_.one_over_dz_);	
+	}
+
+	void ComputeStrainTensor(const Vec3& pos, Mat3& tensor)
+	{
+		int ci, cj, ck;
+		grid_.CellCenterIndex(pos, ci, cj, ck);
+
+		Vec3 cell_pos = grid_.CellCenterPosition(ci,cj,ck);
+		
+		ci--; cj--; ck--;
+
+		FLT wx[3],wy[3],wz[3];
+		FLT gx[3],gy[3],gz[3];
+
+		ComputeWeightStencil(pos, cell_pos, wx, wy, wz);
+		ComputeGradientStencil(pos, cell_pos, gx, gy, gz);
+
+		FLT dudx((FLT)0), dudy((FLT)0), dudz((FLT)0);
+		FLT dvdx((FLT)0), dvdy((FLT)0), dvdz((FLT)0);
+		FLT dwdx((FLT)0), dwdy((FLT)0), dwdz((FLT)0);
+
+		for(int k=0; k<3; k++) for(int j=0; j<3; j++) for(int i=0; i<3; i++)
 		{
-			int s_ix = grid_.Index3Dto1D(l, m, n);
-
-			Vec3 cell_pos = grid_.CellCenterPosition(l, m, n);
+			int s_ix = grid_.Index3Dto1D(ci+i, cj+j, ck+k);
 			Vec3 cell_vel = velocity_field_[s_ix];
 
-			Vec3 grad = QuadBSplineKernelGradient(cell_pos-pos, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
+			dudx += gx[i]*wy[j]*wz[k] * cell_vel.x;
+			dudy += wx[i]*gy[j]*wz[k] * cell_vel.x;
+			dudz += wx[i]*wy[j]*gz[k] * cell_vel.x;
 
-			dudx += cell_vel.x * grad.x;
-			dudy += cell_vel.x * grad.y;
-			dudz += cell_vel.x * grad.z;
+			dvdx += gx[i]*wy[j]*wz[k] * cell_vel.y;
+			dvdy += wx[i]*gy[j]*wz[k] * cell_vel.y;
+			dvdz += wx[i]*wy[j]*gz[k] * cell_vel.y;
 
-			dvdx += cell_vel.y * grad.x;
-			dvdy += cell_vel.y * grad.y;
-			dvdz += cell_vel.y * grad.z;
-
-			dwdx += cell_vel.z * grad.x;
-			dwdy += cell_vel.z * grad.y;
-			dwdz += cell_vel.z * grad.z;
+			dwdx += gx[i]*wy[j]*wz[k] * cell_vel.z;
+			dwdy += wx[i]*gy[j]*wz[k] * cell_vel.z;
+			dwdz += wx[i]*wy[j]*gz[k] * cell_vel.z;		
 		}
-		END_STENCIL_LOOP;
 
 		FLT D00 = dudx;
 		FLT D11 = dvdy;
