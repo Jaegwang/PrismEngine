@@ -130,7 +130,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Libraries\CAPTURE_MANAGER.h" />
+    <ClInclude Include="..\Libraries\DATABASE_MANAGER.h" />
     <ClInclude Include="..\Libraries\FILE_UTILITIES.h" />
+    <ClInclude Include="..\Libraries\FLUID_PROJECTION_METHOD.h" />
     <ClInclude Include="..\Libraries\GENERAL_MACRO.h" />
     <ClInclude Include="..\Libraries\GRID_UNIFORM_3D.h" />
     <ClInclude Include="..\Libraries\KERNEL_FUNCTIONS.h" />

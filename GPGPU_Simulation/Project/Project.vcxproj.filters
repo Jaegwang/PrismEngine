@@ -77,5 +77,11 @@
     <ClInclude Include="..\Libraries\MATH_CORE.h">
       <Filter>Libraries</Filter>
     </ClInclude>
+    <ClInclude Include="..\Libraries\DATABASE_MANAGER.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\FLUID_PROJECTION_METHOD.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
