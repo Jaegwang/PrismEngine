@@ -25,11 +25,11 @@ void MPM_FLUID_SOLVER::Initialize(const Vec3 min, const Vec3 max, const int i_re
 	particle_world_.RasterizeParticles(cube_object_.position_array_, cube_object_.velocity_array_, (FLT)1, cube_object_.pts_num_);
 
 	mass_ = 1;
-	rest_density_ = 10;
-	stiffness_ = 0.0001;
+	rest_density_ = 3;
+	stiffness_ = 0.03;
 
-	normal_stress_coef_ = (FLT)300;
-	shear_stress_coef_  = (FLT)300;
+	normal_stress_coef_ = (FLT)0;
+	shear_stress_coef_  = (FLT)0;
 
 	density_field_  = new FLT[grid_.ijk_res_];
 	velocity_field_ = new Vec3[grid_.ijk_res_];
@@ -207,6 +207,61 @@ void MPM_FLUID_SOLVER::ComputeGridForces()
 	{
 		pts_force_arr_[p] = gravity_force;
 	}
+}
+
+void MPM_FLUID_SOLVER::ComputeGridForces2()
+{
+	if (particle_manager_.num_of_pts_ == 0) return;
+
+	#pragma omp parallel for
+	for(int p=0; p<grid_.ijk_res_; p++)
+	{
+		int i, j, k;
+		grid_.Index1Dto3D(p, i, j, k);
+
+		if(grid_.IsGhostCell(i, j, k) == true)
+		{
+			force_field_[p] = Vec3();
+			continue;
+		}
+
+		Vec3 cell_center = grid_.CellCenterPosition(i, j, k);
+
+		Vec3 int_force((FLT)0, (FLT)0, (FLT)0);
+		Vec3 ext_force((FLT)0, (FLT)0, (FLT)0);
+
+		BEGIN_STENCIL_LOOP(grid_, i,j,k, l,m,n)
+		{
+			int s_ix = grid_.Index3Dto1D(l, m, n);
+			int num = particle_manager_.num_pts_cell_[s_ix];
+			int b_ix = particle_manager_.start_idx_cell_[s_ix];
+
+			for (int p = 0; p < num; p++)
+			{
+				const Vec3& position = pts_position_arr_[b_ix + p];
+				const Vec3& force = pts_force_arr_[b_ix + p]; 
+				const FLT pressure = pts_density_arr_[b_ix + p];
+	
+				FLT w = QuadBSplineKernel(cell_center-position, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
+				Vec3 grad = QuadBSplineKernelGradient(cell_center-position, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
+
+				int_force += pressure*grad;
+				ext_force += w*force;
+			}
+		}
+		END_STENCIL_LOOP;
+
+		force_field_[p] = -int_force + ext_force;
+	}
+
+	Vec3 gravity_force = gravity_ * mass_;
+
+	#pragma omp parallel for
+	for(int p=0; p<particle_manager_.num_of_pts_; p++)
+	{
+		pts_force_arr_[p] = gravity_force;
+	}
+
 }
 
 void MPM_FLUID_SOLVER::RebuildParticleDataStructure()

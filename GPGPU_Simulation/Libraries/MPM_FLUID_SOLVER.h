@@ -100,6 +100,8 @@ public:
 
 	void ComputeGridForces();
 
+	void ComputeGridForces2();
+
 	void UpdateParticleAndGridVelocity(const FLT dt);
 
 	void AdvectParticles(const FLT dt);
@@ -194,17 +196,17 @@ public:
 			int s_ix = grid_.Index3Dto1D(ci+i, cj+j, ck+k);
 			Vec3 cell_vel = velocity_field_[s_ix];
 
-			dudx += gx[i]*wy[j]*wz[k] * cell_vel.x;
-			dudy += wx[i]*gy[j]*wz[k] * cell_vel.x;
-			dudz += wx[i]*wy[j]*gz[k] * cell_vel.x;
+			dudx += gx[i] * cell_vel.x;
+			dudy += gy[j] * cell_vel.x;
+			dudz += gz[k] * cell_vel.x;
 
-			dvdx += gx[i]*wy[j]*wz[k] * cell_vel.y;
-			dvdy += wx[i]*gy[j]*wz[k] * cell_vel.y;
-			dvdz += wx[i]*wy[j]*gz[k] * cell_vel.y;
+			dvdx += gx[i] * cell_vel.y;
+			dvdy += gy[j] * cell_vel.y;
+			dvdz += gz[k] * cell_vel.y;
 
-			dwdx += gx[i]*wy[j]*wz[k] * cell_vel.z;
-			dwdy += wx[i]*gy[j]*wz[k] * cell_vel.z;
-			dwdz += wx[i]*wy[j]*gz[k] * cell_vel.z;		
+			dwdx += gx[i] * cell_vel.z;
+			dwdy += gy[j] * cell_vel.z;
+			dwdz += gz[k] * cell_vel.z;		
 		}
 
 		FLT D00 = dudx;
