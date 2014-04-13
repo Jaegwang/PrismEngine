@@ -125,6 +125,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Libraries\CAPTURE_MANAGER.cpp" />
+    <ClCompile Include="..\Libraries\GRID_DATA.cpp" />
+    <ClCompile Include="..\Libraries\GRID_HASHED.cpp" />
     <ClCompile Include="..\Libraries\MPM_FLUID_SOLVER.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
@@ -134,6 +136,8 @@
     <ClInclude Include="..\Libraries\FILE_UTILITIES.h" />
     <ClInclude Include="..\Libraries\FLUID_PROJECTION_METHOD.h" />
     <ClInclude Include="..\Libraries\GENERAL_MACRO.h" />
+    <ClInclude Include="..\Libraries\GRID_DATA.h" />
+    <ClInclude Include="..\Libraries\GRID_HASHED.h" />
     <ClInclude Include="..\Libraries\GRID_UNIFORM_3D.h" />
     <ClInclude Include="..\Libraries\KERNEL_FUNCTIONS.h" />
     <ClInclude Include="..\Libraries\MATH_CORE.h" />
