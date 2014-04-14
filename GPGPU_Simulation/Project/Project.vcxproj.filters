@@ -30,9 +30,6 @@
     <ClCompile Include="..\Libraries\MPM_FLUID_SOLVER.cpp">
       <Filter>Libraries</Filter>
     </ClCompile>
-    <ClCompile Include="..\Libraries\GRID_HASHED.cpp">
-      <Filter>Libraries\GRID</Filter>
-    </ClCompile>
     <ClCompile Include="..\Libraries\GRID_DATA.cpp">
       <Filter>Libraries\GRID</Filter>
     </ClCompile>
@@ -91,9 +88,6 @@
     </ClInclude>
     <ClInclude Include="..\Libraries\FLUID_PROJECTION_METHOD.h">
       <Filter>Libraries</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Libraries\GRID_HASHED.h">
-      <Filter>Libraries\GRID</Filter>
     </ClInclude>
     <ClInclude Include="..\Libraries\GRID_DATA.h">
       <Filter>Libraries\GRID</Filter>

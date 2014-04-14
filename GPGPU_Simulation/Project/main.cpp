@@ -17,6 +17,13 @@ using namespace concurrency;
 #include "GRID_UNIFORM_3D.h"
 #include "TRACK_BALL_CONTROL.h"
 
+#include "GRID_DATA.h"
+
+
+GRID_DYNAMIC grid_dynamic;
+
+FLT* phi_arr;
+
 
 TRACK_BALL_CONTROL track_ball;
 MPM_FLUID_SOLVER mpm_solver;
@@ -49,6 +56,20 @@ int main(int argc, char **argv)
 
 	mpm_solver.Initialize(min0, max0, 100, 100, 100, 2, 5000000);
 	capture_manager.Initialize(path);
+
+
+	
+	grid_dynamic.Initialize(min0, max0, 100, 100, 100, 2, 16);
+	phi_arr = new FLT[1000000];
+
+	grid_dynamic.SetData(0, 0, 0, phi_arr, (FLT)10);
+	FLT phi_0 = grid_dynamic.GetData(0, 0, 0, phi_arr, (FLT)-2);
+	FLT phi_1 = grid_dynamic.GetData(0, 0, 1, phi_arr, (FLT)-2);
+
+
+	grid_dynamic.SetData(0, 50, 0, phi_arr, (FLT)10);
+
+
 
 	
 	glutInit(&argc, argv);
@@ -99,10 +120,12 @@ void display()
 
 //	particle_manager.Rendering();
 
-	mpm_solver.particle_manager_.Rendering();
+//	mpm_solver.particle_manager_.Rendering();
 //	mpm_solver.RenderDensityField();
 	mpm_solver.grid_.RenderGrid();
-	mpm_solver.particle_world_.Render();
+//	mpm_solver.particle_world_.Render();
+
+	grid_dynamic.Render();
 
 	// capture image and video
 	if(is_capture && is_capture_flag)
