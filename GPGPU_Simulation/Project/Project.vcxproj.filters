@@ -33,6 +33,9 @@
     <ClCompile Include="..\Libraries\GRID_DATA.cpp">
       <Filter>Libraries\GRID</Filter>
     </ClCompile>
+    <ClCompile Include="..\Libraries\DOMAIN.cpp">
+      <Filter>Libraries\GRID</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Libraries\GRID_UNIFORM_3D.h">

@@ -18,17 +18,15 @@ using namespace concurrency;
 #include "TRACK_BALL_CONTROL.h"
 
 #include "GRID_DATA.h"
-
-
-GRID_DYNAMIC grid_dynamic;
-
-FLT* phi_arr;
+#include "DOMAIN.h"
 
 
 TRACK_BALL_CONTROL track_ball;
 MPM_FLUID_SOLVER mpm_solver;
 
 CAPTURE_MANAGER capture_manager;
+
+DOMAIN_DYNAMIC<FLT> domain;
 
 static const int window_w = 800;
 static const int window_h = 600;
@@ -54,22 +52,38 @@ int main(int argc, char **argv)
 
 	std::string path = "no";
 
+	GRID_UNIFORM_3D grid;
+	grid.Initialize(min0, max0, 100, 100, 100, 2);
+
+	domain.Initialize(grid, (FLT)-1);
+
+	int count = 0;
+
+	for(int i=0; i<10; i++)
+	{
+		domain.Insert(i,50,50, -10);
+		count ++;
+	}
+
+	for(int i=20; i<50; i++)
+	{
+		domain.Insert(i,50,50, -10);
+				count ++;
+	}
+
+	domain.Insert(30,50,50, -1);
+
+	for(int i=70; i<100; i++)
+	{
+		domain.Insert(i,50,50, -10);
+				count ++;
+	}
+
+	domain.RebuildDomain();
+
+
 	mpm_solver.Initialize(min0, max0, 100, 100, 100, 2, 5000000);
 	capture_manager.Initialize(path);
-
-
-	
-	grid_dynamic.Initialize(min0, max0, 100, 100, 100, 2, 16);
-	phi_arr = new FLT[1000000];
-
-	grid_dynamic.SetData(0, 0, 0, phi_arr, (FLT)10);
-	FLT phi_0 = grid_dynamic.GetData(0, 0, 0, phi_arr, (FLT)-2);
-	FLT phi_1 = grid_dynamic.GetData(0, 0, 1, phi_arr, (FLT)-2);
-
-
-	grid_dynamic.SetData(0, 50, 0, phi_arr, (FLT)10);
-
-
 
 	
 	glutInit(&argc, argv);
@@ -125,7 +139,8 @@ void display()
 	mpm_solver.grid_.RenderGrid();
 //	mpm_solver.particle_world_.Render();
 
-	grid_dynamic.Render();
+	domain.Render();
+
 
 	// capture image and video
 	if(is_capture && is_capture_flag)
