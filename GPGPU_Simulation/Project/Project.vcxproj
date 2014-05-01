@@ -132,6 +132,7 @@
   <ItemGroup>
     <ClInclude Include="..\Libraries\CAPTURE_MANAGER.h" />
     <ClInclude Include="..\Libraries\DATABASE_MANAGER.h" />
+    <ClInclude Include="..\Libraries\DOMAIN.h" />
     <ClInclude Include="..\Libraries\FILE_UTILITIES.h" />
     <ClInclude Include="..\Libraries\FLUID_PROJECTION_METHOD.h" />
     <ClInclude Include="..\Libraries\GENERAL_MACRO.h" />
