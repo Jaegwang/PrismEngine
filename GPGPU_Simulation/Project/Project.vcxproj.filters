@@ -98,5 +98,8 @@
     <ClInclude Include="..\Libraries\DOMAIN.h">
       <Filter>Libraries\GRID</Filter>
     </ClInclude>
+    <ClInclude Include="..\Libraries\ARRAY_ATOMIC.h">
+      <Filter>Libraries\GRID</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

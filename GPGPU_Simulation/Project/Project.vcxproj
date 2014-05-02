@@ -131,6 +131,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Libraries\ARRAY_ATOMIC.h" />
     <ClInclude Include="..\Libraries\CAPTURE_MANAGER.h" />
     <ClInclude Include="..\Libraries\DATABASE_MANAGER.h" />
     <ClInclude Include="..\Libraries\DOMAIN.h" />

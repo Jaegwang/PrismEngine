@@ -81,7 +81,6 @@ int main(int argc, char **argv)
 
 	domain.RebuildDomain();
 
-
 	mpm_solver.Initialize(min0, max0, 100, 100, 100, 2, 5000000);
 	capture_manager.Initialize(path);
 
