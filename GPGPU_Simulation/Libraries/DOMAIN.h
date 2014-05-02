@@ -4,6 +4,7 @@
 #include <iostream>
 #include "GRID_UNIFORM_3D.h"
 #include "ARRAY_ATOMIC.h"
+#include "LIST_ATOMIC.h"
 
 class DOMAIN_BLOCK
 { // it has no data
@@ -36,13 +37,13 @@ public:
 	int ij_res_, jk_res_;
 	int ijk_res_;
 
-	VECTOR_ATOMIC<TT> arr_;
-	VECTOR_ATOMIC<TT> arr_temp_;
+	VECTOR_ATOMIC<TT>* arr_;
+	VECTOR_ATOMIC<TT>* arr_temp_;
 
-	VECTOR_ATOMIC<DOMAIN_BLOCK> blocks_;
-	VECTOR_ATOMIC<DOMAIN_BLOCK> blocks_temp_;
+	FACTORY<DOMAIN_BLOCK> blocks_fatory_;
 	
 	DOMAIN_BLOCK** jk_blocks_;
+	DOMAIN_BLOCK** jk_blocks_temp_;
 
 	TT default_data_;
 
@@ -66,37 +67,22 @@ public:
 
 		ijk_res_ = grid_.ijk_res_;
 
-		arr_.Initialize(1000);
-		arr_temp_.Initialize(1000);
+		int num = 8;
 
-		blocks_.Initialize(1000);
-		blocks_temp_.Initialize(1000);
+		arr_ = new VECTOR_ATOMIC<TT>;
+		arr_temp_ = new VECTOR_ATOMIC<TT>;
+
+		arr_->Initialize(num);
+		arr_temp_->Initialize(num);
+
+		blocks_fatory_.Initialize(1000);
 
 		jk_blocks_ = new DOMAIN_BLOCK*[jk_res_];
+		jk_blocks_temp_ = new DOMAIN_BLOCK*[jk_res_];
 
 		for(int i=0; i<jk_res_; i++) jk_blocks_[i] = 0;
 
 		default_data_ = default_data_input;
-	}
-
-	DOMAIN_BLOCK* SearchBlock(const int i, const int j, const int k)
-	{
-		int jk_ix = k*j_res_ + j;
-
-		for(DOMAIN_BLOCK* b = jk_blocks_[jk_ix]; b != 0; b = b->next_block_)
-		{
-			if(block->start_idx_ <= i && block->end_idx_ >= i) return b;
-		}
-
-		return 0;
-	}
-
-	TT* SearchData(const int i, const int j, const int k)
-	{
-		DOMAIN_BLOCK* block = SearchBlock(i,j,k);
-		if(block == 0) return 0;
-
-		return arr_ + block->start_ptr_ + (i-block->start_idx_);
 	}
 
 	void Insert(const int i, const int j, const int k, const TT& data)
@@ -110,17 +96,16 @@ public:
 
 			if(block->start_idx_ <= i && block->end_idx_ >= i)
 			{
-				arr_(block->start_ptr_+(i-block->start_idx_)) = data;
+				(*arr_)(block->start_ptr_+(i-block->start_idx_)) = data;
 				return;			
 			}
 		
 			if(block->next_block_ && block->end_idx_ < i && block->next_block_->start_idx_ > i)
 			{
-				DOMAIN_BLOCK* new_block = &(blocks_(blocks_.Push(1)));
-				(*new_block) = DOMAIN_BLOCK();
+				DOMAIN_BLOCK* new_block = blocks_fatory_.Pop();
 
-				int ptr = arr_.Push(1);
-				arr_(ptr) = data;
+				int ptr = arr_->Push(1);
+				(*arr_)(ptr) = data;
 
 				new_block->start_idx_ = i;
 				new_block->end_idx_ = i;
@@ -140,11 +125,10 @@ public:
 
 		// for tail block
 		{
-			DOMAIN_BLOCK* new_block = &(blocks_(blocks_.Push(1)));
-			(*new_block) = DOMAIN_BLOCK();
+			DOMAIN_BLOCK* new_block = blocks_fatory_.Pop();
 			
-			int ptr = arr_.Push(1);
-			arr_(ptr) = data;
+			int ptr = arr_->Push(1);
+			(*arr_)(ptr) = data;
 
 			new_block->start_idx_ = i;
 			new_block->end_idx_ = i;
@@ -166,16 +150,24 @@ public:
 
 	void RebuildDomain()
 	{
-		arr_temp_.Reset();
-		blocks_temp_.Reset();
+		arr_temp_->Reset();
+
+		DOMAIN_BLOCK** jk_temp;
+		SWAP(jk_blocks_, jk_blocks_temp_, jk_temp);
 
 		for(int p=0; p<jk_res_; p++)
 		{
-			jk_blocks_[p] = Rearrange(jk_blocks_[p], default_data_);		
+			jk_blocks_[p] = Rearrange(jk_blocks_temp_[p], default_data_);		
 		}
 
-		arr_.Swap(arr_temp_);
-		blocks_.Swap(blocks_temp_);
+		for(int p=0; p<jk_res_; p++)
+		{
+			for(DOMAIN_BLOCK* block = jk_blocks_temp_[p]; block != 0; block = block->next_block_)
+				blocks_fatory_.Push(block);
+		}
+
+		VECTOR_ATOMIC<TT>* tt_temp;
+		SWAP(arr_, arr_temp_, tt_temp);
 	}
 
 	DOMAIN_BLOCK* Rearrange(DOMAIN_BLOCK* block, const TT& default_data)
@@ -191,11 +183,11 @@ public:
 		{
 			for(int p=b->start_ptr_; p<=b->end_ptr_; p++)
 			{
-				if(arr_(p) != default_data) total_count++;
+				if((*arr_)(p) != default_data) total_count++;
 			}
 		}
 
-		int start_ptr = arr_temp_.Push(total_count)-total_count+1;
+		int start_ptr = arr_temp_->Push(total_count)-total_count+1;
 		int count_ptr = start_ptr;
 
 		int start_idx = 0;
@@ -207,10 +199,10 @@ public:
 		{
 			for(int p=b->start_ptr_; p<=b->end_ptr_; p++)
 			{
-				if(arr_(p) != default_data)
+				if((*arr_)(p) != default_data)
 				{
 					count++; acc_count++;
-					arr_temp_(count_ptr++) = arr_(p);
+					(*arr_temp_)(count_ptr++) = (*arr_)(p);
 				}
 
 				if(count == 1)
@@ -218,12 +210,11 @@ public:
 					start_idx = b->start_idx_ + (p - b->start_ptr_);				
 				}
 
-				if(count > 0 && arr_(p) == default_data ||
+				if(count > 0 && (*arr_)(p) == default_data ||
 				   count > 0 && p == b->end_ptr_ && b->next_block_ && b->end_idx_+1 < b->next_block_->start_idx_ ||
 				   count > 0 && p == b->end_ptr_ && b->next_block_ == 0)
 				{
-					DOMAIN_BLOCK* new_block = &(blocks_temp_(blocks_temp_.Push(1)));
-					(*new_block) = DOMAIN_BLOCK();
+					DOMAIN_BLOCK* new_block = blocks_fatory_.Pop();
 
 					new_block->start_idx_ = start_idx;
 					new_block->end_idx_ = start_idx+count-1;

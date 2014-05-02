@@ -101,5 +101,8 @@
     <ClInclude Include="..\Libraries\ARRAY_ATOMIC.h">
       <Filter>Libraries\GRID</Filter>
     </ClInclude>
+    <ClInclude Include="..\Libraries\LIST_ATOMIC.h">
+      <Filter>Libraries\GRID</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
