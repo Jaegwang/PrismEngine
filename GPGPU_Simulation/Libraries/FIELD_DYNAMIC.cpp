@@ -287,14 +287,16 @@ TT FIELD_DYNAMIC<TT>::Get(const Vec3& p)
 template<class TT>
 TT FIELD_DYNAMIC<TT>::TriLinearInterpolate(const Vec3& p)
 { //http://en.wikipedia.org/wiki/Trilinear_interpolation
+	Vec3 cp = grid_.Clamp(p);
+
 	int i,j,k;
-	grid_.LeftBottomIndex(p,i,j,k);
+	grid_.LeftBottomIndex(cp,i,j,k);
 
 	Vec3 p_0 = grid_.CellCenterPosition(i,j,k);
 
-	FLT x_d = (p.x-p_0.x)/grid_.dx_;
-	FLT y_d = (p.y-p_0.y)/grid_.dx_;
-	FLT z_d = (p.z-p_0.z)/grid_.dx_;
+	FLT x_d = (cp.x-p_0.x)/grid_.dx_;
+	FLT y_d = (cp.y-p_0.y)/grid_.dx_;
+	FLT z_d = (cp.z-p_0.z)/grid_.dx_;
 
 	TT c_00 = Get(i,j,k)*((FLT)1-x_d)     + Get(i+1,j,k)*(x_d);
 	TT c_10 = Get(i,j+1,k)*((FLT)1-x_d)   + Get(i+1,j+1,k)*(x_d);
@@ -332,6 +334,7 @@ void FIELD_DYNAMIC<TT>::Render()
 	glEnd();
 
 	glBegin(GL_LINES);
+	glColor3f(0.0, 1.0, 0.0);
 	for(int k=0; k<k_res_; k++) for(int j=0; j<j_res_; j++)
 	{
 		int ix = k*j_res_+j;

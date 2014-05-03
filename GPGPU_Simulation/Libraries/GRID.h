@@ -143,20 +143,30 @@ public:
 		}
 	}
 
+	Vec3 Clamp(const Vec3& pos)
+	{
+		Vec3 c_pos;
+		c_pos.x = CLAMP(pos.x, min_.x+dx_*(FLT)0.5+FLT_EPSILON, max_.x-dx_*(FLT)0.5-FLT_EPSILON);
+		c_pos.y = CLAMP(pos.y, min_.y+dx_*(FLT)0.5+FLT_EPSILON, max_.y-dx_*(FLT)0.5-FLT_EPSILON);
+		c_pos.z = CLAMP(pos.z, min_.z+dx_*(FLT)0.5+FLT_EPSILON, max_.z-dx_*(FLT)0.5-FLT_EPSILON);
+
+		return c_pos;
+	}
+
 	template<class TT>
 	TT TriLinearInterpolate(const Vec3& p, TT* arr) 
 	{ //http://en.wikipedia.org/wiki/Trilinear_interpolation
-
+		Vec3 cp = Clamp(p);
 		int b_i, b_j, b_k;
 
-		LeftBottomIndex(p, b_i, b_j, b_k);
+		LeftBottomIndex(cp, b_i, b_j, b_k);
 		int ix = Index3Dto1D(b_i, b_j, b_k);
 
 		Vec3 p_0 = CellCenterPosition(b_i ,b_j ,b_k);
 
-		FLT x_d = (p.x-p_0.x)/dx_;
-		FLT y_d = (p.y-p_0.y)/dx_;
-		FLT z_d = (p.z-p_0.z)/dx_;
+		FLT x_d = (cp.x-p_0.x)/dx_;
+		FLT y_d = (cp.y-p_0.y)/dx_;
+		FLT z_d = (cp.z-p_0.z)/dx_;
 
 		TT c_00 = arr[ix]*((FLT)1-x_d) + arr[ix+1]*(x_d);
 		TT c_10 = arr[ix+i_res_]*((FLT)1-x_d) + arr[ix+i_res_+1]*(x_d);
