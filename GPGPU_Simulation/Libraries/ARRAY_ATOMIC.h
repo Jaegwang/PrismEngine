@@ -3,47 +3,56 @@
 
 #include <atomic>
 #include <iostream>
-#include <vector>
 
 template<class TT>
 class VECTOR_ATOMIC
 {
 private:
 
-	std::vector<TT>  arr_;
-	std::atomic<int> tail_ptr_;
+	TT* arr_;
+
+	int num_tot_;
+
+	std::atomic<int> num_cur_;	
 
 public:
 
-	VECTOR_ATOMIC() : tail_ptr_(-1)
+	VECTOR_ATOMIC() : num_cur_(0), num_tot_(0), arr_(0)
 	{}
 
 	~VECTOR_ATOMIC()
-	{}
+	{
+		Finalize();
+	}
 
 	void Initialize(const int num)
 	{
-		arr_.clear();
-		arr_.reserve(num);
+		Finalize();
 
-		for(int i=0; i<num; i++) arr_.push_back(TT());
+		arr_ = new TT[num];
 
-		tail_ptr_ = -1;
+		num_tot_ = num;
+		num_cur_ = num;
+	}
+
+	void Finalize()
+	{
+		if(arr_) delete[] arr_;
 	}
 
 	void Reset()
 	{
-		tail_ptr_ = -1;
+		num_cur_ = 0;
 	}
 
 	const int Size()
 	{
-		return (int)tail_ptr_+1;
+		return (int)num_cur_;
 	}
 
 	int Push(const int count)
 	{	
-		int ix = atomic_fetch_add(&tail_ptr_, count)+count;
+		int ix = atomic_fetch_add(&num_cur_, count);
 		Rearray();
 
 		return ix;
@@ -51,16 +60,25 @@ public:
 
 	void Rearray()
 	{ // TODO : run on one thread
-		if((int)tail_ptr_+1 < (int)arr_.size()) return;
+		if((int)num_cur_ < (int)num_tot_) return;
 
-		int increase = (int)arr_.size()/4 + (tail_ptr_-(int)arr_.size()+1);
+		#pragma omp single
+		{
+			int inc = (int)num_tot_/4 + (num_cur_-(int)num_tot_);
 
-		for(int i=0; i<increase; i++) arr_.push_back(TT());
+			TT* temp = new TT[inc+num_tot_];
+
+			for(int i=0; i<num_tot_; i++) temp[i] = arr_[i];
+
+			delete[] arr_;
+			arr_ = temp;
+
+			num_tot_ = inc+num_tot_;
+		}
 	}
 
 	TT& operator() (const int ix) const
 	{
-		TT* value = (TT*)arr_.data();
-		return value[ix];
+		return arr_[ix];
 	}
 };

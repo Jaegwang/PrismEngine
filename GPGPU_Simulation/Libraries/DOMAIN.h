@@ -75,7 +75,7 @@ public:
 		arr_->Initialize(num);
 		arr_temp_->Initialize(num);
 
-		blocks_fatory_.Initialize(1000);
+		blocks_fatory_.Initialize(9);
 
 		jk_blocks_ = new DOMAIN_BLOCK*[jk_res_];
 		jk_blocks_temp_ = new DOMAIN_BLOCK*[jk_res_];
@@ -187,7 +187,7 @@ public:
 			}
 		}
 
-		int start_ptr = arr_temp_->Push(total_count)-total_count+1;
+		int start_ptr = arr_temp_->Push(total_count);
 		int count_ptr = start_ptr;
 
 		int start_idx = 0;

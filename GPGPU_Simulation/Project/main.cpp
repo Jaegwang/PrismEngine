@@ -76,7 +76,6 @@ int main(int argc, char **argv)
 	for(int i=70; i<100; i++)
 	{
 		domain.Insert(i,50,50, -10);
-				count ++;
 	}
 
 	domain.RebuildDomain();
