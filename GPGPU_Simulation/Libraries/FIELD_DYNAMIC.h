@@ -2,25 +2,26 @@
 
 #include <atomic>
 #include <iostream>
-#include "GRID_UNIFORM_3D.h"
+#include "GRID.h"
 #include "FIELD_BLOCK.h"
-#include "ARRAY_ATOMIC.h"
+#include "ARRAY_DYNAMIC.h"
+#include "FIELD.h"
 
 template<class TT>
-class FIELD_DYNAMIC
+class FIELD_DYNAMIC : public FIELD<TT>
 {
 public:
 
-	GRID_UNIFORM_3D grid_;
+	GRID grid_;
 
 	int i_res_, j_res_, k_res_;
-	int ij_res_, jk_res_;
+	int jk_res_;
 	int ijk_res_;
 
-	ARRAY_ATOMIC<TT>* arr_;
-	ARRAY_ATOMIC<TT>* arr_temp_;
+	ARRAY_DYNAMIC<TT>* arr_;
+	ARRAY_DYNAMIC<TT>* arr_temp_;
 
-	ARRAY_ATOMIC<FIELD_BLOCK*> stack_block_;
+	ARRAY_DYNAMIC<FIELD_BLOCK*> stack_block_;
 	
 	FIELD_BLOCK** jk_blocks_;
 	FIELD_BLOCK** jk_blocks_temp_;
@@ -43,19 +44,22 @@ private:
 
 	FIELD_BLOCK* Rearrange(FIELD_BLOCK* block, const TT& default_data);
 
+	TT TriLinearInterpolate(const Vec3& p);
+
 public:
 
-	void Initialize(const GRID_UNIFORM_3D& grid_input, const TT& default_data_input);
+	void Initialize(const GRID& grid_input, const TT& default_data_input);
 	void Finalize();
 	
+	void Set(const int idx, const TT& data);
 	void Set(const int i, const int j, const int k, const TT& data);
+
+	TT   Get(const int idx);
 	TT   Get(const int i, const int j, const int k);
 	TT   Get(const Vec3& p);
 
 	void RebuildField();
 	void ReloadBlocks();
-
-	TT TriLinearInterpolate(const Vec3& p);
 
 	// for test
 	void Render();

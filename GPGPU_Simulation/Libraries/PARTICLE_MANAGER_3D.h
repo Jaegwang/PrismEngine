@@ -2,7 +2,7 @@
 #pragma once
 
 #include <amp.h>
-#include "GRID_UNIFORM_3D.h"
+#include "GRID.h"
 #include "PARTICLE.h"
 #include "GL\glut.h"
 #include "iostream"
@@ -15,7 +15,7 @@ using namespace concurrency;
 class PARTICLE_MANAGER_3D
 {
 public:
-	GRID_UNIFORM_3D grid_;
+	GRID grid_;
 
 	// particle properties
 	Vec3 **position_array_pointer_;
@@ -42,7 +42,7 @@ public:
 		Finalize();
 	}
 
-	void Initialize(const GRID_UNIFORM_3D& grid_input, Vec3** pos_arr_input, Vec3** vel_arr_input, const int num_pts)
+	void Initialize(const GRID& grid_input, Vec3** pos_arr_input, Vec3** vel_arr_input, const int num_pts)
 	{
 		grid_ = grid_input;
 		max_of_pts_ = num_pts;

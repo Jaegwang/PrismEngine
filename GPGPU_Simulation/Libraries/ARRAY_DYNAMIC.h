@@ -5,7 +5,7 @@
 #include <iostream>
 
 template<class TT>
-class ARRAY_ATOMIC
+class ARRAY_DYNAMIC
 {
 private:
 
@@ -17,10 +17,10 @@ private:
 
 public:
 
-	ARRAY_ATOMIC() : num_cur_(0), num_tot_(0), arr_(0)
+	ARRAY_DYNAMIC() : num_cur_(0), num_tot_(0), arr_(0)
 	{}
 
-	~ARRAY_ATOMIC()
+	~ARRAY_DYNAMIC()
 	{
 		Finalize();
 	}

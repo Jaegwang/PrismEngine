@@ -2,17 +2,17 @@
 
 #pragma once
 
-#include "GRID_UNIFORM_3D.h"
+#include "GRID.h"
 
 class WALL_CONDITIONS
 {
 public:
 
-	GRID_UNIFORM_3D grid_;	
+	GRID grid_;	
 
 public:
 
-	void Initialize(GRID_UNIFORM_3D& grid_input)
+	void Initialize(GRID& grid_input)
 	{
 		grid_ = grid_input;
 	}

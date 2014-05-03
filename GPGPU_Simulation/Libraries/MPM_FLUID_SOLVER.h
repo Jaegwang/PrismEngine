@@ -15,7 +15,7 @@ class MPM_FLUID_SOLVER
 {
 public:
 
-	GRID_UNIFORM_3D grid_;
+	GRID grid_;
 
 	PARTICLE_MANAGER_3D particle_manager_;
 

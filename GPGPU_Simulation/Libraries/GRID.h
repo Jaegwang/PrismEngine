@@ -7,7 +7,7 @@
 
 using namespace concurrency;
 
-class GRID_UNIFORM_3D
+class GRID
 {
 public:
 	
@@ -25,9 +25,9 @@ public:
 	
 public:
 	
-	GRID_UNIFORM_3D()
+	GRID()
 	{}
-	~GRID_UNIFORM_3D()
+	~GRID()
 	{}
 
 	void Initialize(const Vec3& min_in, const Vec3& max_in, const int i_res_in, const int j_res_in, const int k_res_in, const int g_in)

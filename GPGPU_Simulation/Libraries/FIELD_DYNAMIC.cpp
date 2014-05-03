@@ -2,7 +2,7 @@
 #include "FIELD_DYNAMIC.h"
 
 template<class TT>
-void FIELD_DYNAMIC<TT>::Initialize(const GRID_UNIFORM_3D& grid_input, const TT& default_data_input)
+void FIELD_DYNAMIC<TT>::Initialize(const GRID& grid_input, const TT& default_data_input)
 {
 	Finalize();
 
@@ -10,12 +10,12 @@ void FIELD_DYNAMIC<TT>::Initialize(const GRID_UNIFORM_3D& grid_input, const TT& 
 
 	i_res_ = grid_.i_res_; j_res_ = grid_.j_res_; k_res_ = grid_.k_res_;
 
-	ij_res_ = grid_.i_res_ * grid_.j_res_; jk_res_ = grid_.j_res_ * grid_.k_res_;
+	jk_res_ = grid_.j_res_ * grid_.k_res_;
 
 	ijk_res_ = grid_.ijk_res_;
 
-	arr_ = new ARRAY_ATOMIC<TT>;
-	arr_temp_ = new ARRAY_ATOMIC<TT>;
+	arr_ = new ARRAY_DYNAMIC<TT>;
+	arr_temp_ = new ARRAY_DYNAMIC<TT>;
 
 	arr_->Initialize(jk_res_);
 	arr_temp_->Initialize(jk_res_);
@@ -167,7 +167,7 @@ void FIELD_DYNAMIC<TT>::RebuildField()
 		}
 	}
 
-	ARRAY_ATOMIC<TT>* tt_temp;
+	ARRAY_DYNAMIC<TT>* tt_temp;
 	SWAP(arr_, arr_temp_, tt_temp);
 }
 
@@ -251,9 +251,25 @@ FIELD_BLOCK* FIELD_DYNAMIC<TT>::Rearrange(FIELD_BLOCK* block, const TT& default_
 }
 
 template<class TT>
+void FIELD_DYNAMIC<TT>::Set(const int idx, const TT& data)
+{
+	int i,j,k;
+	grid_.Index1Dto3D(idx,i,j,k);
+	Insert(i,j,k, data);
+}
+
+template<class TT>
 void FIELD_DYNAMIC<TT>::Set(const int i, const int j, const int k, const TT& data)
 {
 	Insert(i,j,k,data);
+}
+
+template<class TT>
+TT FIELD_DYNAMIC<TT>::Get(const int idx)
+{
+	int i,j,k;
+	grid_.Index1Dto3D(idx,i,j,k);
+	return Find(i,j,k);
 }
 
 template<class TT>

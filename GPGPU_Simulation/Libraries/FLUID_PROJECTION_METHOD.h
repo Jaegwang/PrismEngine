@@ -1,6 +1,6 @@
 #pragma once 
 
-#include "GRID_UNIFORM_3D.h"
+#include "GRID.h"
 
 class FLUID_PROJECT_METHOD
 {
@@ -11,7 +11,7 @@ public:
 
 public:
 
-	void Project(GRID_UNIFORM_3D& grid, const Vec3* velocity_arr, FLT* divergence_arr, FLT** pressure_arr, FLT** pressure_arr_temp)
+	void Project(GRID& grid, const Vec3* velocity_arr, FLT* divergence_arr, FLT** pressure_arr, FLT** pressure_arr_temp)
 	{
 		#pragma omp parallel for
 		for(int p = 0; p < grid.ijk_res_; p++) 
@@ -21,7 +21,7 @@ public:
 		}	
 	}
 
-	void ComputeDivergence(GRID_UNIFORM_3D& grid, const Vec3* velocity_arr, FLT* divergence_arr)
+	void ComputeDivergence(GRID& grid, const Vec3* velocity_arr, FLT* divergence_arr)
 	{
 		#pragma omp parallel for
 		for(int p = 0; p < grid.ijk_res_; p++) 
@@ -46,7 +46,7 @@ public:
 		}	
 	}
 
-	void ComputePressureJacobi(GRID_UNIFORM_3D& grid, FLT* divergence_arr, FLT** pressure_arr, FLT** pressure_arr_ghost)
+	void ComputePressureJacobi(GRID& grid, FLT* divergence_arr, FLT** pressure_arr, FLT** pressure_arr_ghost)
 	{
 		FLT dxdydz = POW2(grid.dx_*grid.dy_*grid.dz_);
 		FLT dxdy   = POW2(grid.dx_*grid.dy_);

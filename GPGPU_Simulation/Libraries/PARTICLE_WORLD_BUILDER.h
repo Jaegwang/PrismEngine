@@ -1,5 +1,5 @@
 
-#include "GRID_UNIFORM_3D.h"
+#include "GRID.h"
 #include "MATH_CORE.h"
 #include "KERNEL_FUNCTIONS.h"
 
@@ -10,7 +10,7 @@ class PARTICLE_WORLD_BUILDER
 {
 public:
 
-	GRID_UNIFORM_3D world_grid_;
+	GRID world_grid_;
 
 	FLT*  density_field_;
 	Vec3* velocity_field_;
@@ -30,7 +30,7 @@ public:
 	~PARTICLE_WORLD_BUILDER()
 	{}
 
-	void Initialize(const GRID_UNIFORM_3D& grid)
+	void Initialize(const GRID& grid)
 	{
 		world_grid_ = grid;
 
