@@ -4,7 +4,6 @@
 #include <iostream>
 #include "GRID_UNIFORM_3D.h"
 #include "ARRAY_ATOMIC.h"
-#include "LIST_ATOMIC.h"
 
 class DOMAIN_BLOCK
 { // it has no data
@@ -37,10 +36,10 @@ public:
 	int ij_res_, jk_res_;
 	int ijk_res_;
 
-	VECTOR_ATOMIC<TT>* arr_;
-	VECTOR_ATOMIC<TT>* arr_temp_;
+	ARRAY_ATOMIC<TT>* arr_;
+	ARRAY_ATOMIC<TT>* arr_temp_;
 
-	FACTORY<DOMAIN_BLOCK> blocks_fatory_;
+	ARRAY_ATOMIC<DOMAIN_BLOCK*> stack_block_;
 	
 	DOMAIN_BLOCK** jk_blocks_;
 	DOMAIN_BLOCK** jk_blocks_temp_;
@@ -69,13 +68,19 @@ public:
 
 		int num = 8;
 
-		arr_ = new VECTOR_ATOMIC<TT>;
-		arr_temp_ = new VECTOR_ATOMIC<TT>;
+		arr_ = new ARRAY_ATOMIC<TT>;
+		arr_temp_ = new ARRAY_ATOMIC<TT>;
 
 		arr_->Initialize(num);
 		arr_temp_->Initialize(num);
 
-		blocks_fatory_.Initialize(9);
+		stack_block_.Initialize(num);
+		int ix = stack_block_.Push(num);
+
+		for(int p=0; p<num; p++)
+		{
+			stack_block_(ix++) = new DOMAIN_BLOCK();
+		}
 
 		jk_blocks_ = new DOMAIN_BLOCK*[jk_res_];
 		jk_blocks_temp_ = new DOMAIN_BLOCK*[jk_res_];
@@ -85,8 +90,24 @@ public:
 		default_data_ = default_data_input;
 	}
 
+	TT Find(const int i, const int j, const int k)
+	{
+		int jk_ix = k*j_res_ + j;
+		for(DOMAIN_BLOCK* block=jk_blocks_[jk_ix]; block != 0; block = block->next_block_)
+		{
+			if(block->start_idx_ <= i && block->end_idx_ >= i)
+			{
+				return (*arr_)(block->start_ptr_+(i-block->start_idx_));
+			}
+		}	
+
+		return default_data_;
+	}
+
 	void Insert(const int i, const int j, const int k, const TT& data)
 	{
+		ReloadBlocks();
+
 		int jk_ix = k*j_res_ + j;
 		DOMAIN_BLOCK* tail_block = 0;
 
@@ -102,7 +123,8 @@ public:
 		
 			if(block->next_block_ && block->end_idx_ < i && block->next_block_->start_idx_ > i)
 			{
-				DOMAIN_BLOCK* new_block = blocks_fatory_.Pop();
+				DOMAIN_BLOCK* new_block = stack_block_(stack_block_.Pop());
+				(*new_block) = DOMAIN_BLOCK();
 
 				int ptr = arr_->Push(1);
 				(*arr_)(ptr) = data;
@@ -125,8 +147,9 @@ public:
 
 		// for tail block
 		{
-			DOMAIN_BLOCK* new_block = blocks_fatory_.Pop();
-			
+			DOMAIN_BLOCK* new_block = stack_block_(stack_block_.Pop());
+			(*new_block) = DOMAIN_BLOCK();			
+
 			int ptr = arr_->Push(1);
 			(*arr_)(ptr) = data;
 
@@ -148,6 +171,17 @@ public:
 		}
 	}
 
+	void ReloadBlocks()
+	{
+		if(stack_block_.Size() > 0) return;
+
+		int num = stack_block_.Total();
+		int ix = stack_block_.Push(num);
+
+		#pragma omp parallel for
+		for(int i=ix; i<=ix+num-1; i++) stack_block_(i) = new DOMAIN_BLOCK();
+	}
+
 	void RebuildDomain()
 	{
 		arr_temp_->Reset();
@@ -155,24 +189,30 @@ public:
 		DOMAIN_BLOCK** jk_temp;
 		SWAP(jk_blocks_, jk_blocks_temp_, jk_temp);
 
+		#pragma omp parallel for
 		for(int p=0; p<jk_res_; p++)
 		{
 			jk_blocks_[p] = Rearrange(jk_blocks_temp_[p], default_data_);		
 		}
 
+		#pragma omp parallel for
 		for(int p=0; p<jk_res_; p++)
 		{
 			for(DOMAIN_BLOCK* block = jk_blocks_temp_[p]; block != 0; block = block->next_block_)
-				blocks_fatory_.Push(block);
+			{
+				stack_block_(stack_block_.Push()) = block;
+			}
 		}
 
-		VECTOR_ATOMIC<TT>* tt_temp;
+		ARRAY_ATOMIC<TT>* tt_temp;
 		SWAP(arr_, arr_temp_, tt_temp);
 	}
 
 	DOMAIN_BLOCK* Rearrange(DOMAIN_BLOCK* block, const TT& default_data)
 	{
 		if(!block) return 0;
+
+		ReloadBlocks();
 
 		DOMAIN_BLOCK* block_head = 0;
 		DOMAIN_BLOCK* block_tail = 0;
@@ -214,7 +254,8 @@ public:
 				   count > 0 && p == b->end_ptr_ && b->next_block_ && b->end_idx_+1 < b->next_block_->start_idx_ ||
 				   count > 0 && p == b->end_ptr_ && b->next_block_ == 0)
 				{
-					DOMAIN_BLOCK* new_block = blocks_fatory_.Pop();
+					DOMAIN_BLOCK* new_block = stack_block_(stack_block_.Pop());
+					(*new_block) = DOMAIN_BLOCK();	
 
 					new_block->start_idx_ = start_idx;
 					new_block->end_idx_ = start_idx+count-1;

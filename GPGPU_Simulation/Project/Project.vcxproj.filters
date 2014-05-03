@@ -16,8 +16,8 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Libraries\GRID">
-      <UniqueIdentifier>{8106b3c1-001b-4726-8f03-54c5e1812315}</UniqueIdentifier>
+    <Filter Include="Libraries\DATA_STRUCTURES">
+      <UniqueIdentifier>{7c4761b7-32dc-4de0-8373-de29701ce542}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -30,17 +30,11 @@
     <ClCompile Include="..\Libraries\MPM_FLUID_SOLVER.cpp">
       <Filter>Libraries</Filter>
     </ClCompile>
-    <ClCompile Include="..\Libraries\GRID_DATA.cpp">
-      <Filter>Libraries\GRID</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Libraries\DOMAIN.cpp">
-      <Filter>Libraries\GRID</Filter>
+    <ClCompile Include="..\Libraries\FIELD_DYNAMIC.cpp">
+      <Filter>Libraries\DATA_STRUCTURES</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Libraries\GRID_UNIFORM_3D.h">
-      <Filter>Libraries</Filter>
-    </ClInclude>
     <ClInclude Include="..\Libraries\PARTICLE.h">
       <Filter>Libraries</Filter>
     </ClInclude>
@@ -92,17 +86,17 @@
     <ClInclude Include="..\Libraries\FLUID_PROJECTION_METHOD.h">
       <Filter>Libraries</Filter>
     </ClInclude>
-    <ClInclude Include="..\Libraries\GRID_DATA.h">
-      <Filter>Libraries\GRID</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Libraries\DOMAIN.h">
-      <Filter>Libraries\GRID</Filter>
-    </ClInclude>
     <ClInclude Include="..\Libraries\ARRAY_ATOMIC.h">
-      <Filter>Libraries\GRID</Filter>
+      <Filter>Libraries\DATA_STRUCTURES</Filter>
     </ClInclude>
-    <ClInclude Include="..\Libraries\LIST_ATOMIC.h">
-      <Filter>Libraries\GRID</Filter>
+    <ClInclude Include="..\Libraries\GRID_UNIFORM_3D.h">
+      <Filter>Libraries\DATA_STRUCTURES</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\FIELD_DYNAMIC.h">
+      <Filter>Libraries\DATA_STRUCTURES</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\FIELD_BLOCK.h">
+      <Filter>Libraries\DATA_STRUCTURES</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

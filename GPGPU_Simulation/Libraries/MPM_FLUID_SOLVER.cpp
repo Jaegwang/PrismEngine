@@ -19,7 +19,7 @@ void MPM_FLUID_SOLVER::Initialize(const Vec3 min, const Vec3 max, const int i_re
 
 	wall_conditions_.Initialize(grid_);
 
-	cube_object_.InitializeCube(Vec3(0.4, 0.3, 0.4),Vec3(0.6, 0.5, 0.6), grid_.dx_, grid_.dy_, grid_.dz_);
+	cube_object_.InitializeCube(Vec3(0.4, 0.3, 0.4),Vec3(0.6, 0.5, 0.6), grid_.dx_, grid_.dx_, grid_.dx_);
 	particle_world_.Initialize(grid_);
 
 	particle_world_.RasterizeParticles(cube_object_.position_array_, cube_object_.velocity_array_, (FLT)1, cube_object_.pts_num_);
@@ -81,7 +81,7 @@ void MPM_FLUID_SOLVER::RasterizeParticlesDensityAndVelocityToGrid()
 				const Vec3& pos = pts_position_arr_[b_ix + x];
 				const Vec3& vel = pts_velocity_arr_[b_ix + x];
 
-				FLT w = QuadBSplineKernel(pos-cell_center, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
+				FLT w = QuadBSplineKernel(pos-cell_center, grid_.one_over_dx_, grid_.one_over_dx_, grid_.one_over_dx_);
 
 				mass_weighted += mass_ * w;
 				vel_weighted += vel * mass_ * w;
@@ -115,7 +115,7 @@ void MPM_FLUID_SOLVER::ComputeParticleDenistyFromGrid()
 			Vec3 cell_center = grid_.CellCenterPosition(l, m, n);
 			FLT density_g = density_field_[s_ix];
 
-			FLT w = QuadBSplineKernel(cell_center-pts_pos, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
+			FLT w = QuadBSplineKernel(cell_center-pts_pos, grid_.one_over_dx_, grid_.one_over_dx_, grid_.one_over_dx_);
 
 			density_weighted += density_g*w;
 		}
@@ -188,8 +188,8 @@ void MPM_FLUID_SOLVER::ComputeGridForces()
 				const Vec3& force  = pts_force_arr_[b_ix + p];
 				const Mat3& tensor = pts_tensor_arr_[b_ix + p];
 	
-				FLT w = QuadBSplineKernel(cell_center-pos, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
-				Vec3 grad = QuadBSplineKernelGradient(cell_center-pos, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
+				FLT w = QuadBSplineKernel(cell_center-pos, grid_.one_over_dx_, grid_.one_over_dx_, grid_.one_over_dx_);
+				Vec3 grad = QuadBSplineKernelGradient(cell_center-pos, grid_.one_over_dx_, grid_.one_over_dx_, grid_.one_over_dx_);
 
 				int_force += tensor*grad;
 				ext_force += w*force;
@@ -242,8 +242,8 @@ void MPM_FLUID_SOLVER::ComputeGridForces2()
 				const Vec3& force = pts_force_arr_[b_ix + p]; 
 				const FLT pressure = pts_density_arr_[b_ix + p];
 	
-				FLT w = QuadBSplineKernel(cell_center-position, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
-				Vec3 grad = QuadBSplineKernelGradient(cell_center-position, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
+				FLT w = QuadBSplineKernel(cell_center-position, grid_.one_over_dx_, grid_.one_over_dx_, grid_.one_over_dx_);
+				Vec3 grad = QuadBSplineKernelGradient(cell_center-position, grid_.one_over_dx_, grid_.one_over_dx_, grid_.one_over_dx_);
 
 				int_force += pressure*grad;
 				ext_force += w*force;
@@ -308,7 +308,7 @@ void MPM_FLUID_SOLVER::UpdateParticleAndGridVelocity(const FLT dt)
 			Vec3 velocity_g = velocity_field_[s_ix];
 			Vec3 force_g = force_field_[s_ix];
 
-			FLT w = QuadBSplineKernel(cell_center-pts_pos, grid_.one_over_dx_, grid_.one_over_dy_, grid_.one_over_dz_);
+			FLT w = QuadBSplineKernel(cell_center-pts_pos, grid_.one_over_dx_, grid_.one_over_dx_, grid_.one_over_dx_);
 
 			force_weighted += force_g*w;
 			vel_weighted += velocity_g*w;

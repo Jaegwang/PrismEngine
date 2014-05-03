@@ -33,26 +33,26 @@ public:
 		}
 
 
-		if (grid_.min_.y + grid_.gy_ + grid_.dy_*(FLT)0.5 >= pos.y)
+		if (grid_.min_.y + grid_.gx_ + grid_.dx_*(FLT)0.5 >= pos.y)
 		{
-			pos.y = grid_.min_.y + grid_.gy_ + grid_.dy_*(FLT)0.5 + (FLT)FLT_EPSILON;
+			pos.y = grid_.min_.y + grid_.gx_ + grid_.dx_*(FLT)0.5 + (FLT)FLT_EPSILON;
 			vel.y = (FLT)0;
 		}
-		if (grid_.max_.y - grid_.gy_ - grid_.dy_*(FLT)0.5 <= pos.y)
+		if (grid_.max_.y - grid_.gx_ - grid_.dx_*(FLT)0.5 <= pos.y)
 		{
-			pos.y = grid_.max_.y - grid_.gy_ - grid_.dy_*(FLT)0.5 - (FLT)FLT_EPSILON;
+			pos.y = grid_.max_.y - grid_.gx_ - grid_.dx_*(FLT)0.5 - (FLT)FLT_EPSILON;
 			vel.y = (FLT)0;
 		}
 
 
-		if (grid_.min_.z + grid_.gz_ + grid_.dz_*(FLT)0.5 >= pos.z)
+		if (grid_.min_.z + grid_.gx_ + grid_.dx_*(FLT)0.5 >= pos.z)
 		{
-			pos.z = grid_.min_.z + grid_.gz_ + grid_.dz_*(FLT)0.5 + (FLT)FLT_EPSILON;
+			pos.z = grid_.min_.z + grid_.gx_ + grid_.dx_*(FLT)0.5 + (FLT)FLT_EPSILON;
 			vel.z = (FLT)0;
 		}
-		if (grid_.max_.z - grid_.gz_ - grid_.dz_*(FLT)0.5 <= pos.z)
+		if (grid_.max_.z - grid_.gx_ - grid_.dx_*(FLT)0.5 <= pos.z)
 		{
-			pos.z = grid_.max_.z - grid_.gz_ - grid_.dz_*(FLT)0.5 - (FLT)FLT_EPSILON;
+			pos.z = grid_.max_.z - grid_.gx_ - grid_.dx_*(FLT)0.5 - (FLT)FLT_EPSILON;
 			vel.z = (FLT)0;
 		}
 	}

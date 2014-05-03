@@ -3,22 +3,21 @@
 
 #include <GL\glut.h>
 #include <iostream>
+#include <amp.h>
 
 #include "PARTICLE_MANAGER_3D.h"
 #include "PARTICLE.h"
 #include "MPM_FLUID_SOLVER.h"
 #include "CAPTURE_MANAGER.h"
 
-#include <amp.h>
-
-using namespace concurrency;
-
 #include "MATH_CORE.h"
 #include "GRID_UNIFORM_3D.h"
 #include "TRACK_BALL_CONTROL.h"
 
 #include "GRID_DATA.h"
-#include "DOMAIN.h"
+#include "FIELD_DYNAMIC.h"
+
+using namespace concurrency;
 
 
 TRACK_BALL_CONTROL track_ball;
@@ -26,7 +25,7 @@ MPM_FLUID_SOLVER mpm_solver;
 
 CAPTURE_MANAGER capture_manager;
 
-DOMAIN_DYNAMIC<FLT> domain;
+FIELD_DYNAMIC<FLT> field;
 
 static const int window_w = 800;
 static const int window_h = 600;
@@ -52,33 +51,23 @@ int main(int argc, char **argv)
 
 	std::string path = "no";
 
+
 	GRID_UNIFORM_3D grid;
 	grid.Initialize(min0, max0, 100, 100, 100, 2);
 
-	domain.Initialize(grid, (FLT)-1);
 
-	int count = 0;
-
-	for(int i=0; i<10; i++)
+	field.Initialize(grid, (FLT)-1);
+		
+	for(int i=0; i<104; i++) for(int j=0; j<104; j++) for(int k=0; k<104; k++)
 	{
-		domain.Insert(i,50,50, -10);
-		count ++;
-	}
+		field.Set(i,j,k,100);	
+	}	
 
-	for(int i=20; i<50; i++)
-	{
-		domain.Insert(i,50,50, -10);
-				count ++;
-	}
+	field.RebuildField();
 
-	domain.Insert(30,50,50, -1);
 
-	for(int i=70; i<100; i++)
-	{
-		domain.Insert(i,50,50, -10);
-	}
+	FLT data = field.Get(Vec3(0.3, 0.3, 0.5));
 
-	domain.RebuildDomain();
 
 	mpm_solver.Initialize(min0, max0, 100, 100, 100, 2, 5000000);
 	capture_manager.Initialize(path);
@@ -129,15 +118,15 @@ void display()
 //	glutSolidTeapot(0.5);
 //	world_grid.RenderGrid();
 //	world_grid.RenderCells();
-
 //	particle_manager.Rendering();
 
+
 //	mpm_solver.particle_manager_.Rendering();
-//	mpm_solver.RenderDensityField();
-	mpm_solver.grid_.RenderGrid();
+//	mpm_solver.grid_.RenderGrid();
 //	mpm_solver.particle_world_.Render();
 
-	domain.Render();
+
+	field.Render();
 
 
 	// capture image and video

@@ -166,7 +166,7 @@ public:
 		glPointSize(1.3);
 
 		FLT dt = (FLT)0.01;
-		FLT dist = MAX3(grid_.dx_*(FLT)3, grid_.dy_*(FLT)3, grid_.dz_*(FLT)3);
+		FLT dist = MAX3(grid_.dx_*(FLT)3, grid_.dx_*(FLT)3, grid_.dx_*(FLT)3);
 		FLT max_vel = dist / dt;
 
 		glBegin(GL_POINTS);

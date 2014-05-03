@@ -5,7 +5,7 @@
 #include <iostream>
 
 template<class TT>
-class VECTOR_ATOMIC
+class ARRAY_ATOMIC
 {
 private:
 
@@ -17,10 +17,10 @@ private:
 
 public:
 
-	VECTOR_ATOMIC() : num_cur_(0), num_tot_(0), arr_(0)
+	ARRAY_ATOMIC() : num_cur_(0), num_tot_(0), arr_(0)
 	{}
 
-	~VECTOR_ATOMIC()
+	~ARRAY_ATOMIC()
 	{
 		Finalize();
 	}
@@ -32,7 +32,7 @@ public:
 		arr_ = new TT[num];
 
 		num_tot_ = num;
-		num_cur_ = num;
+		num_cur_ = 0;
 	}
 
 	void Finalize()
@@ -50,7 +50,12 @@ public:
 		return (int)num_cur_;
 	}
 
-	int Push(const int count)
+	const int Total()
+	{
+		return num_tot_;
+	}
+
+	int Push(const int count=1)
 	{	
 		int ix = atomic_fetch_add(&num_cur_, count);
 		Rearray();
@@ -58,22 +63,28 @@ public:
 		return ix;
 	}
 
+	int Pop(const int count=1)
+	{
+		int ix = atomic_fetch_sub(&num_cur_, count)-count;
+		return ix;	
+	}
+
 	void Rearray()
-	{ // TODO : run on one thread
-		if((int)num_cur_ < (int)num_tot_) return;
-
-		#pragma omp single
+	{ 
+		#pragma omp critical
 		{
-			int inc = (int)num_tot_/4 + (num_cur_-(int)num_tot_);
+			if((int)num_cur_ >= (int)num_tot_) 
+			{
+				int inc = (int)num_tot_/4 + (num_cur_-(int)num_tot_);
 
-			TT* temp = new TT[inc+num_tot_];
+				TT* temp = new TT[inc+num_tot_];
 
-			for(int i=0; i<num_tot_; i++) temp[i] = arr_[i];
+				for(int i=0; i<num_tot_; i++) temp[i] = arr_[i];
 
-			delete[] arr_;
-			arr_ = temp;
+				delete[] arr_; arr_ = temp;
 
-			num_tot_ = inc+num_tot_;
+				num_tot_ = inc+num_tot_;
+			}
 		}
 	}
 

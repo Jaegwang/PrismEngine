@@ -148,13 +148,13 @@ public:
 		wx[1] = QuadBSplineKernel(cell.x           - pos.x, grid_.one_over_dx_);
 		wx[2] = QuadBSplineKernel(cell.x+grid_.dx_ - pos.x, grid_.one_over_dx_);
 
-		wy[0] = QuadBSplineKernel(cell.y-grid_.dy_ - pos.y, grid_.one_over_dy_);	
-		wy[1] = QuadBSplineKernel(cell.y           - pos.y, grid_.one_over_dy_);
-		wy[2] = QuadBSplineKernel(cell.y+grid_.dy_ - pos.y, grid_.one_over_dy_);
+		wy[0] = QuadBSplineKernel(cell.y-grid_.dx_ - pos.y, grid_.one_over_dx_);	
+		wy[1] = QuadBSplineKernel(cell.y           - pos.y, grid_.one_over_dx_);
+		wy[2] = QuadBSplineKernel(cell.y+grid_.dx_ - pos.y, grid_.one_over_dx_);
 
-		wz[0] = QuadBSplineKernel(cell.z-grid_.dz_ - pos.z, grid_.one_over_dz_);	
-		wz[1] = QuadBSplineKernel(cell.z           - pos.z, grid_.one_over_dz_);
-		wz[2] = QuadBSplineKernel(cell.z+grid_.dz_ - pos.z, grid_.one_over_dz_);
+		wz[0] = QuadBSplineKernel(cell.z-grid_.dx_ - pos.z, grid_.one_over_dx_);	
+		wz[1] = QuadBSplineKernel(cell.z           - pos.z, grid_.one_over_dx_);
+		wz[2] = QuadBSplineKernel(cell.z+grid_.dx_ - pos.z, grid_.one_over_dx_);
 	}
 
 	void ComputeGradientStencil(const Vec3& pos, const Vec3& cell, FLT gx[3],  FLT gy[3],  FLT gz[3])
@@ -163,13 +163,13 @@ public:
 		gx[1] = QuadBSplineKernelGradient(cell.x           - pos.x, grid_.one_over_dx_);
 		gx[2] = QuadBSplineKernelGradient(cell.x+grid_.dx_ - pos.x, grid_.one_over_dx_);
 
-		gy[0] = QuadBSplineKernelGradient(cell.y-grid_.dy_ - pos.y, grid_.one_over_dy_);	
-		gy[1] = QuadBSplineKernelGradient(cell.y           - pos.y, grid_.one_over_dy_);
-		gy[2] = QuadBSplineKernelGradient(cell.y+grid_.dy_ - pos.y, grid_.one_over_dy_);
+		gy[0] = QuadBSplineKernelGradient(cell.y-grid_.dx_ - pos.y, grid_.one_over_dx_);	
+		gy[1] = QuadBSplineKernelGradient(cell.y           - pos.y, grid_.one_over_dx_);
+		gy[2] = QuadBSplineKernelGradient(cell.y+grid_.dx_ - pos.y, grid_.one_over_dx_);
 
-		gz[0] = QuadBSplineKernelGradient(cell.z-grid_.dz_ - pos.z, grid_.one_over_dz_);	
-		gz[1] = QuadBSplineKernelGradient(cell.z           - pos.z, grid_.one_over_dz_);
-		gz[2] = QuadBSplineKernelGradient(cell.z+grid_.dz_ - pos.z, grid_.one_over_dz_);	
+		gz[0] = QuadBSplineKernelGradient(cell.z-grid_.dx_ - pos.z, grid_.one_over_dx_);	
+		gz[1] = QuadBSplineKernelGradient(cell.z           - pos.z, grid_.one_over_dx_);
+		gz[2] = QuadBSplineKernelGradient(cell.z+grid_.dx_ - pos.z, grid_.one_over_dx_);	
 	}
 
 	void ComputeStrainTensor(const Vec3& pos, Mat3& tensor)

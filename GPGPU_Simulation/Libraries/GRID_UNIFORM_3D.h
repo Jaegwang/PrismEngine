@@ -13,11 +13,10 @@ public:
 	
 	Vec3 min_, max_;
 
-	FLT dx_, dy_, dz_;
+	FLT dx_;
+	FLT gx_;
 
-	FLT gx_, gy_, gz_;
-
-	FLT one_over_dx_, one_over_dy_, one_over_dz_;
+	FLT one_over_dx_;
 
 	int i_res_, j_res_, k_res_;
 	int ij_res_, ijk_res_;
@@ -31,31 +30,23 @@ public:
 	~GRID_UNIFORM_3D()
 	{}
 
-	void Initialize(const Vec3& min, const Vec3& max, const int i_res, const int j_res, const int k_res, const int g)
+	void Initialize(const Vec3& min_in, const Vec3& max_in, const int i_res_in, const int j_res_in, const int k_res_in, const int g_in)
 	{
-		dx_ = (max.x-min.x)/(FLT)i_res;
-		dy_ = (max.y-min.y)/(FLT)j_res;
-		dz_ = (max.z-min.z)/(FLT)k_res;
+		dx_ = MIN3((max_in.x-min_in.x)/(FLT)i_res_in, (max_in.y-min_in.y)/(FLT)j_res_in, (max_in.z-min_in.z)/(FLT)k_res_in);
+		gx_ = dx_*(FLT)g_in;
 
-		one_over_dx_ = (FLT)1 / dx_;
-		one_over_dy_ = (FLT)1 / dy_;
-		one_over_dz_ = (FLT)1 / dz_;
+		one_over_dx_ = (FLT)1/dx_;		
+		ghost_width_ = g_in;
 
-		gx_ = dx_*(FLT)g;
-		gy_ = dy_*(FLT)g;
-		gz_ = dz_*(FLT)g;
-		
-		min_ = min - Vec3(gx_, gy_, gz_);
-		max_ = max + Vec3(gx_, gy_, gz_);
-
-		ghost_width_ = g;
-
-		i_res_ = i_res + g*2;
-		j_res_ = j_res + g*2;
-		k_res_ = k_res + g*2;
+		i_res_ = (max_in.x-min_in.x+dx_)*one_over_dx_ + g_in*2;
+		j_res_ = (max_in.y-min_in.y+dx_)*one_over_dx_ + g_in*2;
+		k_res_ = (max_in.z-min_in.z+dx_)*one_over_dx_ + g_in*2;
 
 		ij_res_  = i_res_ * j_res_;
 		ijk_res_ = i_res_ * j_res_ * k_res_;
+		
+		min_ = min_in - Vec3(gx_, gx_, gx_);
+		max_ = min_   + Vec3((FLT)i_res_*dx_, (FLT)j_res_*dx_, (FLT)k_res_*dx_);
 	}
 
 	int Index3Dto1D(const int i, const int j, const int k) 
@@ -82,8 +73,8 @@ public:
 	bool IsInsideValid(const Vec3& p)
 	{
 		if (min_.x+gx_ < p.x && max_.x-gx_ > p.x &&
-			min_.y+gy_ < p.y && max_.y-gy_ > p.y &&
-			min_.z+gz_ < p.z && max_.z-gz_ > p.z)
+			min_.y+gx_ < p.y && max_.y-gx_ > p.y &&
+			min_.z+gx_ < p.z && max_.z-gx_ > p.z)
 			return true;
 
 		return false;
@@ -101,31 +92,31 @@ public:
 
 	Vec3 CellCenterPosition(const int i, const int j, const int k) 
 	{
-		return min_ + Vec3(((FLT)i+(FLT)0.5)*dx_, ((FLT)j+(FLT)0.5)*dy_, ((FLT)k+(FLT)0.5)*dz_);
+		return min_ + Vec3(((FLT)i+(FLT)0.5)*dx_, ((FLT)j+(FLT)0.5)*dx_, ((FLT)k+(FLT)0.5)*dx_);
 	}
 
 	void CellCenterIndex(const Vec3& p, int& i, int& j, int& k) 
 	{
 		Vec3 v = p-min_;
 		i = (int)(v.x/dx_);
-		j = (int)(v.y/dy_);
-		k = (int)(v.z/dz_);
+		j = (int)(v.y/dx_);
+		k = (int)(v.z/dx_);
 	}
 
 	void LeftBottomIndex(const Vec3& p, int& i, int& j, int& k)  
 	{
 		Vec3 v = p-min_;
 		i = (int)((v.x/dx_)-(FLT)0.5);
-		j = (int)((v.y/dy_)-(FLT)0.5);
-		k = (int)((v.z/dz_)-(FLT)0.5);
+		j = (int)((v.y/dx_)-(FLT)0.5);
+		k = (int)((v.z/dx_)-(FLT)0.5);
 	}
 
 	void RightUpIndex(const Vec3& p, int& i, int& j, int& k) 
 	{
 		Vec3 v = p-min_;
 		i = (int)((v.x/dx_)+(FLT)0.5); 
-		j = (int)((v.y/dy_)+(FLT)0.5);
-		k = (int)((v.z/dz_)+(FLT)0.5);
+		j = (int)((v.y/dx_)+(FLT)0.5);
+		k = (int)((v.z/dx_)+(FLT)0.5);
 	}
 
 	void StartEndIndices(const int l, const int m, const int n, int& start_l, int& start_m, int& start_n, int& end_l, int& end_m, int& end_n, const int pad=1) 
@@ -164,8 +155,8 @@ public:
 		Vec3 p_0 = CellCenterPosition(b_i ,b_j ,b_k);
 
 		FLT x_d = (p.x-p_0.x)/dx_;
-		FLT y_d = (p.y-p_0.y)/dy_;
-		FLT z_d = (p.z-p_0.z)/dz_;
+		FLT y_d = (p.y-p_0.y)/dx_;
+		FLT z_d = (p.z-p_0.z)/dx_;
 
 		TT c_00 = arr[ix]*((FLT)1-x_d) + arr[ix+1]*(x_d);
 		TT c_10 = arr[ix+i_res_]*((FLT)1-x_d) + arr[ix+i_res_+1]*(x_d);
@@ -195,7 +186,7 @@ public:
 		glutWireCube(1);
 		glPopMatrix();
 		
-		deviation -= Vec3(gx_*(FLT)2, gy_*(FLT)2, gz_*(FLT)2);
+		deviation -= Vec3(gx_*(FLT)2, gx_*(FLT)2, gx_*(FLT)2);
 
 		glColor3f(0, 0, 0);
 

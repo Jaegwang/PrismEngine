@@ -75,8 +75,8 @@ public:
 					const Vec3& pos = pos_arr[v_ix];
 					const Vec3& vel = vel_arr[v_ix];
 
-					FLT w = QuadBSplineKernel(pos-cell_center, world_grid_.one_over_dx_, world_grid_.one_over_dy_, world_grid_.one_over_dz_);		
-					Vec3 grad = QuadBSplineKernelGradient(pos-cell_center, world_grid_.one_over_dx_, world_grid_.one_over_dy_, world_grid_.one_over_dz_);	
+					FLT w = QuadBSplineKernel(pos-cell_center, world_grid_.one_over_dx_, world_grid_.one_over_dx_, world_grid_.one_over_dx_);		
+					Vec3 grad = QuadBSplineKernelGradient(pos-cell_center, world_grid_.one_over_dx_, world_grid_.one_over_dx_, world_grid_.one_over_dx_);	
 
 					mass_weighted += pts_mass * w;
 					velocity_weighted += vel * pts_mass * w;

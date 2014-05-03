@@ -92,21 +92,3 @@ public:
 		arr_[ix] = data;
 	}
 };
-
-
-template<class TT>
-class INSTANCE
-{
-private:
-
-	std::stack<TT*> free_stack_;
-	std::stack<TT*> used_stack_;
-
-public:
-
-	void Push(TT* data)
-	{
-	
-	}
-
-}
