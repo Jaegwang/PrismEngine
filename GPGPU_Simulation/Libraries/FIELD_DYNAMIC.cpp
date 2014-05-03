@@ -67,7 +67,9 @@ void FIELD_DYNAMIC<TT>::Insert(const int i, const int j, const int k, const TT& 
 			(*arr_)(block->start_ptr_+(i-block->start_idx_)) = data;
 			return;			
 		}
-		
+
+		if(data == default_data_) continue;		
+
 		if(block->next_block_ && block->end_idx_ < i && block->next_block_->start_idx_ > i)
 		{
 			FIELD_BLOCK* new_block = stack_block_(stack_block_.Pop());
@@ -94,6 +96,8 @@ void FIELD_DYNAMIC<TT>::Insert(const int i, const int j, const int k, const TT& 
 
 	// for tail block
 	{
+		if(data == default_data_) return;
+
 		FIELD_BLOCK* new_block = stack_block_(stack_block_.Pop());
 		(*new_block) = FIELD_BLOCK();			
 
