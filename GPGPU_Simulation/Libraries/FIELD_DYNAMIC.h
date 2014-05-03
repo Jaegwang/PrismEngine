@@ -10,9 +10,7 @@
 template<class TT>
 class FIELD_DYNAMIC : public FIELD<TT>
 {
-public:
-
-	GRID grid_;
+private:
 
 	int i_res_, j_res_, k_res_;
 	int jk_res_;

@@ -32,7 +32,7 @@ public:
 
 	void Initialize(const Vec3& min_in, const Vec3& max_in, const int i_res_in, const int j_res_in, const int k_res_in, const int g_in)
 	{
-		dx_ = MIN3((max_in.x-min_in.x)/(FLT)i_res_in, (max_in.y-min_in.y)/(FLT)j_res_in, (max_in.z-min_in.z)/(FLT)k_res_in);
+		dx_ = MAX3((max_in.x-min_in.x)/(FLT)i_res_in, (max_in.y-min_in.y)/(FLT)j_res_in, (max_in.z-min_in.z)/(FLT)k_res_in);
 		gx_ = dx_*(FLT)g_in;
 
 		one_over_dx_ = (FLT)1/dx_;		

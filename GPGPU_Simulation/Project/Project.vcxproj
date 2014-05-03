@@ -124,6 +124,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Libraries\ADVECTION_METHOD.cpp" />
     <ClCompile Include="..\Libraries\CAPTURE_MANAGER.cpp" />
     <ClCompile Include="..\Libraries\FIELD_DYNAMIC.cpp" />
     <ClCompile Include="..\Libraries\FIELD_UNIFORM.cpp" />
@@ -131,6 +132,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Libraries\ADVECTION_METHOD.h" />
     <ClInclude Include="..\Libraries\ARRAY_DYNAMIC.h" />
     <ClInclude Include="..\Libraries\CAPTURE_MANAGER.h" />
     <ClInclude Include="..\Libraries\DATABASE_MANAGER.h" />
@@ -151,6 +153,7 @@
     <ClInclude Include="..\Libraries\PARTICLE_MANAGER_3D.h" />
     <ClInclude Include="..\Libraries\PARTICLE_OBJECT.h" />
     <ClInclude Include="..\Libraries\PARTICLE_WORLD_BUILDER.h" />
+    <ClInclude Include="..\Libraries\PROJECTION_METHOD.h" />
     <ClInclude Include="..\Libraries\READ_WRITE_PNG.h" />
     <ClInclude Include="..\Libraries\TRACK_BALL_CONTROL.h" />
     <ClInclude Include="..\Libraries\WALL_CONDITIONS.h" />

@@ -19,6 +19,9 @@
     <Filter Include="Libraries\DATA_STRUCTURES">
       <UniqueIdentifier>{7c4761b7-32dc-4de0-8373-de29701ce542}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Libraries\STABLE_FLUID">
+      <UniqueIdentifier>{fda96b35-0404-4f52-ac94-b7aa0e8d4f6c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -35,6 +38,9 @@
     </ClCompile>
     <ClCompile Include="..\Libraries\FIELD_UNIFORM.cpp">
       <Filter>Libraries\DATA_STRUCTURES</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Libraries\ADVECTION_METHOD.cpp">
+      <Filter>Libraries\STABLE_FLUID</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -106,6 +112,12 @@
     </ClInclude>
     <ClInclude Include="..\Libraries\GRID.h">
       <Filter>Libraries\DATA_STRUCTURES</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\ADVECTION_METHOD.h">
+      <Filter>Libraries\STABLE_FLUID</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\PROJECTION_METHOD.h">
+      <Filter>Libraries\STABLE_FLUID</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -8,8 +8,7 @@ class FIELD_UNIFORM : public FIELD<TT>
 {
 private:
 
-	GRID grid_;
-	TT*  arr_;
+	TT* arr_;
 
 public:
 
