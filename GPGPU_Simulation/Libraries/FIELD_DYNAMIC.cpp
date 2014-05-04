@@ -123,7 +123,7 @@ void FIELD_DYNAMIC<TT>::Insert(const int i, const int j, const int k, const TT& 
 }
 
 template<class TT>
-TT FIELD_DYNAMIC<TT>::Find(const int i, const int j, const int k)
+TT FIELD_DYNAMIC<TT>::Find(const int i, const int j, const int k) const
 {
 	int jk_ix = k*j_res_ + j;
 	for(FIELD_BLOCK* block=jk_blocks_[jk_ix]; block != 0; block = block->next_block_)
@@ -269,7 +269,7 @@ void FIELD_DYNAMIC<TT>::Set(const int i, const int j, const int k, const TT& dat
 }
 
 template<class TT>
-TT FIELD_DYNAMIC<TT>::Get(const int idx)
+TT FIELD_DYNAMIC<TT>::Get(const int idx) const
 {
 	int i,j,k;
 	grid_.Index1Dto3D(idx,i,j,k);
@@ -277,19 +277,19 @@ TT FIELD_DYNAMIC<TT>::Get(const int idx)
 }
 
 template<class TT>
-TT FIELD_DYNAMIC<TT>::Get(const int i, const int j, const int k)
+TT FIELD_DYNAMIC<TT>::Get(const int i, const int j, const int k) const
 {
 	return Find(i,j,k);
 }
 
 template<class TT>
-TT FIELD_DYNAMIC<TT>::Get(const Vec3& p)
+TT FIELD_DYNAMIC<TT>::Get(const Vec3& p) const
 {
 	return TriLinearInterpolate(p);
 }
 
 template<class TT>
-TT FIELD_DYNAMIC<TT>::TriLinearInterpolate(const Vec3& p)
+TT FIELD_DYNAMIC<TT>::TriLinearInterpolate(const Vec3& p) const
 { //http://en.wikipedia.org/wiki/Trilinear_interpolation
 	Vec3 cp = grid_.Clamp(p);
 

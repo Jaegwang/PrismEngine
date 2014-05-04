@@ -30,20 +30,20 @@ void FIELD_UNIFORM<TT>::Set(const int i, const int j, const int k, const TT& dat
 }
 
 template<class TT>
-TT FIELD_UNIFORM<TT>::Get(const int idx)
+TT FIELD_UNIFORM<TT>::Get(const int idx) const
 {
 	return arr_[idx];
 }
 
 template<class TT>
-TT FIELD_UNIFORM<TT>::Get(const int i, const int j, const int k)
+TT FIELD_UNIFORM<TT>::Get(const int i, const int j, const int k) const
 {
 	int idx = grid_.Index3Dto1D(i,j,k);
 	return arr_[idx];
 }
 
 template<class TT>
-TT FIELD_UNIFORM<TT>::Get(const Vec3& p)
+TT FIELD_UNIFORM<TT>::Get(const Vec3& p) const
 {
 	return grid_.TriLinearInterpolate(p, arr_);
 }

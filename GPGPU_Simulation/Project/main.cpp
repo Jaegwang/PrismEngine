@@ -58,14 +58,18 @@ int main(int argc, char **argv)
 	GRID grid;
 	grid.Initialize(min0, max0, 100, 100, 100, 2);
 
-/*
+
+
 	field.Initialize(grid, (FLT)-1);	
-	for(int i=0; i<100; i++) for(int j=0; j<50; j++) for(int k=0; k<100; k++)
+	for(int i=0; i<100; i++) for(int j=0; j<100; j++) for(int k=0; k<100; k++)
 	{
 		field.Set(i,j,k,10);	
 	}
+
 	field.RebuildField();
-*/
+
+
+
 
 	stable_fluid.Initialize(grid);
 
@@ -128,7 +132,7 @@ void display()
 	stable_fluid.Render();
 //	stable_fluid.RenderVelocity();
 
-//	field.Render();
+	field.Render();
 
 
 	// capture image and video

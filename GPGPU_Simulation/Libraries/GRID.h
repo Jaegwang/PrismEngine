@@ -49,12 +49,12 @@ public:
 		max_ = min_   + Vec3((FLT)i_res_*dx_, (FLT)j_res_*dx_, (FLT)k_res_*dx_);
 	}
 
-	int Index3Dto1D(const int i, const int j, const int k) 
+	int Index3Dto1D(const int i, const int j, const int k) const
 	{
 		return i + j*i_res_ + k*ij_res_;
 	}
 
-	void Index1Dto3D(const int idx, int& i, int& j, int& k) 
+	void Index1Dto3D(const int idx, int& i, int& j, int& k) const 
 	{
 		i = idx           % i_res_;
 		j = (idx/i_res_ ) % j_res_;
@@ -90,12 +90,12 @@ public:
 		return false;
 	}
 
-	Vec3 CellCenterPosition(const int i, const int j, const int k) 
+	Vec3 CellCenterPosition(const int i, const int j, const int k) const
 	{
 		return min_ + Vec3(((FLT)i+(FLT)0.5)*dx_, ((FLT)j+(FLT)0.5)*dx_, ((FLT)k+(FLT)0.5)*dx_);
 	}
 
-	void CellCenterIndex(const Vec3& p, int& i, int& j, int& k) 
+	void CellCenterIndex(const Vec3& p, int& i, int& j, int& k) const 
 	{
 		Vec3 v = p-min_;
 		i = (int)(v.x/dx_);
@@ -103,7 +103,7 @@ public:
 		k = (int)(v.z/dx_);
 	}
 
-	void LeftBottomIndex(const Vec3& p, int& i, int& j, int& k)  
+	void LeftBottomIndex(const Vec3& p, int& i, int& j, int& k) const
 	{
 		Vec3 v = p-min_;
 		i = (int)((v.x/dx_)-(FLT)0.5);
@@ -111,7 +111,7 @@ public:
 		k = (int)((v.z/dx_)-(FLT)0.5);
 	}
 
-	void RightUpIndex(const Vec3& p, int& i, int& j, int& k) 
+	void RightUpIndex(const Vec3& p, int& i, int& j, int& k) const 
 	{
 		Vec3 v = p-min_;
 		i = (int)((v.x/dx_)+(FLT)0.5); 
@@ -143,7 +143,7 @@ public:
 		}
 	}
 
-	Vec3 Clamp(const Vec3& pos)
+	Vec3 Clamp(const Vec3& pos) const
 	{
 		Vec3 c_pos;
 		c_pos.x = CLAMP(pos.x, min_.x+dx_*(FLT)0.5+FLT_EPSILON, max_.x-dx_*(FLT)0.5-FLT_EPSILON);
@@ -154,7 +154,7 @@ public:
 	}
 
 	template<class TT>
-	TT TriLinearInterpolate(const Vec3& p, TT* arr) 
+	TT TriLinearInterpolate(const Vec3& p, TT* arr) const
 	{ //http://en.wikipedia.org/wiki/Trilinear_interpolation
 		Vec3 cp = Clamp(p);
 		int b_i, b_j, b_k;

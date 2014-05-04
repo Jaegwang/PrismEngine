@@ -27,7 +27,7 @@ public:
 	void Set(const int idx, const TT& data);
 	void Set(const int i, const int j, const int k, const TT& data);
 
-	TT   Get(const int idx);
-	TT   Get(const int i, const int j, const int k);
-	TT   Get(const Vec3& p);
+	TT   Get(const int idx) const;
+	TT   Get(const int i, const int j, const int k) const;
+	TT   Get(const Vec3& p) const;
 };

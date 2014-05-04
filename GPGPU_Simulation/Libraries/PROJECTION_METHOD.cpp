@@ -1,7 +1,7 @@
 
 #include "PROJECTION_METHOD.h"
 
-void PROJECTION_METHOD::ComputeDivergence(FIELD<Vec3>* vel, FIELD<int>* bnd, FIELD<FLT>* div)
+void PROJECTION_METHOD::DetermineDivergence(const FIELD<int>* bnd, const FIELD<Vec3>* vel, FIELD<FLT>* div)
 {
 	GRID grid = vel->Grid();
 
@@ -30,13 +30,13 @@ void PROJECTION_METHOD::ComputeDivergence(FIELD<Vec3>* vel, FIELD<int>* bnd, FIE
 		}
 		else
 		{			
-	//		div->Set(i,j,k,(FLT)0);
-	//		continue;
+			div->Set(i,j,k,(FLT)0);
+			continue;
 		}
 	}	
 }
 
-void PROJECTION_METHOD::ComputePressure(FIELD<FLT>* div, FIELD<int>* bnd, FIELD<FLT>* press, FIELD<FLT>* press_temp, const int itr)
+void PROJECTION_METHOD::DeterminePressure(const FIELD<int>* bnd, const FIELD<FLT>* div, FIELD<FLT>* press, FIELD<FLT>* press_temp, const int itr)
 {
 	GRID grid = press->Grid();
 
@@ -86,7 +86,7 @@ void PROJECTION_METHOD::ComputePressure(FIELD<FLT>* div, FIELD<int>* bnd, FIELD<
 	}
 }
 
-void PROJECTION_METHOD::ComputeVelocity(FIELD<FLT>* press, FIELD<int>* bnd, FIELD<Vec3>* vel)
+void PROJECTION_METHOD::DetermineVelocity(const FIELD<int>* bnd, const FIELD<FLT>* press, FIELD<Vec3>* vel)
 {
 	GRID grid = press->Grid();
 

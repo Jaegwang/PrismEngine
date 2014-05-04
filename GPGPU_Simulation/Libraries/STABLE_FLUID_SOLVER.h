@@ -89,6 +89,25 @@ public:
 	
 	}
 
+	void SourceBoundaryFromSphere(const Vec3 pos, const FLT rad)
+	{
+		GRID grid = density_field_->Grid();
+
+		#pragma omp parallel for
+		for(int k=0; k<grid.k_res_; k++)
+		for(int j=0; j<grid.j_res_; j++)
+		for(int i=0; i<grid.i_res_; i++)
+		{
+			Vec3 cell_center = grid.CellCenterPosition(i,j,k);
+			FLT  dist = glm::length(cell_center-pos);
+
+			if(dist < rad)
+			{
+				boundary_field_->Set(i,j,k, BND_WALL);
+			}
+		}	
+	}
+
 	void SourceDensityFromSphere(const Vec3 pos, const FLT rad, const FLT den, const Vec3 vel)
 	{
 		GRID grid = density_field_->Grid();
@@ -112,17 +131,21 @@ public:
 	void AdvanceOneTimeStep(const FLT dt)
 	{
 		// Projection
-		SetBoundaryCondition();
-		projection_method_.Jacobi(velocity_field_, boundary_field_, divergence_field_, pressure_field_, scalar_ghost_field_, 20);
+		{
+			SetBoundaryCondition();
+			projection_method_.Jacobi(boundary_field_, velocity_field_, divergence_field_, pressure_field_, scalar_ghost_field_, 20);
+		}
 
 		// Advection
-		advection_method_.SemiLagrangian(velocity_field_, dt, density_field_, scalar_ghost_field_);
-		advection_method_.SemiLagrangian(velocity_field_, dt, velocity_field_, vector_ghost_field_);
-		FIELD<FLT>*  scalar_temp;
-		FIELD<Vec3>* vector_temp;
+		{
+			advection_method_.SemiLagrangian(velocity_field_, dt, density_field_, scalar_ghost_field_);
+			advection_method_.SemiLagrangian(velocity_field_, dt, velocity_field_, vector_ghost_field_);
+			FIELD<FLT>*  scalar_temp;
+			FIELD<Vec3>* vector_temp;
 
-		SWAP(density_field_, scalar_ghost_field_, scalar_temp);
-		SWAP(velocity_field_, vector_ghost_field_, vector_temp);
+			SWAP(density_field_, scalar_ghost_field_, scalar_temp);
+			SWAP(velocity_field_, vector_ghost_field_, vector_temp);
+		}
 	}
 
 	void Render()

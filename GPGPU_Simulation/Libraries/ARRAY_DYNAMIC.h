@@ -57,8 +57,8 @@ public:
 
 	int Push(const int count=1)
 	{	
-		Rearray();
 		int ix = atomic_fetch_add(&num_cur_, count);		
+		Rearray();
 
 		return ix;
 	}
@@ -71,23 +71,20 @@ public:
 
 	void Rearray()
 	{ 
-//		if((int)num_cur_ < (int)num_tot_) return;
-//		#pragma omp barrier
-//		std::cout<<"eeee"<<std::endl;
-
-//		#pragma omp single
+		int cur = (int)num_cur_, tot = (int)num_tot_;
+		#pragma omp critical
 		{
-			if((int)num_cur_ >= (int)num_tot_) 
+			if((int)cur >= (int)tot) 
 			{
-				int inc = (int)num_tot_/4 + ((int)num_cur_-(int)num_tot_);
+				int inc = (int)tot/4 + ((int)cur-(int)tot);
 
-				TT* temp = new TT[inc+num_tot_];
+				TT* temp = new TT[inc+tot];
 
-				for(int i=0; i<(int)num_tot_; i++) temp[i] = arr_[i];
+				for(int i=0; i<(int)tot; i++) temp[i] = arr_[i];
 
 				delete[] arr_; arr_ = temp;
 
-				num_tot_ = inc+num_tot_;
+				num_tot_ = inc+tot;
 			}
 		}
 	}
