@@ -42,6 +42,9 @@
     <ClCompile Include="..\Libraries\ADVECTION_METHOD.cpp">
       <Filter>Libraries\STABLE_FLUID</Filter>
     </ClCompile>
+    <ClCompile Include="..\Libraries\PROJECTION_METHOD.cpp">
+      <Filter>Libraries\STABLE_FLUID</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Libraries\PARTICLE.h">
@@ -117,6 +120,9 @@
       <Filter>Libraries\STABLE_FLUID</Filter>
     </ClInclude>
     <ClInclude Include="..\Libraries\PROJECTION_METHOD.h">
+      <Filter>Libraries\STABLE_FLUID</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\STABLE_FLUID_SOLVER.h">
       <Filter>Libraries\STABLE_FLUID</Filter>
     </ClInclude>
   </ItemGroup>

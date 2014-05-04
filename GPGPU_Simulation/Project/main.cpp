@@ -16,6 +16,8 @@
 
 #include "GRID_DATA.h"
 #include "FIELD_DYNAMIC.h"
+#include "PROJECTION_METHOD.h"
+#include "STABLE_FLUID_SOLVER.h"
 
 using namespace concurrency;
 
@@ -26,6 +28,8 @@ MPM_FLUID_SOLVER mpm_solver;
 CAPTURE_MANAGER capture_manager;
 
 FIELD_DYNAMIC<FLT> field;
+
+STABLE_FLUID_SOLVER stable_fluid;
 
 static const int window_w = 800;
 static const int window_h = 600;
@@ -47,27 +51,23 @@ void light();
 int main(int argc, char **argv)
 {
 	Vec3 min0(0,0,0);
-	Vec3 max0(1,0.5,1);
+	Vec3 max0(1,1,1);
 
 	std::string path = "no";
-
 
 	GRID grid;
 	grid.Initialize(min0, max0, 100, 100, 100, 2);
 
-
-	field.Initialize(grid, (FLT)-1);
-		
+/*
+	field.Initialize(grid, (FLT)-1);	
 	for(int i=0; i<100; i++) for(int j=0; j<50; j++) for(int k=0; k<100; k++)
 	{
 		field.Set(i,j,k,10);	
-	}	
-
+	}
 	field.RebuildField();
+*/
 
-
-//	FLT data = field.Get(Vec3(0.3, 0.3, 0.5));
-
+	stable_fluid.Initialize(grid);
 
 	mpm_solver.Initialize(min0, max0, 100, 100, 100, 2, 5000000);
 	capture_manager.Initialize(path);
@@ -125,8 +125,10 @@ void display()
 	mpm_solver.grid_.RenderGrid();
 //	mpm_solver.particle_world_.Render();
 
+	stable_fluid.Render();
+//	stable_fluid.RenderVelocity();
 
-	field.Render();
+//	field.Render();
 
 
 	// capture image and video
@@ -149,7 +151,10 @@ void idle()
 
 	if (is_playing == true)
 	{
-		mpm_solver.AdvanceTimeStep((FLT)0.01, 1);
+//		mpm_solver.AdvanceTimeStep((FLT)0.01, 1);
+
+		stable_fluid.SourceDensityFromSphere(Vec3(0.5, 0.2, 0.5), 0.05, 1.0, Vec3(0.0, 2, 0.0));
+		stable_fluid.AdvanceOneTimeStep(0.01);
 
 		is_capture_flag = true;
 	}

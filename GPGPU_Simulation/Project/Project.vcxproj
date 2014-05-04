@@ -129,6 +129,7 @@
     <ClCompile Include="..\Libraries\FIELD_DYNAMIC.cpp" />
     <ClCompile Include="..\Libraries\FIELD_UNIFORM.cpp" />
     <ClCompile Include="..\Libraries\MPM_FLUID_SOLVER.cpp" />
+    <ClCompile Include="..\Libraries\PROJECTION_METHOD.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -155,6 +156,7 @@
     <ClInclude Include="..\Libraries\PARTICLE_WORLD_BUILDER.h" />
     <ClInclude Include="..\Libraries\PROJECTION_METHOD.h" />
     <ClInclude Include="..\Libraries\READ_WRITE_PNG.h" />
+    <ClInclude Include="..\Libraries\STABLE_FLUID_SOLVER.h" />
     <ClInclude Include="..\Libraries\TRACK_BALL_CONTROL.h" />
     <ClInclude Include="..\Libraries\WALL_CONDITIONS.h" />
   </ItemGroup>
