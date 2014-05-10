@@ -19,6 +19,8 @@ public:
 	virtual TT   Get(const int idx) const=0;
 	virtual TT   Get(const int i, const int j, const int k) const=0;
 	virtual TT   Get(const Vec3& p) const=0;
+
+	virtual void Rebuild()=0;
 };
 
 

@@ -17,13 +17,15 @@ void FIELD_DYNAMIC<TT>::Initialize(const GRID& grid_input, const TT& default_dat
 	arr_ = new ARRAY_DYNAMIC<TT>;
 	arr_temp_ = new ARRAY_DYNAMIC<TT>;
 
-	arr_->Initialize(jk_res_);
-	arr_temp_->Initialize(jk_res_);
+	int num = ijk_res_*2;
 
-	stack_block_.Initialize(jk_res_);
-	int ix = stack_block_.Push(jk_res_);
+	arr_->Initialize(num);
+	arr_temp_->Initialize(num);
 
-	for(int p=0; p<jk_res_; p++) stack_block_(ix++) = new FIELD_BLOCK();
+	stack_block_.Initialize(num);
+	int ix = stack_block_.Push(num);
+
+	for(int p=0; p<num; p++) stack_block_(ix++) = new FIELD_BLOCK();
 
 	jk_blocks_ = new FIELD_BLOCK*[jk_res_];
 	jk_blocks_temp_ = new FIELD_BLOCK*[jk_res_];
@@ -53,8 +55,6 @@ void FIELD_DYNAMIC<TT>::Finalize()
 template<class TT>
 void FIELD_DYNAMIC<TT>::Insert(const int i, const int j, const int k, const TT& data)
 {
-	ReloadBlocks();
-
 	int jk_ix = k*j_res_ + j;
 	FIELD_BLOCK* tail_block = 0;
 
@@ -149,7 +149,7 @@ void FIELD_DYNAMIC<TT>::ReloadBlocks()
 }
 
 template<class TT>
-void FIELD_DYNAMIC<TT>::RebuildField()
+void FIELD_DYNAMIC<TT>::Rebuild()
 {
 	arr_temp_->Reset();
 
@@ -179,8 +179,6 @@ template<class TT>
 FIELD_BLOCK* FIELD_DYNAMIC<TT>::Rearrange(FIELD_BLOCK* block, const TT& default_data)
 {
 	if(!block) return 0;
-
-	ReloadBlocks();
 
 	FIELD_BLOCK* block_head = 0;
 	FIELD_BLOCK* block_tail = 0;
@@ -222,6 +220,7 @@ FIELD_BLOCK* FIELD_DYNAMIC<TT>::Rearrange(FIELD_BLOCK* block, const TT& default_
 				count > 0 && p == b->end_ptr_ && b->next_block_ && b->end_idx_+1 < b->next_block_->start_idx_ ||
 				count > 0 && p == b->end_ptr_ && b->next_block_ == 0 )
 			{
+				int ptr = stack_block_.Size();
 				FIELD_BLOCK* new_block = stack_block_(stack_block_.Pop());
 				(*new_block) = FIELD_BLOCK();	
 

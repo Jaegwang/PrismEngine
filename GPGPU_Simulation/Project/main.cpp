@@ -59,17 +59,17 @@ int main(int argc, char **argv)
 	grid.Initialize(min0, max0, 100, 100, 100, 2);
 
 
+	ARRAY_DYNAMIC<FLT> array_;
+	array_.Initialize(1);
 
-	field.Initialize(grid, (FLT)-1);	
-	for(int i=0; i<100; i++) for(int j=0; j<100; j++) for(int k=0; k<100; k++)
+	for(int i=0; i<10000000; i++)
 	{
-		field.Set(i,j,k,10);	
+		int idx = array_.Push();
+		array_(idx) = i;
+		
 	}
 
-	field.RebuildField();
-
-
-
+	return 0;
 
 	stable_fluid.Initialize(grid);
 

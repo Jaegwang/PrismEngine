@@ -3,6 +3,7 @@
 
 #include "FIELD.h"
 #include "FIELD_UNIFORM.h"
+#include "FIELD_DYNAMIC.h"
 #include "ADVECTION_METHOD.h"
 #include "PROJECTION_METHOD.h"
 
@@ -32,25 +33,25 @@ public:
 
 	void Initialize(const GRID& grid)
 	{
-		FIELD_UNIFORM<FLT>*  density_uniform = new FIELD_UNIFORM<FLT>;
-		FIELD_UNIFORM<Vec3>* velocity_uniform = new FIELD_UNIFORM<Vec3>;
+		FIELD_DYNAMIC<FLT>*  density_uniform = new FIELD_DYNAMIC<FLT>;
+		FIELD_DYNAMIC<Vec3>* velocity_uniform = new FIELD_DYNAMIC<Vec3>;
 
-		FIELD_UNIFORM<FLT>*  divergence_uniform_ = new FIELD_UNIFORM<FLT>;
-		FIELD_UNIFORM<FLT>*  pressure_uniform_ =  new FIELD_UNIFORM<FLT>;
-		FIELD_UNIFORM<int>*  boundary_uniform_ = new FIELD_UNIFORM<int>;
+		FIELD_DYNAMIC<FLT>*  divergence_uniform_ = new FIELD_DYNAMIC<FLT>;
+		FIELD_DYNAMIC<FLT>*  pressure_uniform_ =  new FIELD_DYNAMIC<FLT>;
+		FIELD_DYNAMIC<int>*  boundary_uniform_ = new FIELD_DYNAMIC<int>;
 
-		FIELD_UNIFORM<FLT>*  scalar_ghost_uniform_ = new FIELD_UNIFORM<FLT>;
-		FIELD_UNIFORM<Vec3>* vector_ghost_uniform_ = new FIELD_UNIFORM<Vec3>;
+		FIELD_DYNAMIC<FLT>*  scalar_ghost_uniform_ = new FIELD_DYNAMIC<FLT>;
+		FIELD_DYNAMIC<Vec3>* vector_ghost_uniform_ = new FIELD_DYNAMIC<Vec3>;
 
-		density_uniform->Initialize(grid);
-		velocity_uniform->Initialize(grid);
+		density_uniform->Initialize(grid, 0);
+		velocity_uniform->Initialize(grid, Vec3());
 
-		divergence_uniform_->Initialize(grid);
-		pressure_uniform_->Initialize(grid);
-		boundary_uniform_->Initialize(grid);
+		divergence_uniform_->Initialize(grid, 0);
+		pressure_uniform_->Initialize(grid, 0);
+		boundary_uniform_->Initialize(grid, BND_FULL);
 
-		scalar_ghost_uniform_->Initialize(grid);
-		vector_ghost_uniform_->Initialize(grid);
+		scalar_ghost_uniform_->Initialize(grid, 0);
+		vector_ghost_uniform_->Initialize(grid, Vec3());
 
 		density_field_ = density_uniform;
 		velocity_field_ = velocity_uniform;
@@ -138,13 +139,26 @@ public:
 
 		// Advection
 		{
-			advection_method_.SemiLagrangian(velocity_field_, dt, density_field_, scalar_ghost_field_);
-			advection_method_.SemiLagrangian(velocity_field_, dt, velocity_field_, vector_ghost_field_);
+	//		advection_method_.SemiLagrangian(velocity_field_, dt, density_field_, scalar_ghost_field_);
+	//		advection_method_.SemiLagrangian(velocity_field_, dt, velocity_field_, vector_ghost_field_);
 			FIELD<FLT>*  scalar_temp;
 			FIELD<Vec3>* vector_temp;
 
 			SWAP(density_field_, scalar_ghost_field_, scalar_temp);
 			SWAP(velocity_field_, vector_ghost_field_, vector_temp);
+		}
+
+		// Rebulid
+		{
+			density_field_->Rebuild();
+			velocity_field_->Rebuild();
+
+			divergence_field_->Rebuild();
+			pressure_field_->Rebuild();
+			boundary_field_->Rebuild();
+
+			scalar_ghost_field_->Rebuild();
+			vector_ghost_field_->Rebuild();
 		}
 	}
 
