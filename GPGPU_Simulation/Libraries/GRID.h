@@ -143,7 +143,7 @@ public:
 		}
 	}
 
-	Vec3 Clamp(const Vec3& pos) const
+	Vec3 ClampGhost(const Vec3& pos) const
 	{
 		Vec3 c_pos;
 		c_pos.x = CLAMP(pos.x, min_.x+dx_*(FLT)0.5+FLT_EPSILON, max_.x-dx_*(FLT)0.5-FLT_EPSILON);
@@ -153,10 +153,20 @@ public:
 		return c_pos;
 	}
 
+	Vec3 Clamp(const Vec3& pos) const
+	{
+		Vec3 c_pos;
+		c_pos.x = CLAMP(pos.x, min_.x+gx_+dx_*(FLT)0.5+FLT_EPSILON, max_.x-gx_-dx_*(FLT)0.5-FLT_EPSILON);
+		c_pos.y = CLAMP(pos.y, min_.y+gx_+dx_*(FLT)0.5+FLT_EPSILON, max_.y-gx_-dx_*(FLT)0.5-FLT_EPSILON);
+		c_pos.z = CLAMP(pos.z, min_.z+gx_+dx_*(FLT)0.5+FLT_EPSILON, max_.z-gx_-dx_*(FLT)0.5-FLT_EPSILON);
+
+		return c_pos;
+	}
+
 	template<class TT>
 	TT TriLinearInterpolate(const Vec3& p, TT* arr) const
 	{ //http://en.wikipedia.org/wiki/Trilinear_interpolation
-		Vec3 cp = Clamp(p);
+		Vec3 cp = ClampGhost(p);
 		int b_i, b_j, b_k;
 
 		LeftBottomIndex(cp, b_i, b_j, b_k);

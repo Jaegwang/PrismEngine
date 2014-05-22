@@ -1,5 +1,6 @@
 #pragma once
 
+#include <omp.h>
 #include "FIELD.h"
 
 template<class TT>
@@ -21,7 +22,10 @@ void RasterizeParticleToField(FIELD<TT>& val_field, FIELD<FLT>& weight_field, co
 		weight_field.Set(p, (FLT)0);
 	}
 
-	#pragma omp parallel for
+	omp_lock_t writelock;
+	omp_init_lock(&writelock);
+
+//	#pragma omp parallel for
 	for(int p=0; p<size; p++)
 	{
 		Vec3 pos = pos_array.Get(p);
@@ -48,7 +52,7 @@ void RasterizeParticleToField(FIELD<TT>& val_field, FIELD<FLT>& weight_field, co
 				    QuadBSplineKernel(deviation.y*grid.one_over_dx_)*
 					QuadBSplineKernel(deviation.z*grid.one_over_dx_);
 
-			#pragma omp critical
+//			#pragma omp critical
 			{
 				weight_field.Set(ix, weight_field.Get(ix)+w);
 				val_field.Set(ix, val_field.Get(ix)+val*w);

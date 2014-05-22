@@ -31,12 +31,15 @@ FIELD_DYNAMIC<FLT> field;
 
 STABLE_FLUID_SOLVER stable_fluid;
 
+
 static const int window_w = 800;
 static const int window_h = 600;
+
 
 static bool is_playing      = false;
 static bool is_capture      = true;
 static bool is_capture_flag = false;
+
 
 void display();
 void idle();
@@ -59,6 +62,8 @@ int main(int argc, char **argv)
 	grid.Initialize(min0, max0, 100, 100, 100, 2);
 
 	stable_fluid.Initialize(grid);
+
+	stable_fluid.SeedParticlesFromSphere(Vec3(0.5, 0.5, 0.5), 0.1, Vec3(0.0, -2, 0.0), 500000);
 
 	mpm_solver.Initialize(min0, max0, 100, 100, 100, 2, 5000000);
 	capture_manager.Initialize(path);
@@ -116,11 +121,11 @@ void display()
 	mpm_solver.grid_.RenderGrid();
 //	mpm_solver.particle_world_.Render();
 
-	stable_fluid.Render();
+//	stable_fluid.Render();
 	stable_fluid.RenderParticles();
 //	stable_fluid.RenderVelocity();
 
-	field.Render();
+//	field.Render();
 
 
 	// capture image and video
@@ -147,7 +152,7 @@ void idle()
 
 //		stable_fluid.SourceDensityFromSphere(Vec3(0.5, 0.2, 0.5), 0.05, 1.0, Vec3(0.0, 2, 0.0));
 	
-		stable_fluid.SeedParticlesFromSphere(Vec3(0.5, 0.2, 0.5), 0.05, Vec3(0.0, 2, 0.0), 1000);
+//		stable_fluid.SeedParticlesFromSphere(Vec3(0.5, 0.2, 0.5), 0.05, Vec3(0.0, -2, 0.0), 1000);
 		stable_fluid.AdvanceOneTimeStepFLIP(0.01);
 	//	stable_fluid.AdvanceOneTimeStep(0.01);
 

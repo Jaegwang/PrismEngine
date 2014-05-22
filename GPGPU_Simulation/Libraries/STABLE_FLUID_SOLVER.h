@@ -102,9 +102,15 @@ public:
 		for(int i=0; i<grid.i_res_; i++)
 		{
 			if(grid.IsGhostCell(i,j,k))
+			{
 				boundary_field_->Set(i,j,k, BND_WALL);
-			else
+				continue;
+			}
+
+			if(density_field_->Get(i,j,k) > (FLT)0)
 				boundary_field_->Set(i,j,k, BND_FULL);
+			else
+				boundary_field_->Set(i,j,k, BND_NULL);
 		}		
 	
 	}
@@ -167,7 +173,7 @@ public:
 	{
 		// Rasterization
 		{
-			RasterizeParticleToField(*velocity_field_, *scalar_ghost_field_, *particle_position_, *particle_velocity_);		
+			RasterizeParticleToField(*velocity_field_, *density_field_, *particle_position_, *particle_velocity_);		
 		}
 
 		// Projection
@@ -183,7 +189,7 @@ public:
 			}
 
 			SetBoundaryCondition();
-			projection_method_.Jacobi(boundary_field_, velocity_field_, divergence_field_, pressure_field_, scalar_ghost_field_, 20);
+			projection_method_.Jacobi(boundary_field_, velocity_field_, divergence_field_, pressure_field_, scalar_ghost_field_, 200);
 
 			#pragma omp parallel for
 			for(int i=0; i<grid.ijk_res_; i++)
@@ -200,29 +206,37 @@ public:
 				Vec3 vel_g = velocity_field_->Get(pos);
 				Vec3 vel_p = vel + vector_ghost_field_->Get(pos);
 
-				particle_velocity_->Set(i, vel_g * ((FLT)1-flip_coeff) + vel_p * flip_coeff);
+				particle_velocity_->Set(i, vel_g*((FLT)1-flip_coeff) + vel_p*flip_coeff);
 			}
 		}		
 
 		// Advection
 		{
+			GRID grid = velocity_field_->Grid();
+
 			#pragma omp parallel for
 			for(int i=0; i<particle_position_->Size(); i++)
 			{
 				Vec3 pos = particle_position_->Get(i);
-				Vec3 vel_g = velocity_field_->Get(pos);
+				Vec3 vel = particle_velocity_->Get(i);
 
-				pos += vel_g * dt;
+				pos += vel*dt;
 
-				particle_position_->Set(i, pos);
+				particle_position_->Set(i, grid.Clamp(pos));
 			}
 		}
-	}
 
-	void UpdateParticles()
-	{
-
-			
+		// forcing
+		{
+			#pragma omp parallel for
+			for(int i=0; i<particle_position_->Size(); i++)
+			{
+				Vec3 gravity = Vec3(0,-10,0);
+				Vec3 vel = particle_velocity_->Get(i) + gravity * dt;
+				
+				particle_velocity_->Set(i, vel);
+			}
+		}
 	}
 
 	void AdvanceOneTimeStep(const FLT dt)
