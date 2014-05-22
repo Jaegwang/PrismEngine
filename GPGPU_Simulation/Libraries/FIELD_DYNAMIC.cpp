@@ -316,7 +316,7 @@ template<class TT>
 void FIELD_DYNAMIC<TT>::Render()
 {
 	glDisable(GL_LIGHTING);
-	glPointSize(3.0f);
+	glPointSize(1.0f);
 	glBegin(GL_POINTS);
 	glColor3f(1.0, 0.0, 0.0);
 	for(int k=0; k<k_res_; k++) for(int j=0; j<j_res_; j++)

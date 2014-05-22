@@ -14,14 +14,28 @@ void PROJECTION_METHOD::DetermineDivergence(const FIELD<int>* bnd, const FIELD<V
 		{
 			FLT d = (FLT)0;
 
-			if(bnd->Get(i+1,j,k) != BND_WALL) d += vel->Get(i+1,j,k).x;
-			if(bnd->Get(i-1,j,k) != BND_WALL) d -= vel->Get(i-1,j,k).x;
+			Vec3 v = vel->Get(i,j,k);
+			v.x = ABS(v.x);
+			v.y = ABS(v.y);
+			v.z = ABS(v.z);
 
-			if(bnd->Get(i,j+1,k) != BND_WALL) d += vel->Get(i,j+1,k).y;
-			if(bnd->Get(i,j-1,k) != BND_WALL) d -= vel->Get(i,j-1,k).y;
+			if(bnd->Get(i+1,j,k) == BND_WALL) d -= v.x;
+			else d += vel->Get(i+1,j,k).x;
 
-			if(bnd->Get(i,j,k+1) != BND_WALL) d += vel->Get(i,j,k+1).z;
-			if(bnd->Get(i,j,k-1) != BND_WALL) d -= vel->Get(i,j,k-1).z;
+			if(bnd->Get(i-1,j,k) == BND_WALL) d -= v.x;
+			else d -= vel->Get(i-1,j,k).x;
+
+			if(bnd->Get(i,j+1,k) == BND_WALL) d -= v.y;
+			else d += vel->Get(i,j+1,k).y;
+
+			if(bnd->Get(i,j-1,k) == BND_WALL) d -= v.y;
+			else d -= vel->Get(i,j-1,k).y;
+			
+			if(bnd->Get(i,j,k+1) == BND_WALL) d -= v.z;
+			else d += vel->Get(i,j,k+1).z;
+			
+			if(bnd->Get(i,j,k-1) == BND_WALL) d -= v.z;
+			else d -= vel->Get(i,j,k-1).z;
 			
 			d *= grid.one_over_dx_*(FLT)0.5;
 

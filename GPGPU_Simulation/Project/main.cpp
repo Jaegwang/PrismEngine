@@ -58,24 +58,6 @@ int main(int argc, char **argv)
 	GRID grid;
 	grid.Initialize(min0, max0, 100, 100, 100, 2);
 
-
-	ARRAY_DYNAMIC<FLT> array_;
-	array_.Initialize(1);
-
-	
-	#pragma omp parallel for
-	for(int i=0; i<10000000; i++)
-	{
-		int idx = array_.Push();
-	}
-
-	for(int i=0; i<10000000; i++)
-	{
-		array_(i) = i;
-	}
-
-	return 0;
-
 	stable_fluid.Initialize(grid);
 
 	mpm_solver.Initialize(min0, max0, 100, 100, 100, 2, 5000000);
@@ -85,7 +67,7 @@ int main(int argc, char **argv)
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glutInitWindowSize(window_w, window_h);
-	glutCreateWindow("AMP Simulator");
+	glutCreateWindow("Stable Fluids");
 
 	glutReshapeFunc(reshape);
 	glutIdleFunc(idle);
@@ -135,6 +117,7 @@ void display()
 //	mpm_solver.particle_world_.Render();
 
 	stable_fluid.Render();
+	stable_fluid.RenderParticles();
 //	stable_fluid.RenderVelocity();
 
 	field.Render();
@@ -162,8 +145,11 @@ void idle()
 	{
 //		mpm_solver.AdvanceTimeStep((FLT)0.01, 1);
 
-		stable_fluid.SourceDensityFromSphere(Vec3(0.5, 0.2, 0.5), 0.05, 1.0, Vec3(0.0, 2, 0.0));
-		stable_fluid.AdvanceOneTimeStep(0.01);
+//		stable_fluid.SourceDensityFromSphere(Vec3(0.5, 0.2, 0.5), 0.05, 1.0, Vec3(0.0, 2, 0.0));
+	
+		stable_fluid.SeedParticlesFromSphere(Vec3(0.5, 0.2, 0.5), 0.05, Vec3(0.0, 2, 0.0), 1000);
+		stable_fluid.AdvanceOneTimeStepFLIP(0.01);
+	//	stable_fluid.AdvanceOneTimeStep(0.01);
 
 		is_capture_flag = true;
 	}

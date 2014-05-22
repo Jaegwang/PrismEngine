@@ -14,6 +14,14 @@ void RasterizeParticleToField(FIELD<TT>& val_field, FIELD<FLT>& weight_field, co
 
 	GRID grid = val_field.Grid();
 
+	#pragma omp parallel for
+	for(int p=0; p<grid.ijk_res_; p++)
+	{
+		val_field.Set(p, TT());
+		weight_field.Set(p, (FLT)0);
+	}
+
+	#pragma omp parallel for
 	for(int p=0; p<size; p++)
 	{
 		Vec3 pos = pos_array.Get(p);
@@ -40,12 +48,15 @@ void RasterizeParticleToField(FIELD<TT>& val_field, FIELD<FLT>& weight_field, co
 				    QuadBSplineKernel(deviation.y*grid.one_over_dx_)*
 					QuadBSplineKernel(deviation.z*grid.one_over_dx_);
 
-			weight_field.Set(ix, weight_field.Get(ix)+w);
-
-			val_field.Set(ix, val_field.Get(ix)+val*w);
+			#pragma omp critical
+			{
+				weight_field.Set(ix, weight_field.Get(ix)+w);
+				val_field.Set(ix, val_field.Get(ix)+val*w);
+			}
 		}
 	}	
 
+	#pragma omp parallel for
 	for(int p=0; p<grid.ijk_res_; p++)
 	{
 		FLT weight = weight_field.Get(p);
@@ -59,7 +70,7 @@ void RasterizeParticleToField(FIELD<TT>& val_field, FIELD<FLT>& weight_field, co
 
 
 template<class TT>
-void RasterizeFieldToParticle(ARRAY<Vec3>& pos_array, ARRAY<TT>& val_array, const FIELD<TT>& val_field, const FIELD<FLT>& weight_field)
+void RasterizeFieldToParticle(ARRAY<Vec3>& pos_array, ARRAY<TT>& val_array, const FIELD<TT>& val_field)
 {
 	int size = pos_array.Size();
 	int i,j,k;
@@ -70,6 +81,7 @@ void RasterizeFieldToParticle(ARRAY<Vec3>& pos_array, ARRAY<TT>& val_array, cons
 
 	GRID grid = val_field.Grid();
 
+	#pragma omp parallel for
 	for(int p=0; p<size; p++)
 	{
 		Vec3 pos = pos_array.Get(p);
@@ -111,4 +123,4 @@ void RasterizeFieldToParticle(ARRAY<Vec3>& pos_array, ARRAY<TT>& val_array, cons
 }
 
 template void RasterizeParticleToField(FIELD<Vec3>& val_field, FIELD<FLT>& weight_field, const ARRAY<Vec3>& pos_array, const ARRAY<Vec3>& val_array);
-template void RasterizeFieldToParticle(ARRAY<Vec3>& pos_array, ARRAY<Vec3>& val_array, const FIELD<Vec3>& val_field, const FIELD<FLT>& weight_field);
+template void RasterizeFieldToParticle(ARRAY<Vec3>& pos_array, ARRAY<Vec3>& val_array, const FIELD<Vec3>& val_field);
