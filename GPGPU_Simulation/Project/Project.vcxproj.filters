@@ -128,5 +128,8 @@
     <ClInclude Include="..\Libraries\ARRAY.h">
       <Filter>Libraries\DATA_STRUCTURES</Filter>
     </ClInclude>
+    <ClInclude Include="..\Libraries\RASTERIZER.h">
+      <Filter>Libraries\STABLE_FLUID</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

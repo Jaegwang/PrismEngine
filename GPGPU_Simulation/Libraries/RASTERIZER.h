@@ -1,5 +1,7 @@
 #pragma once
 
+#include "FIELD.h"
+
 template<class TT>
 void RasterizeParticleToField(FIELD<TT>& val_field, FIELD<FLT>& weight_field, const ARRAY<Vec3>& pos_array, const ARRAY<TT>& val_array)
 {
@@ -32,8 +34,7 @@ void RasterizeParticleToField(FIELD<TT>& val_field, FIELD<FLT>& weight_field, co
 			int ix = grid.Index3Dto1D(i,j,k);
 
 			Vec3 cell_center = grid.CellCenterPosition(i,j,k);
-
-			FLT deviation = cell_center-pos;
+			Vec3 deviation = cell_center-pos;
 
 			FLT w = QuadBSplineKernel(deviation.x*grid.one_over_dx_)*
 				    QuadBSplineKernel(deviation.y*grid.one_over_dx_)*
@@ -50,9 +51,9 @@ void RasterizeParticleToField(FIELD<TT>& val_field, FIELD<FLT>& weight_field, co
 		FLT weight = weight_field.Get(p);
 		
 		if(weight >= (FLT)1e-06)
-			val_field.Set(val_field.Get(p)/weight);
+			val_field.Set(p, val_field.Get(p)/weight);
 		else
-			val_field.Set(TT());
+			val_field.Set(p, TT());
 	}
 }
 
@@ -92,8 +93,7 @@ void RasterizeFieldToParticle(ARRAY<Vec3>& pos_array, ARRAY<TT>& val_array, cons
 			TT val_g = val_field.Get(ix);
 
 			Vec3 cell_center = grid.CellCenterPosition(i,j,k);
-
-			FLT deviation = cell_center-pos;
+			Vec3 deviation = cell_center-pos;
 
 			FLT w = QuadBSplineKernel(deviation.x*grid.one_over_dx_)*
 				    QuadBSplineKernel(deviation.y*grid.one_over_dx_)*
@@ -104,8 +104,11 @@ void RasterizeFieldToParticle(ARRAY<Vec3>& pos_array, ARRAY<TT>& val_array, cons
 		}
 
 		if(w_p > (FLT)1e-06) 
-			val_array[p] = val_p/w_p;
+			val_array.Set(p, val_p/w_p);
 		else 
-			val_array[p] = TT();
+			val_array.Set(p, TT());
 	}	
 }
+
+template void RasterizeParticleToField(FIELD<Vec3>& val_field, FIELD<FLT>& weight_field, const ARRAY<Vec3>& pos_array, const ARRAY<Vec3>& val_array);
+template void RasterizeFieldToParticle(ARRAY<Vec3>& pos_array, ARRAY<Vec3>& val_array, const FIELD<Vec3>& val_field, const FIELD<FLT>& weight_field);
