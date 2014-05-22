@@ -3,9 +3,10 @@
 
 enum BOUNDARY_CELL
 {
-	BND_NULL,
-	BND_WALL,
-	BND_FULL,
+	BND_FRAG=-2,
+	BND_WALL=-1,
+	BND_NULL= 0,
+	BND_FULL= 1,
 };
 
 class PROJECTION_METHOD
@@ -18,7 +19,6 @@ public:
 
 	void DetermineVelocity(const FIELD<int>* bnd, const FIELD<FLT>* press, FIELD<Vec3>* vel);
 
-
 	void Jacobi(const FIELD<int>* bnd, FIELD<Vec3>* vel, FIELD<FLT>* div, FIELD<FLT>* press, FIELD<FLT>* press_temp, const int itr)
 	{
 		DetermineDivergence(bnd, vel, div);
@@ -27,4 +27,6 @@ public:
 
 		DetermineVelocity(bnd, press, vel);
 	}
+
+	void Diffuse(const FIELD<int>* bnd, FIELD<Vec3>* vel, FIELD<Vec3>* temp, const int itr);
 };

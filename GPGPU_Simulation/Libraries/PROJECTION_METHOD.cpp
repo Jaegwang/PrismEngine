@@ -22,32 +22,32 @@ void PROJECTION_METHOD::DetermineDivergence(const FIELD<int>* bnd, const FIELD<V
 			int bc;
 
 			bc = bnd->Get(i+1,j,k);
-			if(bc == BND_WALL) d -= v.x;
+			if(bc < 0) d -= v.x;
 			else if(bc == BND_NULL) d += v.x;
 			else d += vel->Get(i+1,j,k).x;
 
 			bc = bnd->Get(i-1,j,k); 
-			if(bc == BND_WALL) d -= v.x;
+			if(bc < 0) d -= v.x;
 			else if(bc == BND_NULL) d += v.x;
 			else d -= vel->Get(i-1,j,k).x;
 
 			bc = bnd->Get(i,j+1,k);
-			if(bc == BND_WALL) d -= v.y;
+			if(bc < 0) d -= v.y;
 			else if(bc == BND_NULL) d += v.y;
 			else d += vel->Get(i,j+1,k).y;
 
 			bc = bnd->Get(i,j-1,k);
-			if(bc == BND_WALL) d -= v.y;
+			if(bc < 0) d -= v.y;
 			else if(bc == BND_NULL) d += v.y;
 			else d -= vel->Get(i,j-1,k).y;
 
 			bc = bnd->Get(i,j,k+1);
-			if(bc == BND_WALL) d -= v.z;
+			if(bc < 0) d -= v.z;
 			else if(bc == BND_NULL) d += v.z;
 			else d += vel->Get(i,j,k+1).z;
 
 			bc = bnd->Get(i,j,k-1);
-			if(bc == BND_WALL) d -= v.z;
+			if(bc < 0) d -= v.z;
 			else if(bc == BND_NULL) d += v.z; 
 			else d -= vel->Get(i,j,k-1).z;
 			
@@ -87,20 +87,20 @@ void PROJECTION_METHOD::DeterminePressure(const FIELD<int>* bnd, const FIELD<FLT
 				FLT cp = press_temp->Get(i,j,k);
 				FLT p  = (FLT)0;
 
-				if(bnd->Get(i+1,j,k) == BND_WALL) p += cp;
-				else						      p += press_temp->Get(i+1,j,k);
-				if(bnd->Get(i-1,j,k) == BND_WALL) p += cp;
-				else                              p += press_temp->Get(i-1,j,k);
+				if(bnd->Get(i+1,j,k) < 0) p += cp;
+				else p += press_temp->Get(i+1,j,k);
+				if(bnd->Get(i-1,j,k) < 0) p += cp;
+				else p += press_temp->Get(i-1,j,k);
 
-				if(bnd->Get(i,j+1,k) == BND_WALL) p += cp;
-				else                              p += press_temp->Get(i,j+1,k);
-				if(bnd->Get(i,j-1,k) == BND_WALL) p += cp;
-				else                              p += press_temp->Get(i,j-1,k);
+				if(bnd->Get(i,j+1,k) < 0) p += cp;
+				else p += press_temp->Get(i,j+1,k);
+				if(bnd->Get(i,j-1,k) < 0) p += cp;
+				else p += press_temp->Get(i,j-1,k);
 
-				if(bnd->Get(i,j,k+1) == BND_WALL) p += cp;
-				else                              p += press_temp->Get(i,j,k+1);
-				if(bnd->Get(i,j,k-1) == BND_WALL) p += cp;
-				else                              p += press_temp->Get(i,j,k-1);
+				if(bnd->Get(i,j,k+1) < 0) p += cp;
+				else p += press_temp->Get(i,j,k+1);
+				if(bnd->Get(i,j,k-1) < 0) p += cp;
+				else p += press_temp->Get(i,j,k-1);
 
 				p -= div->Get(i,j,k)*grid.dx_*grid.dx_;
 				p /= (FLT)6;
@@ -129,20 +129,20 @@ void PROJECTION_METHOD::DetermineVelocity(const FIELD<int>* bnd, const FIELD<FLT
 			Vec3 p  = Vec3();
 			Vec3 v  = vel->Get(i,j,k); 
 
-			if(bnd->Get(i+1,j,k) == BND_WALL) p.x += cp;
-			else						      p.x += press->Get(i+1,j,k);
-			if(bnd->Get(i-1,j,k) == BND_WALL) p.x -= cp;
-			else                              p.x -= press->Get(i-1,j,k);
+			if(bnd->Get(i+1,j,k) < 0) p.x += cp;
+			else p.x += press->Get(i+1,j,k);
+			if(bnd->Get(i-1,j,k) < 0) p.x -= cp;
+			else p.x -= press->Get(i-1,j,k);
 
-			if(bnd->Get(i,j+1,k) == BND_WALL) p.y += cp;
-			else                              p.y += press->Get(i,j+1,k);
-			if(bnd->Get(i,j-1,k) == BND_WALL) p.y -= cp;
-			else                              p.y -= press->Get(i,j-1,k);
+			if(bnd->Get(i,j+1,k) < 0) p.y += cp;
+			else p.y += press->Get(i,j+1,k);
+			if(bnd->Get(i,j-1,k) < 0) p.y -= cp;
+			else p.y -= press->Get(i,j-1,k);
 
-			if(bnd->Get(i,j,k+1) == BND_WALL) p.z += cp;
-			else                              p.z += press->Get(i,j,k+1);
-			if(bnd->Get(i,j,k-1) == BND_WALL) p.z -= cp;
-			else                              p.z -= press->Get(i,j,k-1);
+			if(bnd->Get(i,j,k+1) < 0) p.z += cp;
+			else p.z += press->Get(i,j,k+1);
+			if(bnd->Get(i,j,k-1) < 0) p.z -= cp;
+			else p.z -= press->Get(i,j,k-1);
 
 			p *= grid.one_over_dx_*(FLT)0.5;
 
@@ -150,3 +150,10 @@ void PROJECTION_METHOD::DetermineVelocity(const FIELD<int>* bnd, const FIELD<FLT
 		}
 	}
 }
+
+void PROJECTION_METHOD::Diffuse(const FIELD<int>* bnd, FIELD<Vec3>* vel, FIELD<Vec3>* temp, const int itr)
+{
+
+
+}
+

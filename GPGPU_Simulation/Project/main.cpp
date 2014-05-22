@@ -116,17 +116,15 @@ void display()
 //	world_grid.RenderCells();
 //	particle_manager.Rendering();
 
-
 //	mpm_solver.particle_manager_.Rendering();
 	mpm_solver.grid_.RenderGrid();
 //	mpm_solver.particle_world_.Render();
 
-//	stable_fluid.Render();
+	stable_fluid.Render();
 	stable_fluid.RenderParticles();
 //	stable_fluid.RenderVelocity();
 
 //	field.Render();
-
 
 	// capture image and video
 	if(is_capture && is_capture_flag)

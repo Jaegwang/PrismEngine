@@ -283,9 +283,12 @@ public:
 		for(int j=0; j<grid.j_res_; j++)
 		for(int i=0; i<grid.i_res_; i++)
 		{
-			if(density_field_->Get(i,j,k) > 0.1)
+			if(density_field_->Get(i,j,k) == 0.0) continue;
+
+			if(ABS(divergence_field_->Get(i,j,k)) < 0.05)
 			{
 				Vec3 cell_center = grid.CellCenterPosition(i,j,k);
+				glColor3f(1,0,0);
 				glVertex3fv(&cell_center.x);			
 			}
 		}	
@@ -304,7 +307,7 @@ public:
 		for(int i=0; i<size; i++)
 		{
 			Vec3 pos = particle_position_->Get(i);
-
+			glColor3f(0,0,0);
 			glVertex3fv(&pos.x);
 		}
 
