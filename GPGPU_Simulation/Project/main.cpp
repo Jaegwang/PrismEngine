@@ -62,11 +62,16 @@ int main(int argc, char **argv)
 	ARRAY_DYNAMIC<FLT> array_;
 	array_.Initialize(1);
 
+	
+	#pragma omp parallel for
 	for(int i=0; i<10000000; i++)
 	{
 		int idx = array_.Push();
-		array_(idx) = i;
-		
+	}
+
+	for(int i=0; i<10000000; i++)
+	{
+		array_(i) = i;
 	}
 
 	return 0;

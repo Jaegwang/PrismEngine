@@ -58,7 +58,7 @@ public:
 
 	int Push(const int count=1)
 	{	
-		while(mem_lock_) {};
+		while(mem_lock_){};
 		int ix = atomic_fetch_add(&num_cur_, count);		
 		Rearray();
 		return ix;
@@ -90,7 +90,6 @@ public:
 			}
 		}
 	}
-
 
 	TT& operator() (const int ix) const
 	{

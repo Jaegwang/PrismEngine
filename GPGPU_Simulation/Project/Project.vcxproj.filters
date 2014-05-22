@@ -125,5 +125,8 @@
     <ClInclude Include="..\Libraries\STABLE_FLUID_SOLVER.h">
       <Filter>Libraries\STABLE_FLUID</Filter>
     </ClInclude>
+    <ClInclude Include="..\Libraries\ARRAY.h">
+      <Filter>Libraries\DATA_STRUCTURES</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

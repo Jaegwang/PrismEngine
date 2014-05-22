@@ -14,6 +14,15 @@ static FLT QuadBSplineKernel(const FLT d, const FLT one_over_h)
 	else return 0;
 }
 
+static FLT QuadBSplineKernel(const FLT q)
+{
+	if(q < -(FLT)3/(FLT)2) return 0;
+	else if(q <= -(FLT)1/(FLT)2) return (FLT)0.5*q*q + (FLT)3/(FLT)2*q + (FLT)9/(FLT)8; 
+	else if(q <=  (FLT)1/(FLT)2) return -q*q + (FLT)3/(FLT)4;
+	else if(q <=  (FLT)3/(FLT)2) return (FLT)0.5*q*q - (FLT)3/(FLT)2*q + (FLT)9/(FLT)8; 
+	else return 0;
+}
+
 static FLT QuadBSplineKernelGradient(const FLT d, const FLT one_over_h)
 {
 	const FLT q = d*one_over_h;

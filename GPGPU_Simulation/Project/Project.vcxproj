@@ -134,6 +134,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Libraries\ADVECTION_METHOD.h" />
+    <ClInclude Include="..\Libraries\ARRAY.h" />
     <ClInclude Include="..\Libraries\ARRAY_DYNAMIC.h" />
     <ClInclude Include="..\Libraries\CAPTURE_MANAGER.h" />
     <ClInclude Include="..\Libraries\DATABASE_MANAGER.h" />
