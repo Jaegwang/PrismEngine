@@ -107,7 +107,7 @@ public:
 				continue;
 			}
 
-			if(density_field_->Get(i,j,k) > (FLT)0)
+			if(density_field_->Get(i,j,k) > (FLT)0.5)
 				boundary_field_->Set(i,j,k, BND_FULL);
 			else
 				boundary_field_->Set(i,j,k, BND_NULL);

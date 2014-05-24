@@ -10,9 +10,10 @@ public:
 
 	virtual int  Size() const=0;
 
-	virtual void Push(TT& data)=0;
+	virtual void Push(TT data)=0;
 	virtual TT   Pop()=0;
 
+	virtual void Clear()=0;
 	virtual void Rebuild()=0;
 };
 
@@ -39,7 +40,7 @@ public:
 		return ptr_+1;
 	}
 
-	virtual void Push(TT& data)
+	virtual void Push(TT data)
 	{
 		arr_[++ptr_] = data;
 	}
@@ -49,16 +50,30 @@ public:
 		return arr_[ptr_--];
 	}
 
+	virtual void Clear()
+	{
+		ptr_ = -1;
+	}
+
 	virtual void Rebuild()
 	{
 	
 	}
 
-	void Initialize(const int num)
+	void Initialize(const int num, const bool rev=false)
 	{
-		arr_ = new TT[num];
-		ptr_ = -1;
-		size_ = num;
+		Finalize();
+
+		arr_   = new TT[num];
+		total_ = num;
+
+		for(int i=0; i<num; i++)
+		{
+			arr_[i] = TT();
+		}
+
+		if(rev == true) ptr_ = num-1;
+		else ptr_ = -1;
 	}
 
 	void Finalize()
@@ -66,7 +81,7 @@ public:
 		if(arr_) delete[] arr_;	
 	}
 
-	ARRAY_VECTOR() : arr_(0), ptr_(-1), size_(0)
+	ARRAY_VECTOR() : arr_(0), ptr_(-1), total_(0)
 	{
 	
 	}
@@ -82,5 +97,15 @@ private:
 
 	int ptr_;
 
-	int size_;
+	int total_;
 };
+
+template<class TT> void ArrayMinus(const ARRAY_VECTOR<TT>& a, const ARRAY_VECTOR<TT>& b, ARRAY_VECTOR<TT>& c);
+
+template<class TT> void ArrayPlus(const ARRAY_VECTOR<TT>& a, const ARRAY_VECTOR<TT>& b, ARRAY_VECTOR<TT>& c);
+
+template<class TT> TT ArrayDot(const ARRAY_VECTOR<TT>& a, const ARRAY_VECTOR<TT>& b);
+
+template<class TT> void ArrayEqual(const ARRAY_VECTOR<TT>& a, ARRAY_VECTOR<TT>& b);
+
+template<class TT> void ArrayMultipy(const ARRAY_VECTOR<TT>& a, const TT b, ARRAY_VECTOR<TT>& c);

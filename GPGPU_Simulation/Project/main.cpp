@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 
 	stable_fluid.Initialize(grid);
 
-	stable_fluid.SeedParticlesFromSphere(Vec3(0.5, 0.5, 0.5), 0.1, Vec3(0.0, -2, 0.0), 500000);
+	stable_fluid.SeedParticlesFromSphere(Vec3(0.5, 0.5, 0.5), 0.1, Vec3(0.0, -0.2, 0.0), 500000);
 
 	mpm_solver.Initialize(min0, max0, 100, 100, 100, 2, 5000000);
 	capture_manager.Initialize(path);

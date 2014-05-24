@@ -45,6 +45,9 @@
     <ClCompile Include="..\Libraries\PROJECTION_METHOD.cpp">
       <Filter>Libraries\STABLE_FLUID</Filter>
     </ClCompile>
+    <ClCompile Include="..\Libraries\ARRAY.cpp">
+      <Filter>Libraries\DATA_STRUCTURES</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Libraries\PARTICLE.h">
@@ -130,6 +133,9 @@
     </ClInclude>
     <ClInclude Include="..\Libraries\RASTERIZER.h">
       <Filter>Libraries\STABLE_FLUID</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\SPARSE_MATRIX.h">
+      <Filter>Libraries\DATA_STRUCTURES</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

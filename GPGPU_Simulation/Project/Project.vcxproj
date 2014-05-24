@@ -125,6 +125,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Libraries\ADVECTION_METHOD.cpp" />
+    <ClCompile Include="..\Libraries\ARRAY.cpp" />
     <ClCompile Include="..\Libraries\CAPTURE_MANAGER.cpp" />
     <ClCompile Include="..\Libraries\FIELD_DYNAMIC.cpp" />
     <ClCompile Include="..\Libraries\FIELD_UNIFORM.cpp" />
@@ -158,6 +159,7 @@
     <ClInclude Include="..\Libraries\PROJECTION_METHOD.h" />
     <ClInclude Include="..\Libraries\READ_WRITE_PNG.h" />
     <ClInclude Include="..\Libraries\RASTERIZER.h" />
+    <ClInclude Include="..\Libraries\SPARSE_MATRIX.h" />
     <ClInclude Include="..\Libraries\STABLE_FLUID_SOLVER.h" />
     <ClInclude Include="..\Libraries\TRACK_BALL_CONTROL.h" />
     <ClInclude Include="..\Libraries\WALL_CONDITIONS.h" />
