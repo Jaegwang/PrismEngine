@@ -107,10 +107,12 @@ public:
 				continue;
 			}
 
-			if(density_field_->Get(i,j,k) > (FLT)0.5)
+			if(density_field_->Get(i,j,k) > (FLT)0)
 				boundary_field_->Set(i,j,k, BND_FULL);
 			else
 				boundary_field_->Set(i,j,k, BND_NULL);
+
+//			boundary_field_->Set(i,j,k, BND_FULL);
 		}		
 	
 	}
@@ -217,26 +219,26 @@ public:
 			#pragma omp parallel for
 			for(int i=0; i<particle_position_->Size(); i++)
 			{
-				Vec3 pos = particle_position_->Get(i);
-				Vec3 vel = particle_velocity_->Get(i);
+				Vec3 pos   = particle_position_->Get(i);
+				Vec3 vel_g = velocity_field_->Get(pos);
 
-				pos += vel*dt;
+				pos += vel_g*dt;
 
 				particle_position_->Set(i, grid.Clamp(pos));
 			}
 		}
 
-		// forcing
-		{
-			#pragma omp parallel for
-			for(int i=0; i<particle_position_->Size(); i++)
-			{
-				Vec3 gravity = Vec3(0,-10,0);
-				Vec3 vel = particle_velocity_->Get(i) + gravity * dt;
-				
-				particle_velocity_->Set(i, vel);
-			}
-		}
+		//// forcing
+		//{
+		//	#pragma omp parallel for
+		//	for(int i=0; i<particle_position_->Size(); i++)
+		//	{
+		//		Vec3 gravity = Vec3(0,-10,0);
+		//		Vec3 vel = particle_velocity_->Get(i) + gravity * dt;
+		//		
+		//		particle_velocity_->Set(i, vel);
+		//	}
+		//}
 	}
 
 	void AdvanceOneTimeStep(const FLT dt)

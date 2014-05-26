@@ -63,11 +63,6 @@ public:
 
 		row_ptr_arr_[++row_ptr_] = val_ptr_+1;
 
-		if(row_ptr_ > 3350)
-		{
-			int a = 0;
-		}
-
 		for(int p=0; p<size; p++)
 		{
 			int ix = ++val_ptr_;
@@ -86,7 +81,7 @@ public:
 			int start_ptr = row_ptr_arr_[p];
 			int end_ptr;
 
-			if(p==size-1) end_ptr = total_-1;
+			if(p==size-1) end_ptr = val_ptr_;
 			else end_ptr = row_ptr_arr_[p+1]-1;
 
 			FLT v = (FLT)0;
