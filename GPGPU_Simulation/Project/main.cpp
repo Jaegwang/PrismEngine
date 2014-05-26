@@ -196,7 +196,7 @@ void idle()
 
 //		stable_fluid.SourceDensityFromSphere(Vec3(0.5, 0.2, 0.5), 0.05, 1.0, Vec3(0.0, 2, 0.0));
 	
-		stable_fluid.SeedParticlesFromSphere(Vec3(0.5, 0.7, 0.5), 0.05, Vec3(0.0, -2, 0.0), 5000);
+		stable_fluid.SeedParticlesFromSphere(Vec3(0.5, 0.8, 0.5), 0.1, Vec3(0.0, -2, 0.0), 5000);
 		stable_fluid.AdvanceOneTimeStepFLIP(0.01);
 	//	stable_fluid.AdvanceOneTimeStep(0.01);
 

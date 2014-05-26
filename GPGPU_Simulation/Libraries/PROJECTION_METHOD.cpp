@@ -5,7 +5,7 @@ void PROJECTION_METHOD::DetermineDivergence(const FIELD<int>* bnd, const FIELD<V
 {
 	GRID grid = vel->Grid();
 
-	const FLT coef = (FLT)1.0f;
+	const FLT coef = (FLT)1.0;
 
 	#pragma omp parallel for
 	for(int k=1; k<grid.k_res_-1; k++)
@@ -94,20 +94,34 @@ void PROJECTION_METHOD::DeterminePressure(const FIELD<int>* bnd, const FIELD<FLT
 				FLT cp = press_temp->Get(i,j,k);
 				FLT p  = (FLT)0;
 
-				if(bnd->Get(i+1,j,k) < BND_NULL) p += cp;
-				else p += press_temp->Get(i+1,j,k);
-				if(bnd->Get(i-1,j,k) < BND_NULL) p += cp;
-				else p += press_temp->Get(i-1,j,k);
+				int bc;
 
-				if(bnd->Get(i,j+1,k) < BND_NULL) p += cp;
-				else p += press_temp->Get(i,j+1,k);
-				if(bnd->Get(i,j-1,k) < BND_NULL) p += cp;
-				else p += press_temp->Get(i,j-1,k);
+				bc = bnd->Get(i+1,j,k);
+				if(bc >= 0) p += press_temp->Get(i+1,j,k);
+				else if(bc != BND_NULL) p += cp;
 
-				if(bnd->Get(i,j,k+1) < BND_NULL) p += cp;
-				else p += press_temp->Get(i,j,k+1);
-				if(bnd->Get(i,j,k-1) < BND_NULL) p += cp;
-				else p += press_temp->Get(i,j,k-1);
+				bc = bnd->Get(i-1,j,k);
+				if(bc >= 0) p += press_temp->Get(i-1,j,k);
+				else if(bc != BND_NULL) p += cp;
+
+
+				bc = bnd->Get(i,j+1,k);
+				if(bc >= 0) p += press_temp->Get(i,j+1,k);
+				else if(bc != BND_NULL) p += cp;
+
+				bc = bnd->Get(i,j-1,k);
+				if(bc >= 0) p += press_temp->Get(i,j-1,k);
+				else if(bc != BND_NULL) p += cp;
+
+
+				bc = bnd->Get(i,j,k+1);
+				if(bc >= 0) p += press_temp->Get(i,j,k+1);
+				else if(bc != BND_NULL) p += cp;
+
+				bc = bnd->Get(i,j,k-1);
+				if(bc >= 0) p += press_temp->Get(i,j,k-1);
+				else if(bc != BND_NULL) p += cp;
+
 
 				p -= div->Get(i,j,k)*grid.dx_*grid.dx_;
 				p /= (FLT)6;
