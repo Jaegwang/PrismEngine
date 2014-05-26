@@ -5,6 +5,8 @@ void PROJECTION_METHOD::DetermineDivergence(const FIELD<int>* bnd, const FIELD<V
 {
 	GRID grid = vel->Grid();
 
+	const FLT coef = (FLT)1.0f;
+
 	#pragma omp parallel for
 	for(int k=1; k<grid.k_res_-1; k++)
 	for(int j=1; j<grid.j_res_-1; j++) 
@@ -15,43 +17,46 @@ void PROJECTION_METHOD::DetermineDivergence(const FIELD<int>* bnd, const FIELD<V
 			FLT d = (FLT)0;
 
 			Vec3 v = vel->Get(i,j,k);
-			v.x = ABS(v.x);
-			v.y = ABS(v.y);
-			v.z = ABS(v.z);
+			Vec3 a;
+
+			a.x = ABS(v.x);
+			a.y = ABS(v.y);
+			a.z = ABS(v.z);
+
+			a *= coef;
 
 			int bc;
 
 			bc = bnd->Get(i+1,j,k);
 			if(bc >= 0) d += vel->Get(i+1,j,k).x;
 			else if(bc == BND_NULL) d += v.x;
-			else d -= v.x;
+			else d -= a.x;
 
 			bc = bnd->Get(i-1,j,k);
 			if(bc >= 0) d -= vel->Get(i-1,j,k).x;
-			else if(bc == BND_NULL) d += v.x;
-			else d -= v.x;
-
+			else if(bc == BND_NULL) d -= v.x;
+			else d -= a.x;
 
 			bc = bnd->Get(i,j+1,k);
 			if(bc >= 0) d += vel->Get(i,j+1,k).y;
 			else if(bc == BND_NULL) d += v.y;
-			else d -= v.y;
+			else d -= a.y;
 
 			bc = bnd->Get(i,j-1,k);
 			if(bc >= 0) d -= vel->Get(i,j-1,k).y;
-			else if(bc == BND_NULL) d += v.y;
-			else d -= v.y;
+			else if(bc == BND_NULL) d -= v.y;
+			else d -= a.y;
 
 
 			bc = bnd->Get(i,j,k+1);
 			if(bc >= 0) d += vel->Get(i,j,k+1).z;
 			else if(bc == BND_NULL) d += v.z;
-			else d -= v.z;
+			else d -= a.z;
 
 			bc = bnd->Get(i,j,k-1);
 			if(bc >= 0) d -= vel->Get(i,j,k-1).z;
-			else if(bc == BND_NULL) d += v.z;
-			else d -= v.z;
+			else if(bc == BND_NULL) d -= v.z;
+			else d -= a.z;
 			
 			d *= grid.one_over_dx_*(FLT)0.5;
 
@@ -131,52 +136,32 @@ void PROJECTION_METHOD::DetermineVelocity(const FIELD<int>* bnd, const FIELD<FLT
 			Vec3 p  = Vec3();
 			Vec3 v  = vel->Get(i,j,k); 
 
+			int bc;
 
-			if(bnd->Get(i+1,j,k) >= 0) p.x += press->Get(i+1,j,k); 
-			else if(bnd->Get(i+1,j,k) != BND_NULL) p.x += cp;
+			bc = bnd->Get(i+1,j,k);
+			if(bc >= 0) p.x += press->Get(i+1,j,k); 
+			else if(bc != BND_NULL) p.x += cp;
 
-			if(bnd->Get(i-1,j,k) >= 0) p.x -= press->Get(i-1,j,k);
-			else if(bnd->Get(i-1,j,k) != BND_NULL) p.x -= cp;
+			bc = bnd->Get(i-1,j,k);
+			if(bc >= 0) p.x -= press->Get(i-1,j,k);
+			else if(bc != BND_NULL) p.x -= cp;
 
+			bc = bnd->Get(i,j+1,k);
+			if(bc >= 0) p.y += press->Get(i,j+1,k); 
+			else if(bc != BND_NULL) p.y += cp;
 
-			if(bnd->Get(i,j+1,k) >= 0) p.y += press->Get(i,j+1,k); 
-			else if(bnd->Get(i,j+1,k) != BND_NULL) p.y += cp;
+			bc = bnd->Get(i,j-1,k);
+			if(bc >= 0) p.y -= press->Get(i,j-1,k);
+			else if(bc != BND_NULL) p.y -= cp;
 
-			if(bnd->Get(i,j-1,k) >= 0) p.y -= press->Get(i,j-1,k);
-			else if(bnd->Get(i,j-1,k) != BND_NULL) p.y -= cp;
+			bc = bnd->Get(i,j,k+1);
+			if(bc >= 0) p.z += press->Get(i,j,k+1); 
+			else if(bc != BND_NULL) p.z += cp;
 
+			bc = bnd->Get(i,j,k-1);
+			if(bc >= 0) p.z -= press->Get(i,j,k-1);
+			else if(bc != BND_NULL) p.z -= cp;
 
-			if(bnd->Get(i,j,k+1) >= 0) p.z += press->Get(i,j,k+1); 
-			else if(bnd->Get(i,j,k+1) != BND_NULL) p.z += cp;
-
-			if(bnd->Get(i,j,k-1) >= 0) p.z -= press->Get(i,j,k-1);
-			else if(bnd->Get(i,j,k-1) != BND_NULL) p.z -= cp;
-
-/*
-			if(bnd->Get(i+1,j,k) < BND_NULL) p.x += cp;
-			else if(bnd->Get(i+1,j,k) == BND_NULL) p.x;
-			else p.x += press->Get(i+1,j,k);
-
-			if(bnd->Get(i-1,j,k) < BND_NULL) p.x -= cp;
-			else if(bnd->Get(i-1,j,k) == BND_NULL) p.x;
-			else p.x -= press->Get(i-1,j,k);
-
-			if(bnd->Get(i,j+1,k) < BND_NULL) p.y += cp;
-			else if(bnd->Get(i,j+1,k) == BND_NULL) p.x;
-			else p.y += press->Get(i,j+1,k);
-
-			if(bnd->Get(i,j-1,k) < BND_NULL) p.y -= cp;
-			else if(bnd->Get(i,j-1,k) == BND_NULL) p.x;
-			else p.y -= press->Get(i,j-1,k);
-
-			if(bnd->Get(i,j,k+1) < BND_NULL) p.z += cp;
-			else if(bnd->Get(i,j,k+1) == BND_NULL) p.x;
-			else p.z += press->Get(i,j,k+1);
-
-			if(bnd->Get(i,j,k-1) < BND_NULL) p.z -= cp;
-			else if(bnd->Get(i,j,k-1) == BND_NULL) p.x;
-			else p.z -= press->Get(i,j,k-1);
-*/
 			p *= grid.one_over_dx_*(FLT)0.5;
 
 			vel->Set(i,j,k,v-p);			

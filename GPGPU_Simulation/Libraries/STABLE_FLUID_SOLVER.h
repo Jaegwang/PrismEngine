@@ -228,17 +228,17 @@ public:
 			}
 		}
 
-		//// forcing
-		//{
-		//	#pragma omp parallel for
-		//	for(int i=0; i<particle_position_->Size(); i++)
-		//	{
-		//		Vec3 gravity = Vec3(0,-10,0);
-		//		Vec3 vel = particle_velocity_->Get(i) + gravity * dt;
-		//		
-		//		particle_velocity_->Set(i, vel);
-		//	}
-		//}
+		// forcing
+		{
+			#pragma omp parallel for
+			for(int i=0; i<particle_position_->Size(); i++)
+			{
+				Vec3 gravity = Vec3(0,-10,0);
+				Vec3 vel = particle_velocity_->Get(i) + gravity * dt;
+				
+				particle_velocity_->Set(i, vel);
+			}
+		}
 	}
 
 	void AdvanceOneTimeStep(const FLT dt)

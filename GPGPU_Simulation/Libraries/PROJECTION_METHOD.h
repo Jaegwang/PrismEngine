@@ -263,15 +263,13 @@ public:
 				val.Push(h); col.Push(bnd->Get(p+1));
 			}
 			else if(bnd->Get(p+1) == BND_NULL) p_ijk -= h;			
-			else p_ijk -= h2;
 
 			if(bnd->Get(p-1) >= 0)
 			{
 				p_ijk -= h;
 				val.Push(h); col.Push(bnd->Get(p-1));
 			}
-			else if(bnd->Get(p-1) == BND_NULL) p_ijk -= h;			
-			else p_ijk -= h2;
+			else if(bnd->Get(p-1) == BND_NULL) p_ijk -= h;
 
 			if(bnd->Get(p+i_res) >= 0)
 			{
@@ -279,7 +277,6 @@ public:
 				val.Push(h); col.Push(bnd->Get(p+i_res));
 			}
 			else if(bnd->Get(p+i_res) == BND_NULL) p_ijk -= h;			
-			else p_ijk -= h2;
 
 			if(bnd->Get(p-i_res) >= 0)
 			{
@@ -287,7 +284,6 @@ public:
 				val.Push(h); col.Push(bnd->Get(p-i_res));
 			}
 			else if(bnd->Get(p-i_res) == BND_NULL) p_ijk -= h;			
-			else p_ijk -= h2;
 
 			if(bnd->Get(p+ij_res) >= 0)
 			{
@@ -295,7 +291,6 @@ public:
 				val.Push(h); col.Push(bnd->Get(p+ij_res));
 			}
 			else if(bnd->Get(p+ij_res) == BND_NULL) p_ijk -= h;			
-			else p_ijk -= h2;
 
 			if(bnd->Get(p-ij_res) >= 0)
 			{
@@ -303,7 +298,6 @@ public:
 				val.Push(h); col.Push(bnd->Get(p-ij_res));
 			}
 			else if(bnd->Get(p-ij_res) == BND_NULL) p_ijk -= h;			
-			else p_ijk -= h2;
 
 			val.Push(p_ijk); col.Push(bnd->Get(p));
 
