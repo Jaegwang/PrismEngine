@@ -5,10 +5,10 @@
 
 enum BOUNDARY_CELL
 {
-	BND_FRAG= -2,
-	BND_WALL= -1,
-	BND_FULL=  0,
-	BND_NULL=  1,
+	BND_FRAG= -3,
+	BND_WALL= -2,
+	BND_NULL= -1,
+	BND_FULL=  0
 };
 
 class PROJECTION_METHOD
@@ -35,7 +35,7 @@ public:
 
 public:
 
-	void InitializeLinearSystem(FIELD<int>* bnd, FIELD<int>* ptr, FIELD<FLT>* div)
+	void InitializeLinearSystem(FIELD<int>* bnd, FIELD<FLT>* div)
 	{
 		int full_ix(0);
 		int start_full_ix(0);
@@ -49,19 +49,17 @@ public:
 
 		for(int i=0; i<grid.ijk_res_; i++)
 		{
-			if(bnd->Get(i) == 0)
+			if(bnd->Get(i) == BND_FULL)
 			{
-				full_ix++;
-
 				nnz++;
-				ptr->Set(i, start_full_ix++);
+				bnd->Set(i, full_ix++);
 
-				if(bnd->Get(i+1)      >= 0){ nnz++; ptr->Set(i+1     , start_full_ix++);}
-				if(bnd->Get(i-1)      >= 0){ nnz++; ptr->Set(i-1     , start_full_ix++);}
-				if(bnd->Get(i+i_res)  >= 0){ nnz++; ptr->Set(i+i_res , start_full_ix++);}
-				if(bnd->Get(i-i_res)  >= 0){ nnz++; ptr->Set(i-i_res , start_full_ix++);}
-				if(bnd->Get(i+ij_res) >= 0){ nnz++;	ptr->Set(i+ij_res, start_full_ix++);}
-				if(bnd->Get(i-ij_res) >= 0){ nnz++;	ptr->Set(i-ij_res, start_full_ix++);}
+				if(bnd->Get(i+1)      >= 0) nnz++;
+				if(bnd->Get(i-1)      >= 0) nnz++;
+				if(bnd->Get(i+i_res)  >= 0) nnz++;
+				if(bnd->Get(i-i_res)  >= 0) nnz++;
+				if(bnd->Get(i+ij_res) >= 0) nnz++;
+				if(bnd->Get(i-ij_res) >= 0) nnz++;
 			}
 		}
 
@@ -87,59 +85,58 @@ public:
 
 		for(int p=0; p<grid.ijk_res_; p++)
 		{
-			if(bnd->Get(p) != 0) continue;
+			if(bnd->Get(p) < 0) continue;
 
 			const int bc_ix = bnd->Get(p);
 			int p_ijk = 0;
 
-			// TODO : assign matrix A
 			if(bnd->Get(p+1) >= 0)
 			{
 				p_ijk++;
-				val.Push(-1.0f); col.Push(ptr->Get(p+1));
+				val.Push(-1.0f); col.Push(bnd->Get(p+1));
 			}
-			else p_ijk +=2;			
+			else if(bnd->Get(p+1) != BND_NULL) p_ijk +=2;			
 
 			if(bnd->Get(p-1) >= 0)
 			{
 				p_ijk++;
-				val.Push(-1.0f); col.Push(ptr->Get(p-1));
+				val.Push(-1.0f); col.Push(bnd->Get(p-1));
 			}
-			else p_ijk += 2;
+			else if(bnd->Get(p-1) != BND_NULL) p_ijk += 2;
 
 			if(bnd->Get(p+i_res) >= 0)
 			{
 				p_ijk++;
-				val.Push(-1.0f); col.Push(ptr->Get(p+i_res));
+				val.Push(-1.0f); col.Push(bnd->Get(p+i_res));
 			}
-			else p_ijk += 2;
+			else if(bnd->Get(p+i_res) != BND_NULL) p_ijk += 2;
 
 			if(bnd->Get(p-i_res) >= 0)
 			{
 				p_ijk++;
-				val.Push(-1.0f); col.Push(ptr->Get(p-i_res));
+				val.Push(-1.0f); col.Push(bnd->Get(p-i_res));
 			}
-			else p_ijk += 2;
+			else if(bnd->Get(p-i_res) != BND_NULL) p_ijk += 2;
 
 			if(bnd->Get(p+ij_res) >= 0)
 			{
 				p_ijk++;
-				val.Push(-1.0f); col.Push(ptr->Get(p+ij_res));
+				val.Push(-1.0f); col.Push(bnd->Get(p+ij_res));
 			}
-			else p_ijk += 2;
+			else if(bnd->Get(p+ij_res) != BND_NULL) p_ijk += 2;
 
 			if(bnd->Get(p-ij_res) >= 0)
 			{
 				p_ijk++;
-				val.Push(-1.0f); col.Push(ptr->Get(p-ij_res));
+				val.Push(-1.0f); col.Push(bnd->Get(p-ij_res));
 			}
-			else p_ijk += 2;
+			else if(bnd->Get(p-ij_res) != BND_NULL) p_ijk += 2;
 
-			val.Push(p_ijk); col.Push(ptr->Get(p));
+			val.Push(p_ijk); col.Push(bnd->Get(p));
 
 			matrix_a_.AddRow(val, col);
 						
-			vector_b_.Set(bc_ix, div->Get(p));
+			vector_b_.Set(bc_ix, -div->Get(p));
 			vector_x_.Set(bc_ix, (FLT)0);			
 
 			val.Clear();
@@ -156,7 +153,7 @@ public:
 
 		FLT rsold = ArrayDot(vector_r_, vector_r_);
 
-		for(int i=0; i<10; i++)
+		for(int i=0; i<200; i++)
 		{
 			matrix_a_.Multiply(vector_p_, vector_ap_);
 
@@ -179,6 +176,26 @@ public:
 			rsold = rsnew;		
 		}
 	}
+
+	void DeterminePressureField(const FIELD<int>* bnd, FIELD<FLT>* press)
+	{
+		GRID grid = bnd->Grid();
+
+		for(int i=0; i<grid.ijk_res_; i++)
+		{
+			int bc = bnd->Get(i);
+
+			if(bc >= 0)
+			{
+				FLT p = vector_x_.Get(bc);
+				press->Set(i, vector_x_.Get(bc));			
+			}
+			else
+			{
+				press->Set(i, (FLT)0);
+			}
+		}			
+	}
 	
 	void DetermineDivergence(const FIELD<int>* bnd, const FIELD<Vec3>* vel, FIELD<FLT>* div);
 
@@ -194,21 +211,13 @@ public:
 
 
 		{
-			FIELD_UNIFORM<int>* d = new FIELD_UNIFORM<int>;
-			d->Initialize(bnd->Grid());
-
-			for(int i=0; i<bnd->Grid().ijk_res_; i++)
-			{
-				d->Set(i,-1);
-			}
-
-			FIELD<int>* p = d;
-
-			InitializeLinearSystem(bnd, p, div);
+			InitializeLinearSystem(bnd, div);
 			ConjugateGradient();
+
+			DeterminePressureField(bnd, press);
 		}
 
-		DeterminePressure(bnd, div, press, press_temp, itr);
+//		DeterminePressure(bnd, div, press, press_temp, itr);
 
 		DetermineVelocity(bnd, press, vel);
 	}

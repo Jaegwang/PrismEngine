@@ -37,6 +37,7 @@ public:
 
 		val_arr_     = new FLT[nnz_num];
 		col_ind_arr_ = new int[nnz_num];
+
 		row_ptr_arr_ = new int[row_num];
 
 		row_ptr_ = -1;
@@ -62,6 +63,11 @@ public:
 
 		row_ptr_arr_[++row_ptr_] = val_ptr_+1;
 
+		if(row_ptr_ > 3350)
+		{
+			int a = 0;
+		}
+
 		for(int p=0; p<size; p++)
 		{
 			int ix = ++val_ptr_;
@@ -81,7 +87,7 @@ public:
 			int end_ptr;
 
 			if(p==size-1) end_ptr = total_-1;
-			else end_ptr = row_ptr_arr_[p+1];
+			else end_ptr = row_ptr_arr_[p+1]-1;
 
 			FLT v = (FLT)0;
 
