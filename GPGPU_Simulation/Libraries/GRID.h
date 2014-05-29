@@ -166,7 +166,7 @@ public:
 	template<class TT>
 	TT TriLinearInterpolate(const Vec3& p, TT* arr) const
 	{ //http://en.wikipedia.org/wiki/Trilinear_interpolation
-		Vec3 cp = ClampGhost(p);
+		Vec3 cp = Clamp(p);
 		int b_i, b_j, b_k;
 
 		LeftBottomIndex(cp, b_i, b_j, b_k);

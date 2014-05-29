@@ -22,9 +22,6 @@ void RasterizeParticleToField(FIELD<TT>& val_field, FIELD<FLT>& weight_field, co
 		weight_field.Set(p, (FLT)0);
 	}
 
-	omp_lock_t writelock;
-	omp_init_lock(&writelock);
-
 //	#pragma omp parallel for
 	for(int p=0; p<size; p++)
 	{

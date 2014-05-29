@@ -26,6 +26,7 @@ public:
 	// particle data
 	ARRAY<Vec3>* particle_position_;
 	ARRAY<Vec3>* particle_velocity_;
+	ARRAY<bool>* particle_active_;
 
 	ARRAY<Vec3>* particle_vector_ghost_;
 
@@ -44,13 +45,15 @@ public:
 	{
 		ARRAY_VECTOR<Vec3>* p_p = new ARRAY_VECTOR<Vec3>;
 		ARRAY_VECTOR<Vec3>* p_v = new ARRAY_VECTOR<Vec3>;
+		ARRAY_VECTOR<bool>* p_a = new ARRAY_VECTOR<bool>;
 
 		p_p->Initialize(1000000);
 		p_v->Initialize(1000000);
+		p_a->Initialize(1000000);
 
 		particle_position_ = p_p;
 		particle_velocity_ = p_v;			
-
+		particle_active_   = p_a;
 
 		FIELD_UNIFORM<FLT>*  density_uniform = new FIELD_UNIFORM<FLT>;
 		FIELD_UNIFORM<Vec3>* velocity_uniform = new FIELD_UNIFORM<Vec3>;
@@ -111,8 +114,6 @@ public:
 				boundary_field_->Set(i,j,k, BND_FULL);
 			else
 				boundary_field_->Set(i,j,k, BND_NULL);
-
-//			boundary_field_->Set(i,j,k, BND_FULL);
 		}		
 	
 	}
@@ -167,12 +168,62 @@ public:
 			{
 				particle_position_->Push(new_pos);
 				particle_velocity_->Push(new_vel);
+				particle_active_->Push(true);
 			}		
 		}
 	}
 
+	void SeedParticlesFromHeight(const FLT height, const int num)
+	{
+		GRID grid = velocity_field_->Grid();
+
+		for(int i=0; i<grid.i_res_; i++)
+		for(int j=0; j<grid.j_res_; j++)
+		for(int k=0; k<grid.k_res_; k++)
+		{
+			if(grid.IsGhostCell(i,j,k) == true) continue;
+
+			Vec3 cell_center = grid.CellCenterPosition(i,j,k);
+
+			FLT rad = grid.dx_*(FLT)0.5;
+
+			if(cell_center.y < height)
+			{
+				for(int n=0; n<num; n++)
+				{
+					Vec3 new_pos = cell_center + Vec3((FLT)rand()/(FLT)RAND_MAX-0.5, (FLT)rand()/(FLT)RAND_MAX-0.5, (FLT)rand()/(FLT)RAND_MAX-0.5)*2.0f*rad;
+					Vec3 new_vel = Vec3();
+
+					particle_position_->Push(new_pos);
+					particle_velocity_->Push(new_vel);
+					particle_active_->Push(false);
+				}
+			}		
+		}	
+	}
+
 	void AdvanceOneTimeStepFLIP(const FLT dt)
 	{
+		// Advection
+		{
+			GRID grid = velocity_field_->Grid();
+
+			#pragma omp parallel for
+			for(int i=0; i<particle_position_->Size(); i++)
+			{
+				Vec3 pos   = particle_position_->Get(i);
+				Vec3 vel_g = velocity_field_->Get(pos);
+
+				if(glm::length(vel_g) != (FLT)0)
+				{
+					pos += vel_g*dt;
+					particle_active_->Set(i, true);
+				}
+
+				particle_position_->Set(i, grid.Clamp(pos));				
+			}
+		}
+
 		// Rasterization
 		{
 			RasterizeParticleToField(*velocity_field_, *density_field_, *particle_position_, *particle_velocity_);		
@@ -212,31 +263,18 @@ public:
 			}
 		}		
 
-		// Advection
-		{
-			GRID grid = velocity_field_->Grid();
-
-			#pragma omp parallel for
-			for(int i=0; i<particle_position_->Size(); i++)
-			{
-				Vec3 pos   = particle_position_->Get(i);
-				Vec3 vel_g = velocity_field_->Get(pos);
-
-				pos += vel_g*dt;
-
-				particle_position_->Set(i, grid.Clamp(pos));
-			}
-		}
-
 		// forcing
 		{
 			#pragma omp parallel for
 			for(int i=0; i<particle_position_->Size(); i++)
 			{
-				Vec3 gravity = Vec3(0,-10,0);
-				Vec3 vel = particle_velocity_->Get(i) + gravity * dt;
+				if(particle_active_->Get(i) == true)
+				{
+					Vec3 gravity = Vec3(0,-10,0);
+					Vec3 vel = particle_velocity_->Get(i) + gravity * dt;
 				
-				particle_velocity_->Set(i, vel);
+					particle_velocity_->Set(i, vel);
+				}
 			}
 		}
 	}
@@ -305,11 +343,21 @@ public:
 
 		const int size = particle_position_->Size();
 
+		const FLT dt = 0.01;
+		const FLT cfl = velocity_field_->Grid().dx_*(FLT)2;
+
 		glBegin(GL_POINTS);
 		for(int i=0; i<size; i++)
 		{
 			Vec3 pos = particle_position_->Get(i);
-			glColor3f(0,0,0);
+			Vec3 vel = particle_velocity_->Get(i);
+
+			FLT mag_vel = glm::length(vel);
+
+			FLT c = mag_vel*dt/cfl;
+
+			glColor3f(c,c,1);
+
 			glVertex3fv(&pos.x);
 		}
 

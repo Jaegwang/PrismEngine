@@ -327,6 +327,7 @@ public:
 		ArrayEqual(vector_r, vector_p);
 
 		FLT rsold = ArrayDot(vector_r, vector_r);
+		if(sqrt(rsold) < (FLT)1E-6) return;
 
 		for(int i=0; i<300; i++)
 		{
@@ -342,7 +343,7 @@ public:
 
 			FLT rsnew = ArrayDot(vector_r, vector_r);
 
-			if(sqrt(rsnew) < 1e-6) break;
+			if(sqrt(rsnew) < (FLT)1E-6) break;
 			
 			FLT beta = rsnew/rsold;
 			ArrayMultipy(vector_p, beta, vector_t);
@@ -350,5 +351,4 @@ public:
 
 			rsold = rsnew;		
 		}
-
 	}

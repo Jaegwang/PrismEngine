@@ -56,47 +56,6 @@ void light();
 
 int main(int argc, char **argv)
 {
-	SPARSE_MATRIX matrix_a;
-	matrix_a.Initialize(100, 2);
-
-	ARRAY_VECTOR<FLT> val;
-	ARRAY_VECTOR<int> col;
-	val.Initialize(10);
-	col.Initialize(10);
-
-	val.Push(4); col.Push(0);
-	val.Push(1); col.Push(1);
-
-	matrix_a.AddRow(val, col);
-
-	val.Clear(); col.Clear();
-
-	val.Push(1); col.Push(0);
-	val.Push(3); col.Push(1);
-
-	matrix_a.AddRow(val, col);
-
-
-	ARRAY_VECTOR<FLT> vector_b;
-	vector_b.Initialize(2,true);
-	vector_b.Set(0, 1); vector_b.Set(1, 2);
-
-
-	ARRAY_VECTOR<FLT> vector_x;
-	vector_x.Initialize(2,true);
-	vector_x.Set(0, 0); vector_x.Set(1, 0);
-
-
-	ConjugateGradient_(matrix_a, vector_b, vector_x);
-
-	for(int i=0; i<2; i++)
-	{
-		std::cout<<vector_x.Get(i)<<std::endl;	
-	
-	}
-
-
-
 
 	Vec3 min0(0,0,0);
 	Vec3 max0(1,1,1);
@@ -109,7 +68,8 @@ int main(int argc, char **argv)
 	stable_fluid.Initialize(grid);
 
 //	stable_fluid.SeedParticlesFromSphere(Vec3(0.5, 0.5, 0.5), 0.2, Vec3(0.0, 0.2, 0.0), 10000);
-
+	stable_fluid.SeedParticlesFromSphere(Vec3(0.5, 0.8, 0.5), 0.1, Vec3(0.0, -2, 0.0), 20000);
+	stable_fluid.SeedParticlesFromHeight(0.3, 3);
 
 	mpm_solver.Initialize(min0, max0, 100, 100, 100, 2, 5000000);
 	capture_manager.Initialize(path);
@@ -196,7 +156,7 @@ void idle()
 
 //		stable_fluid.SourceDensityFromSphere(Vec3(0.5, 0.2, 0.5), 0.05, 1.0, Vec3(0.0, 2, 0.0));
 	
-		stable_fluid.SeedParticlesFromSphere(Vec3(0.5, 0.8, 0.5), 0.1, Vec3(0.0, -2, 0.0), 5000);
+//		stable_fluid.SeedParticlesFromSphere(Vec3(0.5, 0.8, 0.5), 0.1, Vec3(0.0, -2, 0.0), 5000);
 		stable_fluid.AdvanceOneTimeStepFLIP(0.01);
 	//	stable_fluid.AdvanceOneTimeStep(0.01);
 
