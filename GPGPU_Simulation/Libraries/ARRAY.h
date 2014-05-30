@@ -99,13 +99,3 @@ private:
 
 	int total_;
 };
-
-template<class TT> void ArrayMinus(const ARRAY_VECTOR<TT>& a, const ARRAY_VECTOR<TT>& b, ARRAY_VECTOR<TT>& c);
-
-template<class TT> void ArrayPlus(const ARRAY_VECTOR<TT>& a, const ARRAY_VECTOR<TT>& b, ARRAY_VECTOR<TT>& c);
-
-template<class TT> TT ArrayDot(const ARRAY_VECTOR<TT>& a, const ARRAY_VECTOR<TT>& b);
-
-template<class TT> void ArrayEqual(const ARRAY_VECTOR<TT>& a, ARRAY_VECTOR<TT>& b);
-
-template<class TT> void ArrayMultipy(const ARRAY_VECTOR<TT>& a, const TT b, ARRAY_VECTOR<TT>& c);

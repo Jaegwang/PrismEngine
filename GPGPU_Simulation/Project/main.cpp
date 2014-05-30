@@ -128,7 +128,7 @@ void display()
 
 //	stable_fluid.Render();
 	stable_fluid.RenderParticles();
-//	stable_fluid.RenderVelocity();
+	stable_fluid.RenderVelocity();
 
 //	field.Render();
 

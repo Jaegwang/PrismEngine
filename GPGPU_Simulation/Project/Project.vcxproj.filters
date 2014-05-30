@@ -137,5 +137,8 @@
     <ClInclude Include="..\Libraries\SPARSE_MATRIX.h">
       <Filter>Libraries\DATA_STRUCTURES</Filter>
     </ClInclude>
+    <ClInclude Include="..\Libraries\SPARSE_VECTOR.h">
+      <Filter>Libraries\DATA_STRUCTURES</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

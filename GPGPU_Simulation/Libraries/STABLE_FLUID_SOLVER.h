@@ -110,7 +110,7 @@ public:
 				continue;
 			}
 
-			if(density_field_->Get(i,j,k) > (FLT)0)
+			if(density_field_->Get(i,j,k) > (FLT)0.5)
 				boundary_field_->Set(i,j,k, BND_FULL);
 			else
 				boundary_field_->Set(i,j,k, BND_NULL);
@@ -211,7 +211,7 @@ public:
 			#pragma omp parallel for
 			for(int i=0; i<particle_position_->Size(); i++)
 			{
-				Vec3 pos   = particle_position_->Get(i);
+				Vec3 pos = particle_position_->Get(i);
 				Vec3 vel_g = velocity_field_->Get(pos);
 
 				if(glm::length(vel_g) != (FLT)0)
@@ -370,7 +370,7 @@ public:
 		GRID grid = density_field_->Grid();
 
 		glDisable(GL_LIGHTING);
-		glBegin(GL_LINES);
+		glBegin(GL_POINTS);
 
 		glColor3f(1,0,0);
 		for(int k=0; k<grid.k_res_; k++)
@@ -378,15 +378,23 @@ public:
 		for(int i=0; i<grid.i_res_; i++)
 		{
 			Vec3 velocity = velocity_field_->Get(i,j,k);
+
 			Vec3 cell_center = grid.CellCenterPosition(i,j,k);
 
-			if(glm::length(velocity) > 0)
-			{
-				Vec3 v = cell_center + (velocity * 0.01f);
+			FLT den = density_field_->Get(i,j,k);
 
-				glVertex3fv(&cell_center.x);			
-				glVertex3fv(&v.x);
+			if(den > (FLT)0)
+			{
+//				glVertex3fv(&cell_center.x);							
 			}
+
+			//if(glm::length(velocity) > 0)
+			//{
+			//	Vec3 v = cell_center + (velocity * 0.01f);
+
+			//	glVertex3fv(&cell_center.x);			
+			//	glVertex3fv(&v.x);
+			//}
 		}	
 
 		glEnd();

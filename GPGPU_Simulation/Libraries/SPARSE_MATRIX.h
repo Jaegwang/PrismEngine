@@ -1,6 +1,6 @@
 #pragma once
 #include "MATH_CORE.h"
-#include "ARRAY.h"
+#include "SPARSE_VECTOR.h"
 
 class SPARSE_MATRIX
 { //http://netlib.org/linalg/html_templates/node91.html
@@ -16,7 +16,8 @@ private:
 
 	int  row_ptr_;
 
-	int  total_;
+	int  nnz_num_;
+	int  row_num_;
 
 public:
 
@@ -25,15 +26,12 @@ public:
 		col_ind_arr_(0), 
 		row_ptr_arr_(0),
 		val_ptr_(0),
-		row_ptr_(0),
-		total_(0)
+		row_ptr_(0)
 	{}
 
 	void Initialize(const int nnz_num, const int row_num)
 	{
 		Finalize();
-
-		total_ = nnz_num;
 
 		val_arr_     = new FLT[nnz_num];
 		col_ind_arr_ = new int[nnz_num];
@@ -42,6 +40,9 @@ public:
 
 		row_ptr_ = -1;
 		val_ptr_ = -1;
+
+		nnz_num_ = nnz_num;
+		row_num_ = row_num;
 	}
 
 	void Finalize()
@@ -72,28 +73,28 @@ public:
 		}
 	}
 
-	void Multiply(const ARRAY<FLT>& x, ARRAY<FLT>& b)
+	static void Mul(const SPARSE_MATRIX matrix_a, const SPARSE_VECTOR vector_b, SPARSE_VECTOR vector_c)
 	{
-		const int size = x.Size();
+		const int size = vector_c.Size();
 
 		for(int p=0; p<size; p++)
 		{
-			int start_ptr = row_ptr_arr_[p];
+			int start_ptr = matrix_a.row_ptr_arr_[p];
 			int end_ptr;
 
-			if(p==size-1) end_ptr = val_ptr_;
-			else end_ptr = row_ptr_arr_[p+1]-1;
+			if(p==size-1) end_ptr = matrix_a.val_ptr_;
+			else end_ptr = matrix_a.row_ptr_arr_[p+1]-1;
 
 			FLT v = (FLT)0;
 
 			for(int ix=start_ptr; ix<=end_ptr; ix++)
 			{
-				int c = col_ind_arr_[ix];
+				int c = matrix_a.col_ind_arr_[ix];
 
-				v += val_arr_[ix] * x.Get(c);
+				v += matrix_a.val_arr_[ix] * vector_b(c);
 			}
 
-			b.Set(p, v);
+			vector_c(p) = v;
 		}	
 	}
 };
