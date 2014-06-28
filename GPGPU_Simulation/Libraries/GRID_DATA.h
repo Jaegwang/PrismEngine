@@ -11,13 +11,13 @@ private:
 
 public:
 
-	Vec3 min_, max_;
+	TV3 min_, max_;
 
-	FLT dx_, dy_, dz_, dw_;
+	TS dx_, dy_, dz_, dw_;
 
-	FLT gx_, gy_, gz_, gw_;
+	TS gx_, gy_, gz_, gw_;
 
-	FLT one_over_dx_, one_over_dy_, one_over_dz_;
+	TS one_over_dx_, one_over_dy_, one_over_dz_;
 
 	int i_res_, j_res_, k_res_;
 	int ij_res_, ijk_res_;
@@ -38,13 +38,13 @@ public:
 
 public:
 
-	void Initialize(const Vec3& min, const Vec3& max, int i, int j, int k, int g, int block_i=16);
-	void Initialize(const Vec3& min, const Vec3& max, const FLT dw, const int g, const int block_size=16);
+	void Initialize(const TV3& min, const TV3& max, int i, int j, int k, int g, int block_i=16);
+	void Initialize(const TV3& min, const TV3& max, const TS dw, const int g, const int block_size=16);
 	void Finalize();
 
-	Vec3 CellCenterPosition(const int i, const int j, const int k)
+	TV3 CellCenterPosition(const int i, const int j, const int k)
 	{
-		return min_ + Vec3(((FLT)i+(FLT)0.5)*dx_, ((FLT)j+(FLT)0.5)*dy_, ((FLT)k+(FLT)0.5)*dz_);
+		return min_ + TV3(((TS)i+(TS)0.5)*dx_, ((TS)j+(TS)0.5)*dy_, ((TS)k+(TS)0.5)*dz_);
 	}
 
 	template<class TT>

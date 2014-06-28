@@ -19,19 +19,19 @@ public:
 
 	virtual TT   Get(const int idx) const=0;
 	virtual TT   Get(const int i, const int j, const int k) const=0;
-	virtual TT   Get(const Vec3& p) const=0;
+	virtual TT   Get(const TV3& p) const=0;
 
 	virtual void Rebuild()=0;
 };
 
 
-template class FIELD<Vec3>;
+template class FIELD<TV3>;
 template class FIELD<float>;
 template class FIELD<double>;
 
 
 template<class TT>
-void Rasterize(FIELD<TT>& val_field, FIELD<FLT>& weight_field, const ARRAY<Vec3>& pos_array, const ARRAY<TT>& val_array)
+void Rasterize(FIELD<TT>& val_field, FIELD<TS>& weight_field, const ARRAY<TV3>& pos_array, const ARRAY<TT>& val_array)
 {
 	int size = pos_array.Size();
 	int i,j,k;
@@ -44,7 +44,7 @@ void Rasterize(FIELD<TT>& val_field, FIELD<FLT>& weight_field, const ARRAY<Vec3>
 
 	for(int p=0; p<size; p++)
 	{
-		Vec3 pos = pos_array.Get(p);
+		TV3 pos = pos_array.Get(p);
 		TT   val = val_array.Get(p);
 
 		grid.CellCenterIndex(pos,i,j,k);		
@@ -61,11 +61,11 @@ void Rasterize(FIELD<TT>& val_field, FIELD<FLT>& weight_field, const ARRAY<Vec3>
 		{
 			int ix = grid.Index3Dto1D(i,j,k);
 
-			Vec3 cell_center = grid.CellCenterPosition(i,j,k);
+			TV3 cell_center = grid.CellCenterPosition(i,j,k);
 
-			FLT deviation = cell_center-pos;
+			TS deviation = cell_center-pos;
 
-			FLT w = QuadBSplineKernel(deviation.x*grid.one_over_dx_)*
+			TS w = QuadBSplineKernel(deviation.x*grid.one_over_dx_)*
 				    QuadBSplineKernel(deviation.y*grid.one_over_dx_)*
 					QuadBSplineKernel(deviation.z*grid.one_over_dx_);
 
@@ -77,9 +77,9 @@ void Rasterize(FIELD<TT>& val_field, FIELD<FLT>& weight_field, const ARRAY<Vec3>
 
 	for(int p=0; p<grid.ijk_res_; p++)
 	{
-		FLT weight = weight_field.Get(p);
+		TS weight = weight_field.Get(p);
 		
-		if(weight >= (FLT)1e-06)
+		if(weight >= (TS)1e-06)
 			val_field.Set(val_field.Get(p)/weight);
 		else
 			val_field.Set(TT());

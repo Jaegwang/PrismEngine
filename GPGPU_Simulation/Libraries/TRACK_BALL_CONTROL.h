@@ -8,8 +8,8 @@ class TRACK_BALL_CONTROL
 {
 public:
 	
-	Vec3 position;
-	Quat rotation;
+	TV3 position;
+	TQ rotation;
 
 	POINT pre_mouse_point;
 	POINT cur_mouse_point;
@@ -20,8 +20,8 @@ public:
 
 	TRACK_BALL_CONTROL()
 	{
-		position = Vec3(0.0f, 0.0f, 0.0f);
-		rotation = Quat();
+		position = TV3(0.0f, 0.0f, 0.0f);
+		rotation = TQ();
 
 		dx = dy = dz = 0.0f;
 		dt = 0.005f;
@@ -48,9 +48,9 @@ public:
 
 		if(GetAsyncKeyState(VK_MENU) & 0x8001 && GetAsyncKeyState(VK_LBUTTON) & 0x8001)
 		{
-			Vec3 angular_vector = Vec3(1,0,0) * dy * dt + Vec3(0,1,0) * dx * dt;
+			TV3 angular_vector = TV3(1,0,0) * dy * dt + TV3(0,1,0) * dx * dt;
 
-			Quat q;
+			TQ q;
 
 			const float magnitude = glm::length(angular_vector);
 
@@ -58,7 +58,7 @@ public:
 			{
 				q.w = cos(magnitude*0.5);
 
-				Vec3 axis = (sinf(0.5*magnitude)/magnitude)*angular_vector;
+				TV3 axis = (sinf(0.5*magnitude)/magnitude)*angular_vector;
 
 				q.x = axis.x; q.y = axis.y; q.z = axis.z;
 			}

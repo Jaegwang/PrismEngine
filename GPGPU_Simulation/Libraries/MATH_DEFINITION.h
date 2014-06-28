@@ -9,8 +9,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-#define FLT float // or double
-#define INI int
 #define M_PI 3.14159265358979323846
 
 #define ABS(a) ((a) > 0 ? (a) : -(a))
@@ -49,17 +47,19 @@ inline float POW6(const float& a){const float a3 = a*a*a; return a3*a3;}
 inline float POW7(const float& a){const float a3 = a*a*a; return a3*a3*a;}
 inline float POW8(const float& a){const float a2 = a*a; const float a4 = a2*a2; return a4*a4;}
 
+#define TS  float // or double
+#define INT int
 
-typedef glm::uvec2 Idx2;
-typedef glm::uvec3 Idx3;
-typedef glm::uvec4 Idx4;
+typedef glm::uvec2 TU2;
+typedef glm::uvec3 TU3;
+typedef glm::uvec4 TU4;
 
-typedef glm::vec2 Vec2;
-typedef glm::vec3 Vec3;
-typedef glm::vec4 Vec4;
+typedef glm::vec2 TV2;
+typedef glm::vec3 TV3;
+typedef glm::vec4 TV4;
 
-typedef glm::mat2 Mat2;
-typedef glm::mat3 Mat3;
-typedef glm::mat4 Mat4;
+typedef glm::mat2 TM2;
+typedef glm::mat3 TM3;
+typedef glm::mat4 TM4;
 
-typedef glm::quat Quat;
+typedef glm::quat TQ;

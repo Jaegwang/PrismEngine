@@ -29,7 +29,7 @@ public:
 
 	TT   Get(const int idx) const;
 	TT   Get(const int i, const int j, const int k) const;
-	TT   Get(const Vec3& p) const;
+	TT   Get(const TV3& p) const;
 
 	void Rebuild() {}
 };

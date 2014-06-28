@@ -17,43 +17,43 @@ public:
 		grid_ = grid_input;
 	}
 
-	void ClampPositionAndVelocity(Vec3& pos, Vec3& vel, Vec3& force)
+	void ClampPositionAndVelocity(TV3& pos, TV3& vel, TV3& force)
 	{
-		FLT penalty_coef = 0;
+		TS penalty_coef = 0;
 		
-		if (grid_.min_.x + grid_.gx_ + grid_.dx_*(FLT)0.5 >= pos.x)
+		if (grid_.min_.x + grid_.gx_ + grid_.dx_*(TS)0.5 >= pos.x)
 		{
-			pos.x = grid_.min_.x + grid_.gx_ + grid_.dx_*(FLT)0.5 + (FLT)FLT_EPSILON;
-			vel.x = (FLT)0;
+			pos.x = grid_.min_.x + grid_.gx_ + grid_.dx_*(TS)0.5 + (TS)FLT_EPSILON;
+			vel.x = (TS)0;
 		}
-		if (grid_.max_.x - grid_.gx_ - grid_.dx_*(FLT)0.5 <= pos.x)
+		if (grid_.max_.x - grid_.gx_ - grid_.dx_*(TS)0.5 <= pos.x)
 		{
-			pos.x = grid_.max_.x - grid_.gx_ - grid_.dx_*(FLT)0.5 - (FLT)FLT_EPSILON;
-			vel.x = (FLT)0;
-		}
-
-
-		if (grid_.min_.y + grid_.gx_ + grid_.dx_*(FLT)0.5 >= pos.y)
-		{
-			pos.y = grid_.min_.y + grid_.gx_ + grid_.dx_*(FLT)0.5 + (FLT)FLT_EPSILON;
-			vel.y = (FLT)0;
-		}
-		if (grid_.max_.y - grid_.gx_ - grid_.dx_*(FLT)0.5 <= pos.y)
-		{
-			pos.y = grid_.max_.y - grid_.gx_ - grid_.dx_*(FLT)0.5 - (FLT)FLT_EPSILON;
-			vel.y = (FLT)0;
+			pos.x = grid_.max_.x - grid_.gx_ - grid_.dx_*(TS)0.5 - (TS)FLT_EPSILON;
+			vel.x = (TS)0;
 		}
 
 
-		if (grid_.min_.z + grid_.gx_ + grid_.dx_*(FLT)0.5 >= pos.z)
+		if (grid_.min_.y + grid_.gx_ + grid_.dx_*(TS)0.5 >= pos.y)
 		{
-			pos.z = grid_.min_.z + grid_.gx_ + grid_.dx_*(FLT)0.5 + (FLT)FLT_EPSILON;
-			vel.z = (FLT)0;
+			pos.y = grid_.min_.y + grid_.gx_ + grid_.dx_*(TS)0.5 + (TS)FLT_EPSILON;
+			vel.y = (TS)0;
 		}
-		if (grid_.max_.z - grid_.gx_ - grid_.dx_*(FLT)0.5 <= pos.z)
+		if (grid_.max_.y - grid_.gx_ - grid_.dx_*(TS)0.5 <= pos.y)
 		{
-			pos.z = grid_.max_.z - grid_.gx_ - grid_.dx_*(FLT)0.5 - (FLT)FLT_EPSILON;
-			vel.z = (FLT)0;
+			pos.y = grid_.max_.y - grid_.gx_ - grid_.dx_*(TS)0.5 - (TS)FLT_EPSILON;
+			vel.y = (TS)0;
+		}
+
+
+		if (grid_.min_.z + grid_.gx_ + grid_.dx_*(TS)0.5 >= pos.z)
+		{
+			pos.z = grid_.min_.z + grid_.gx_ + grid_.dx_*(TS)0.5 + (TS)FLT_EPSILON;
+			vel.z = (TS)0;
+		}
+		if (grid_.max_.z - grid_.gx_ - grid_.dx_*(TS)0.5 <= pos.z)
+		{
+			pos.z = grid_.max_.z - grid_.gx_ - grid_.dx_*(TS)0.5 - (TS)FLT_EPSILON;
+			vel.z = (TS)0;
 		}
 	}
 };

@@ -29,9 +29,10 @@ public:
 
 public:
 
-	void DeterminePressureField(const FIELD<int>* bnd, FIELD<FLT>* press)
+	void DeterminePressureField(const FIELD<int>* bnd, FIELD<TS>* press, const TS dt)
 	{
 		GRID grid = bnd->Grid();
+		TS  dx_cfl = grid.dx_*(TS)5;
 
 		for(int i=0; i<grid.ijk_res_; i++)
 		{
@@ -39,36 +40,38 @@ public:
 
 			if(bc >= 0)
 			{
-				FLT p = vector_x_(bc);
+				TS p = vector_x_(bc);
+				if(p*dt > dx_cfl) p = (TS)0;
+
 				press->Set(i, vector_x_(bc));			
 			}
 			else
 			{
-				press->Set(i, (FLT)0);
+				press->Set(i, (TS)0);
 			}
 		}			
 	}
 	
-	void DetermineDivergence(const FIELD<int>* bnd, const FIELD<Vec3>* vel, FIELD<FLT>* div);
+	void DetermineDivergence(const FIELD<int>* bnd, const FIELD<TV3>* vel, FIELD<TS>* div);
 
-	void DeterminePressure(const FIELD<int>* bnd, const FIELD<FLT>* div, FIELD<FLT>* press, FIELD<FLT>* press_temp, const int itr=20);
+	void DeterminePressure(const FIELD<int>* bnd, const FIELD<TS>* div, FIELD<TS>* press, FIELD<TS>* press_temp, const int itr=20);
 
-	void DetermineVelocity(const FIELD<int>* bnd, const FIELD<FLT>* press, FIELD<Vec3>* vel);
+	void DetermineVelocity(const FIELD<int>* bnd, const FIELD<TS>* press, FIELD<TV3>* vel);
 
-	void Jacobi(FIELD<int>* bnd, FIELD<Vec3>* vel, FIELD<FLT>* div, FIELD<FLT>* press, FIELD<FLT>* press_temp, const int itr);
+	void Jacobi(FIELD<int>* bnd, FIELD<TV3>* vel, FIELD<TS>* div, FIELD<TS>* press, FIELD<TS>* press_temp, const TS dt, const int itr);
 
-	void Diffuse(const FIELD<int>* bnd, FIELD<Vec3>* vel, FIELD<Vec3>* temp, const int itr);
+	void Diffuse(const FIELD<int>* bnd, FIELD<TV3>* vel, FIELD<TV3>* temp, const int itr);
 };
 
-static void InitializeProjectionLinearSystem(FIELD<int>* bnd, FIELD<FLT>* div, SPARSE_MATRIX& matrix_a, SPARSE_VECTOR& vector_x, SPARSE_VECTOR& vector_b)
+static void InitializeProjectionLinearSystem(FIELD<int>* bnd, FIELD<TS>* div, SPARSE_MATRIX& matrix_a, SPARSE_VECTOR& vector_x, SPARSE_VECTOR& vector_b)
 {
 	int full_ix(0);
 	int nnz(0);
 
 	GRID grid = bnd->Grid();
 
-	FLT h  = 1/(grid.dx_*grid.dx_);
-	FLT h2 = h*(FLT)2; 
+	TS h  = 1/(grid.dx_*grid.dx_);
+	TS h2 = h*(TS)2; 
 
 	const int i_res = grid.i_res_;
 	const int ij_res = grid.ij_res_;
@@ -97,7 +100,7 @@ static void InitializeProjectionLinearSystem(FIELD<int>* bnd, FIELD<FLT>* div, S
 		vector_x.Initialize(full_ix);
 	}
 
-	ARRAY_VECTOR<FLT> val; val.Initialize(16);
+	ARRAY_VECTOR<TS> val; val.Initialize(16);
 	ARRAY_VECTOR<int> col; col.Initialize(16);
 
 	for(int p=0; p<grid.ijk_res_; p++)
@@ -105,7 +108,7 @@ static void InitializeProjectionLinearSystem(FIELD<int>* bnd, FIELD<FLT>* div, S
 		if(bnd->Get(p) < 0) continue;
 
 		const int bc_ix = bnd->Get(p);
-		FLT p_ijk = 0;
+		TS p_ijk = 0;
 
 		if(bnd->Get(p+1) >= 0)
 		{
@@ -154,7 +157,7 @@ static void InitializeProjectionLinearSystem(FIELD<int>* bnd, FIELD<FLT>* div, S
 		matrix_a.AddRow(val, col);
 
 		vector_b(bc_ix) = div->Get(p);
-		vector_x(bc_ix) = (FLT)0;			
+		vector_x(bc_ix) = (TS)0;			
 
 		val.Clear();
 		col.Clear();
@@ -174,14 +177,14 @@ static void ConjugateGradient_(SPARSE_MATRIX& matrix_a, SPARSE_VECTOR& vector_b,
 
 	SPARSE_VECTOR::Equal(vector_r, vector_p);
 
-	FLT rsold = SPARSE_VECTOR::Dot(vector_r, vector_r);
-	if(sqrt(rsold) < (FLT)1E-6) return;
+	TS rsold = SPARSE_VECTOR::Dot(vector_r, vector_r);
+	if(sqrt(rsold) < (TS)1E-6) return;
 
 	for(int i=0; i<300; i++)
 	{
 		SPARSE_MATRIX::Mul(matrix_a, vector_p, vector_ap);
 
-		FLT alpha = rsold / SPARSE_VECTOR::Dot(vector_p, vector_ap);
+		TS alpha = rsold / SPARSE_VECTOR::Dot(vector_p, vector_ap);
 
 		SPARSE_VECTOR::Mul(vector_p, alpha, vector_t);
 		SPARSE_VECTOR::Add(vector_x, vector_t, vector_x);
@@ -189,11 +192,11 @@ static void ConjugateGradient_(SPARSE_MATRIX& matrix_a, SPARSE_VECTOR& vector_b,
 		SPARSE_VECTOR::Mul(vector_ap, alpha, vector_t);
 		SPARSE_VECTOR::Sub(vector_r, vector_t, vector_r);
 
-		FLT rsnew = SPARSE_VECTOR::Dot(vector_r, vector_r);
+		TS rsnew = SPARSE_VECTOR::Dot(vector_r, vector_r);
 
-		if(sqrt(rsnew) < (FLT)1E-6) break;
+		if(sqrt(rsnew) < (TS)1E-6) break;
 			
-		FLT beta = rsnew/rsold;
+		TS beta = rsnew/rsold;
 		SPARSE_VECTOR::Mul(vector_p, beta, vector_t);
 		SPARSE_VECTOR::Add(vector_r, vector_t, vector_p);
 

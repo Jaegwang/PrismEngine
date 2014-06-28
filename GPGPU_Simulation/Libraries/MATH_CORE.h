@@ -3,7 +3,7 @@
 
 #include "MATH_DEFINITION.h"
 
-static Vec3 RandomVector()
+static TV3 RandomVector()
 {
-	return Vec3(((FLT)rand()/(FLT)RAND_MAX-(FLT)0.5)*(FLT)2, ((FLT)rand()/(FLT)RAND_MAX-(FLT)0.5)*(FLT)2, ((FLT)rand()/(FLT)RAND_MAX-(FLT)0.5)*(FLT)2);
+	return TV3(((TS)rand()/(TS)RAND_MAX-(TS)0.5)*(TS)2, ((TS)rand()/(TS)RAND_MAX-(TS)0.5)*(TS)2, ((TS)rand()/(TS)RAND_MAX-(TS)0.5)*(TS)2);
 }

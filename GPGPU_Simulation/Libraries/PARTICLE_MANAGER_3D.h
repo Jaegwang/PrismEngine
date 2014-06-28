@@ -18,8 +18,8 @@ public:
 	GRID grid_;
 
 	// particle properties
-	Vec3 **position_array_pointer_;
-	Vec3 **velocity_array_pointer_;
+	TV3 **position_array_pointer_;
+	TV3 **velocity_array_pointer_;
 
 	int* particle_id_array_;
 	int* particle_index_array_;
@@ -42,7 +42,7 @@ public:
 		Finalize();
 	}
 
-	void Initialize(const GRID& grid_input, Vec3** pos_arr_input, Vec3** vel_arr_input, const int num_pts)
+	void Initialize(const GRID& grid_input, TV3** pos_arr_input, TV3** vel_arr_input, const int num_pts)
 	{
 		grid_ = grid_input;
 		max_of_pts_ = num_pts;
@@ -73,7 +73,7 @@ public:
 
 	void DelParticle(int ix)
 	{
-		(*position_array_pointer_)[ix] = Vec3((FLT)FLT_MAX, (FLT)FLT_MAX, (FLT)FLT_MAX);
+		(*position_array_pointer_)[ix] = TV3((TS)FLT_MAX, (TS)FLT_MAX, (TS)FLT_MAX);
 	}
 
 	template<class TT>
@@ -101,7 +101,7 @@ public:
 	{
 		if (num_of_pts_ == 0) return;
 
-		Vec3 *pos_arr = *position_array_pointer_;
+		TV3 *pos_arr = *position_array_pointer_;
 
 		atomic<int> start_idx = 0;
 		atomic<int> count_pts = 0;
@@ -116,7 +116,7 @@ public:
 		#pragma omp for 
 		for (int p = 0 ; p < num_of_pts_; p++) 
 		{			
-			const Vec3 pos = pos_arr[p];
+			const TV3 pos = pos_arr[p];
 			if (grid_.IsInsideValid(pos) == false) continue;
 
 			int i, j, k;
@@ -139,7 +139,7 @@ public:
 		#pragma omp for 
 		for (int p = 0 ; p < num_of_pts_; p++) 
 		{
-			const Vec3 pos = pos_arr[p];
+			const TV3 pos = pos_arr[p];
 			const int id = particle_id_array_[p];
 
 			if (grid_.IsInsideValid(pos) == false) continue;
@@ -165,19 +165,19 @@ public:
 
 		glPointSize(1.3);
 
-		FLT dt = (FLT)0.01;
-		FLT dist = MAX3(grid_.dx_*(FLT)3, grid_.dx_*(FLT)3, grid_.dx_*(FLT)3);
-		FLT max_vel = dist / dt;
+		TS dt = (TS)0.01;
+		TS dist = MAX3(grid_.dx_*(TS)3, grid_.dx_*(TS)3, grid_.dx_*(TS)3);
+		TS max_vel = dist / dt;
 
 		glBegin(GL_POINTS);
 
 		for (int i = 0; i < num_of_pts_; i++)
 		{
-			const Vec3& pos =(*position_array_pointer_)[i];
-			const FLT v = glm::length((*velocity_array_pointer_)[i]);
-			const FLT g = v / max_vel;
+			const TV3& pos =(*position_array_pointer_)[i];
+			const TS v = glm::length((*velocity_array_pointer_)[i]);
+			const TS g = v / max_vel;
 
-			glColor3f(g, g, (FLT)1);
+			glColor3f(g, g, (TS)1);
 
 			glVertex3f(pos.x, pos.y, pos.z);
 		}

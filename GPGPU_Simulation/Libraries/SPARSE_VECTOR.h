@@ -5,7 +5,7 @@ class SPARSE_VECTOR
 {
 private:
 
-	FLT* val_arr_;
+	TS* val_arr_;
 	int  size_;
 
 public:
@@ -21,7 +21,7 @@ public:
 	{
 		Finalize();
 
-		val_arr_ = new FLT[num];
+		val_arr_ = new TS[num];
 		size_ = num;	
 	}
 
@@ -32,7 +32,7 @@ public:
 
 	int Size() { return size_; }
 
-	FLT& operator() (const int p) const { return val_arr_[p]; };
+	TS& operator() (const int p) const { return val_arr_[p]; };
 
 	static void Add(const SPARSE_VECTOR& a, const SPARSE_VECTOR& b, SPARSE_VECTOR& c)
 	{
@@ -61,7 +61,7 @@ public:
 		}	
 	}
 
-	static void Mul(const SPARSE_VECTOR& a, const FLT b, SPARSE_VECTOR& c)
+	static void Mul(const SPARSE_VECTOR& a, const TS b, SPARSE_VECTOR& c)
 	{
 		#pragma omp parallel for
 		for(int p=0; p<c.size_; p++)
@@ -70,9 +70,9 @@ public:
 		}		
 	}
 
-	static FLT Dot(const SPARSE_VECTOR& a, const SPARSE_VECTOR& b)
+	static TS Dot(const SPARSE_VECTOR& a, const SPARSE_VECTOR& b)
 	{
-		FLT d = FLT(0);
+		TS d = TS(0);
 
 		for(int p=0; p<a.size_; p++)
 		{

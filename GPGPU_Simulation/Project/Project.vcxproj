@@ -127,7 +127,7 @@
     <ClCompile Include="..\Libraries\ADVECTION_METHOD.cpp" />
     <ClCompile Include="..\Libraries\ARRAY.cpp" />
     <ClCompile Include="..\Libraries\CAPTURE_MANAGER.cpp" />
-    <ClCompile Include="..\Libraries\FIELD_DYNAMIC.cpp" />
+    <ClCompile Include="..\Libraries\FIELD_ENCODED.cpp" />
     <ClCompile Include="..\Libraries\FIELD_UNIFORM.cpp" />
     <ClCompile Include="..\Libraries\MPM_FLUID_SOLVER.cpp" />
     <ClCompile Include="..\Libraries\PROJECTION_METHOD.cpp" />
@@ -137,11 +137,11 @@
     <ClInclude Include="..\Libraries\ADVECTION_METHOD.h" />
     <ClInclude Include="..\Libraries\ARRAY.h" />
     <ClInclude Include="..\Libraries\ARRAY_DYNAMIC.h" />
+    <ClInclude Include="..\Libraries\CACHE_BLOCK.h" />
     <ClInclude Include="..\Libraries\CAPTURE_MANAGER.h" />
     <ClInclude Include="..\Libraries\DATABASE_MANAGER.h" />
     <ClInclude Include="..\Libraries\FIELD.h" />
-    <ClInclude Include="..\Libraries\FIELD_BLOCK.h" />
-    <ClInclude Include="..\Libraries\FIELD_DYNAMIC.h" />
+    <ClInclude Include="..\Libraries\FIELD_ENCODED.h" />
     <ClInclude Include="..\Libraries\FIELD_UNIFORM.h" />
     <ClInclude Include="..\Libraries\FILE_UTILITIES.h" />
     <ClInclude Include="..\Libraries\FLUID_PROJECTION_METHOD.h" />

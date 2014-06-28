@@ -33,9 +33,6 @@
     <ClCompile Include="..\Libraries\MPM_FLUID_SOLVER.cpp">
       <Filter>Libraries</Filter>
     </ClCompile>
-    <ClCompile Include="..\Libraries\FIELD_DYNAMIC.cpp">
-      <Filter>Libraries\DATA_STRUCTURES</Filter>
-    </ClCompile>
     <ClCompile Include="..\Libraries\FIELD_UNIFORM.cpp">
       <Filter>Libraries\DATA_STRUCTURES</Filter>
     </ClCompile>
@@ -46,6 +43,9 @@
       <Filter>Libraries\STABLE_FLUID</Filter>
     </ClCompile>
     <ClCompile Include="..\Libraries\ARRAY.cpp">
+      <Filter>Libraries\DATA_STRUCTURES</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Libraries\FIELD_ENCODED.cpp">
       <Filter>Libraries\DATA_STRUCTURES</Filter>
     </ClCompile>
   </ItemGroup>
@@ -101,12 +101,6 @@
     <ClInclude Include="..\Libraries\FLUID_PROJECTION_METHOD.h">
       <Filter>Libraries</Filter>
     </ClInclude>
-    <ClInclude Include="..\Libraries\FIELD_DYNAMIC.h">
-      <Filter>Libraries\DATA_STRUCTURES</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Libraries\FIELD_BLOCK.h">
-      <Filter>Libraries\DATA_STRUCTURES</Filter>
-    </ClInclude>
     <ClInclude Include="..\Libraries\FIELD.h">
       <Filter>Libraries\DATA_STRUCTURES</Filter>
     </ClInclude>
@@ -138,6 +132,12 @@
       <Filter>Libraries\DATA_STRUCTURES</Filter>
     </ClInclude>
     <ClInclude Include="..\Libraries\SPARSE_VECTOR.h">
+      <Filter>Libraries\DATA_STRUCTURES</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\CACHE_BLOCK.h">
+      <Filter>Libraries\DATA_STRUCTURES</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\FIELD_ENCODED.h">
       <Filter>Libraries\DATA_STRUCTURES</Filter>
     </ClInclude>
   </ItemGroup>

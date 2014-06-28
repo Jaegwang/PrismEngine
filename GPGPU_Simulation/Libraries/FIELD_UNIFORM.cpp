@@ -43,7 +43,7 @@ TT FIELD_UNIFORM<TT>::Get(const int i, const int j, const int k) const
 }
 
 template<class TT>
-TT FIELD_UNIFORM<TT>::Get(const Vec3& p) const
+TT FIELD_UNIFORM<TT>::Get(const TV3& p) const
 {
 	return grid_.TriLinearInterpolate(p, arr_);
 }
@@ -52,4 +52,4 @@ TT FIELD_UNIFORM<TT>::Get(const Vec3& p) const
 template class FIELD_UNIFORM<float>;
 template class FIELD_UNIFORM<double>;
 template class FIELD_UNIFORM<int>;
-template class FIELD_UNIFORM<Vec3>;
+template class FIELD_UNIFORM<TV3>;

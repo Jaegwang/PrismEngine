@@ -15,7 +15,7 @@
 #include "TRACK_BALL_CONTROL.h"
 
 #include "GRID_DATA.h"
-#include "FIELD_DYNAMIC.h"
+#include "FIELD_ENCODED.h"
 #include "PROJECTION_METHOD.h"
 #include "STABLE_FLUID_SOLVER.h"
 
@@ -30,7 +30,7 @@ MPM_FLUID_SOLVER mpm_solver;
 
 CAPTURE_MANAGER capture_manager;
 
-FIELD_DYNAMIC<FLT> field;
+FIELD_ENCODED<TS> field;
 
 STABLE_FLUID_SOLVER stable_fluid;
 
@@ -57,8 +57,8 @@ void light();
 int main(int argc, char **argv)
 {
 
-	Vec3 min0(0,0,0);
-	Vec3 max0(1,1,1);
+	TV3 min0(0,0,0);
+	TV3 max0(1,1,1);
 
 	std::string path = "no";
 
@@ -67,8 +67,7 @@ int main(int argc, char **argv)
 
 	stable_fluid.Initialize(grid);
 
-//	stable_fluid.SeedParticlesFromSphere(Vec3(0.5, 0.5, 0.5), 0.2, Vec3(0.0, 0.2, 0.0), 10000);
-	stable_fluid.SeedParticlesFromSphere(Vec3(0.5, 0.8, 0.5), 0.1, Vec3(0.0, -2, 0.0), 20000);
+	stable_fluid.SeedParticlesFromSphere(TV3(0.5, 0.8, 0.5), 0.1, TV3(0.0, -2, 0.0), 20000);
 	stable_fluid.SeedParticlesFromHeight(0.3, 3);
 
 	mpm_solver.Initialize(min0, max0, 100, 100, 100, 2, 5000000);
@@ -104,7 +103,7 @@ void display()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	const Vec3& world_center = (mpm_solver.grid_.max_ + mpm_solver.grid_.min_)*(FLT)0.5;
+	const TV3& world_center = (mpm_solver.grid_.max_ + mpm_solver.grid_.min_)*(TS)0.5;
 
 	glTranslatef(0, 0, -2.0f);
 	
@@ -123,10 +122,12 @@ void display()
 //	particle_manager.Rendering();
 
 //	mpm_solver.particle_manager_.Rendering();
-	mpm_solver.grid_.RenderGrid();
+//	mpm_solver.grid_.RenderGrid();
 //	mpm_solver.particle_world_.Render();
 
 //	stable_fluid.Render();
+
+	stable_fluid.Grid().RenderGrid();
 	stable_fluid.RenderParticles();
 	stable_fluid.RenderVelocity();
 
@@ -152,11 +153,11 @@ void idle()
 
 	if (is_playing == true)
 	{
-//		mpm_solver.AdvanceTimeStep((FLT)0.01, 1);
+//		mpm_solver.AdvanceTimeStep((TS)0.01, 1);
 
-//		stable_fluid.SourceDensityFromSphere(Vec3(0.5, 0.2, 0.5), 0.05, 1.0, Vec3(0.0, 2, 0.0));
+//		stable_fluid.SourceDensityFromSphere(TV3(0.5, 0.2, 0.5), 0.05, 1.0, TV3(0.0, 2, 0.0));
 	
-//		stable_fluid.SeedParticlesFromSphere(Vec3(0.5, 0.8, 0.5), 0.1, Vec3(0.0, -2, 0.0), 5000);
+//		stable_fluid.SeedParticlesFromSphere(TV3(0.5, 0.8, 0.5), 0.1, TV3(0.0, -2, 0.0), 5000);
 		stable_fluid.AdvanceOneTimeStepFLIP(0.01);
 	//	stable_fluid.AdvanceOneTimeStep(0.01);
 

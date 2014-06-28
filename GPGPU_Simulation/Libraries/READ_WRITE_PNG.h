@@ -374,7 +374,7 @@ public:
 	}
 
 
-	static bool PngSaveImage (char *pstrFileName, const int i_res, const int j_res, const Vec3* data)
+	static bool PngSaveImage (char *pstrFileName, const int i_res, const int j_res, const TV3* data)
 	{
 		png_structp png_ptr = NULL;
 		png_infop info_ptr = NULL;

@@ -7,7 +7,7 @@ class PARTICLE
 {
 public:
 
-	Vec3 position_;
-	Vec3 velocity_;
+	TV3 position_;
+	TV3 velocity_;
 
 };

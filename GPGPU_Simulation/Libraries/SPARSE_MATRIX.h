@@ -6,7 +6,7 @@ class SPARSE_MATRIX
 { //http://netlib.org/linalg/html_templates/node91.html
 private:
 
-	FLT* val_arr_;
+	TS* val_arr_;
 
 	int* col_ind_arr_;
 
@@ -33,7 +33,7 @@ public:
 	{
 		Finalize();
 
-		val_arr_     = new FLT[nnz_num];
+		val_arr_     = new TS[nnz_num];
 		col_ind_arr_ = new int[nnz_num];
 
 		row_ptr_arr_ = new int[row_num];
@@ -58,7 +58,7 @@ public:
 		val_ptr_ = -1;
 	}
 
-	void AddRow(const ARRAY<FLT>& val_arr, const ARRAY<int>& col_arr)
+	void AddRow(const ARRAY<TS>& val_arr, const ARRAY<int>& col_arr)
 	{
 		int size = val_arr.Size();
 
@@ -85,7 +85,7 @@ public:
 			if(p==size-1) end_ptr = matrix_a.val_ptr_;
 			else end_ptr = matrix_a.row_ptr_arr_[p+1]-1;
 
-			FLT v = (FLT)0;
+			TS v = (TS)0;
 
 			for(int ix=start_ptr; ix<=end_ptr; ix++)
 			{
