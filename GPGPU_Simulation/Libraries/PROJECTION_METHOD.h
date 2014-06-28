@@ -41,9 +41,9 @@ public:
 			if(bc >= 0)
 			{
 				TS p = vector_x_(bc);
-				if(p*dt > dx_cfl) p = (TS)0;
+				if(ABS(p)*dt > dx_cfl) p = (TS)0;
 
-				press->Set(i, vector_x_(bc));			
+				press->Set(i, p);			
 			}
 			else
 			{

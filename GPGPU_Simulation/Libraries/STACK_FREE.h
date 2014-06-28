@@ -1,42 +1,54 @@
 #pragma once
 
-#include <atomic>
+#include <atomic> 
  
-template<class T>
-struct node
+template<class TT>
+class STACK_FREE
 {
-    T* data;
-    node* next;
-    node(const T& data) : data(data), next(nullptr) 
+private:
+
+	TT* array_;
+	std::atomic<int> ptr_;
+
+	int total_;
+
+public:
+
+	STACK_FREE()
+		: array_(0)
+		, ptr_(-1)
+	{}
+	~STACK_FREE()
 	{
-		data = new T;
-		*data = data;
+		Finalize();
 	}
-};
- 
-template<class T>
-class stack
-{
-    std::atomic<node<T>*> head;
- public:
-    void push(const T& data)
-    {
-        node<T>* new_node = new node<T>(data);
- 
-        // put the current value of head into new_node->next
-        node<T>* old_head = (new_node->next = head.load(std::memory_order_relaxed));
- 
-        // now make new_node the new head, but if the head
-        // is no longer what's stored in new_node->next
-        // (some other thread must have inserted a node just now)
-        // then put that new head into new_node->next and try again
-        while(!std::atomic_compare_exchange_weak_explicit( &head
-                                                         , &old_head
-                                                         , new_node
-                                                         , std::memory_order_release
-                                                         , std::memory_order_relaxed))
-        {
-            new_node->next = old_head;
-        }
-    }
+
+	void Initialize(const int total_size)
+	{
+		array_ = new TT[total_size];	
+		total_ = total_size;
+	}
+
+	void Finalize()
+	{
+		if(array_) { delete[] array_; array_ = 0; };		
+	}
+
+	void Push(TT data)
+	{
+		int p = std::atomic_fetch_add(&ptr_, 1);
+		array_[p+1] = data;	
+	}
+
+	TT Pop()
+	{
+		int p = std::atomic_fetch_sub(&ptr_, 1);
+		return array_[p];
+	}	
+
+	bool IsEmpty()
+	{
+		if(ptr_ < 0) return true;
+		else return false;
+	}
 };

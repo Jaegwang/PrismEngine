@@ -140,5 +140,8 @@
     <ClInclude Include="..\Libraries\FIELD_ENCODED.h">
       <Filter>Libraries\DATA_STRUCTURES</Filter>
     </ClInclude>
+    <ClInclude Include="..\Libraries\STACK_FREE.h">
+      <Filter>Libraries\DATA_STRUCTURES</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

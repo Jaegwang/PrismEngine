@@ -29,6 +29,8 @@ void FIELD_ENCODED<TT>::Initialize(const GRID& grid_input, const TT& default_dat
 	table_ = new CACHE_BLOCK<TT>*[table_size];
 
 	for(int t=0; t<table_size; t++) table_[t] = 0;
+
+	block_stack_.Initialize(table_size);
 }
 
 template<class TT>
@@ -57,9 +59,10 @@ void FIELD_ENCODED<TT>::Set(const int i, const int j, const int k, const TT& dat
 
 	if(!block && data != default_data_)
 	{
-		// TODO : use block stack
+		if(block_stack_.IsEmpty() == true) block = new CACHE_BLOCK<TT>(block_k_res_, default_data_);
+		else block = block_stack_.Pop();
 
-		block = new CACHE_BLOCK<TT>(block_k_res_, default_data_);
+		block->Fill(default_data_);
 
 		block->i_ = i;
 		block->j_ = j;

@@ -162,6 +162,7 @@
     <ClInclude Include="..\Libraries\SPARSE_MATRIX.h" />
     <ClInclude Include="..\Libraries\SPARSE_VECTOR.h" />
     <ClInclude Include="..\Libraries\STABLE_FLUID_SOLVER.h" />
+    <ClInclude Include="..\Libraries\STACK_FREE.h" />
     <ClInclude Include="..\Libraries\TRACK_BALL_CONTROL.h" />
     <ClInclude Include="..\Libraries\WALL_CONDITIONS.h" />
   </ItemGroup>

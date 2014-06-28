@@ -213,8 +213,7 @@ public:
 		{
 			GRID grid = velocity_field_->Grid();
 
-			#pragma omp parallel for
-			for(int i=0; i<particle_position_->Size(); i++)
+			FOR_EACH_PARALLER(i, 0, particle_position_->Size()-1)		
 			{
 				TV3 pos = particle_position_->Get(i);
 				TV3 vel_g = velocity_field_->Get(pos);
@@ -240,8 +239,7 @@ public:
 
 			TS flip_coeff = (TS)0.95;
 
-			#pragma omp parallel for
-			for(int i=0; i<grid.ijk_res_; i++)
+			FOR_EACH_PARALLER(i, 0, grid.ijk_res_-1)
 			{
 				vector_ghost_field_->Set(i, velocity_field_->Get(i));			
 			}
@@ -249,14 +247,12 @@ public:
 			SetBoundaryCondition();
 			projection_method_.Jacobi(boundary_field_, velocity_field_, divergence_field_, pressure_field_, scalar_ghost_field_, dt, 200);
 
-			#pragma omp parallel for
-			for(int i=0; i<grid.ijk_res_; i++)
+			FOR_EACH_PARALLER(i, 0, grid.ijk_res_-1)
 			{
 				vector_ghost_field_->Set(i, velocity_field_->Get(i) - vector_ghost_field_->Get(i));
 			}
 
-			#pragma omp parallel for
-			for(int i=0; i<particle_position_->Size(); i++)
+			FOR_EACH_PARALLER(i, 0, particle_position_->Size()-1)
 			{
 				TV3 pos = particle_position_->Get(i);
 				TV3 vel = particle_velocity_->Get(i);
@@ -270,8 +266,7 @@ public:
 
 		// forcing
 		{
-			#pragma omp parallel for
-			for(int i=0; i<particle_position_->Size(); i++)
+			FOR_EACH_PARALLER(i, 0, particle_position_->Size()-1)
 			{
 				if(particle_active_->Get(i) == true)
 				{

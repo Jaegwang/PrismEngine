@@ -1,18 +1,21 @@
 
 #include "ADVECTION_METHOD.h"
+#include "GENERAL_MACRO.h"
 
 template<class TT>
 void ADVECTION_METHOD::SemiLagrangian(FIELD<TV3>* vel, const TS dt, FIELD<TT>* in_field, FIELD<TT>* out_field)
 {
 	GRID grid = out_field->Grid();
 
-	#pragma omp parallel for
-	for(int k=0; k<grid.k_res_; k++) for(int j=0; j<grid.j_res_; j++) for(int i=0; i<grid.i_res_; i++)
+	FOR_EACH_PARALLER(k, 0, grid.k_res_-1)
 	{
-		TV3 cell_center = grid.CellCenterPosition(i,j,k);
-		TV3 velocity = vel->Get(cell_center);
+		for(int j=0; j<grid.j_res_; j++) for(int i=0; i<grid.i_res_; i++)	
+		{
+			TV3 cell_center = grid.CellCenterPosition(i,j,k);
+			TV3 velocity = vel->Get(cell_center);
 
-		out_field->Set(i,j,k, in_field->Get(cell_center-velocity*dt));
+			out_field->Set(i,j,k, in_field->Get(cell_center-velocity*dt));
+		}
 	}
 }
 

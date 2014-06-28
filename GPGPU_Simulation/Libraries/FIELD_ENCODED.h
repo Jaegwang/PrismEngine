@@ -4,8 +4,9 @@
 #include <iostream>
 #include "GRID.h"
 #include "CACHE_BLOCK.h"
-#include "ARRAY_DYNAMIC.h"
 #include "FIELD.h"
+#include "STACK_FREE.h"
+
 
 template<class TT>
 class FIELD_ENCODED : public FIELD<TT>
@@ -23,6 +24,8 @@ private:
 	TT default_data_;
 
 	std::atomic<int> num_blocks_;
+
+	STACK_FREE<CACHE_BLOCK<TT>*> block_stack_;
 
 public:
 
