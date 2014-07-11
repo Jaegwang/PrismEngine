@@ -19,6 +19,8 @@ public:
 	{
 		size_  = size;
 		array_ = new TT[size];		
+
+		for(int i=0; i<size_; i++) array_[i] = value;
 	}
 
 	~CACHE_BLOCK()
