@@ -55,22 +55,42 @@ void FIELD_ENCODED<TT>::Set(const int i, const int j, const int k, const TT data
 	const int b_k = k % block_k_res_;
 
 	const int t_idx = t_k*ij_res_ + j*i_res_ + i;
+
 	CACHE_BLOCK<TT>* block = table_[t_idx];
+	CACHE_BLOCK<TT>* null_block = 0;
 
 	if(!block && data != default_data_)
 	{
+		CACHE_BLOCK<TT>* new_block = 0;
+
+		if(block_stack_.IsEmpty() == true) new_block = new CACHE_BLOCK<TT>(block_k_res_, default_data_);
+		else new_block = block_stack_.Pop();
+
+		if(table_[t_idx].compare_exchange_weak(null_block, new_block, std::memory_order_release, std::memory_order_relaxed) == true)
+		{
+			#pragma omp critical
+			{
+				// Initialize Block
+				block = table_[t_idx];
+
+				block->Fill(default_data_);
+
+				block->i_ = i;
+				block->j_ = j;
+				block->k_ = t_k;
+
+				std::atomic_fetch_add(&num_blocks_, 1);		
+			}
+		}
+		else
+		{
+			// TODO : Release new block
+			// block_stack_.Push();		
+		}
+/*
 		if(block_stack_.IsEmpty() == true) table_[t_idx] = new CACHE_BLOCK<TT>(block_k_res_, default_data_);
 		else table_[t_idx] = block_stack_.Pop();
-
-		block = table_[t_idx];
-
-		block->Fill(default_data_);
-
-		block->i_ = i;
-		block->j_ = j;
-		block->k_ = t_k;
-
-		std::atomic_fetch_add(&num_blocks_, 1);
+*/
 	}
 
 	if(block) block->array_[b_k] = data;
