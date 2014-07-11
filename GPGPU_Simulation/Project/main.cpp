@@ -56,6 +56,9 @@ void light();
 
 int main(int argc, char **argv)
 {
+//	omp_set_dynamic(0);
+//	omp_set_num_threads(4);
+//	int num = omp_get_max_threads();
 
 	TV3 min0(0,0,0);
 	TV3 max0(1,1,1);

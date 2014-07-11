@@ -63,9 +63,14 @@ void RasterizeParticleToField(FIELD<TT>& val_field, FIELD<TS>& weight_field, con
 		TS weight = weight_field.Get(p);
 		
 		if(weight >= (TS)1e-06)
+		{
 			val_field.Set(p, val_field.Get(p)/weight);
+		}
 		else
+		{
+			weight_field.Set(p, (TS)0);
 			val_field.Set(p, TT());
+		}
 	}
 }
 

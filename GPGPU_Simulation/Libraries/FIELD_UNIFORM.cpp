@@ -17,13 +17,13 @@ void FIELD_UNIFORM<TT>::Finalize()
 }
 
 template<class TT>
-void FIELD_UNIFORM<TT>::Set(const int idx, const TT& data)
+void FIELD_UNIFORM<TT>::Set(const int idx, const TT data)
 {
 	arr_[idx] = data;
 }
 
 template<class TT>
-void FIELD_UNIFORM<TT>::Set(const int i, const int j, const int k, const TT& data)
+void FIELD_UNIFORM<TT>::Set(const int i, const int j, const int k, const TT data)
 {
 	int idx = grid_.Index3Dto1D(i,j,k);
 	arr_[idx] = data;	

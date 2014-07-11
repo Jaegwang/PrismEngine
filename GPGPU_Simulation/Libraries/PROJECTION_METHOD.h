@@ -2,6 +2,9 @@
 #include "FIELD.h"
 #include "SPARSE_MATRIX.h"
 #include "FIELD_UNIFORM.h"
+#include "GENERAL_MACRO.h"
+#include "FIELD_ENCODED.h"
+#include <omp.h>
 
 enum BOUNDARY_CELL
 {
@@ -65,8 +68,8 @@ public:
 
 static void InitializeProjectionLinearSystem(FIELD<int>* bnd, FIELD<TS>* div, SPARSE_MATRIX& matrix_a, SPARSE_VECTOR& vector_x, SPARSE_VECTOR& vector_b)
 {
-	int full_ix(0);
-	int nnz(0);
+	std::atomic<int> full_ix(0);
+	std::atomic<int> nnz(0);
 
 	GRID grid = bnd->Grid();
 
@@ -76,19 +79,21 @@ static void InitializeProjectionLinearSystem(FIELD<int>* bnd, FIELD<TS>* div, SP
 	const int i_res = grid.i_res_;
 	const int ij_res = grid.ij_res_;
 
+
 	for(int i=0; i<grid.ijk_res_; i++)
 	{
 		if(bnd->Get(i) == BND_FULL)
 		{
-			nnz++;
-			bnd->Set(i, full_ix++);
+			std::atomic_fetch_add(&nnz, 1);
 
-			if(bnd->Get(i+1)      >= 0) nnz++;
-			if(bnd->Get(i-1)      >= 0) nnz++;
-			if(bnd->Get(i+i_res)  >= 0) nnz++;
-			if(bnd->Get(i-i_res)  >= 0) nnz++;
-			if(bnd->Get(i+ij_res) >= 0) nnz++;
-			if(bnd->Get(i-ij_res) >= 0) nnz++;
+			if(bnd->Get(i+1)      >= 0) std::atomic_fetch_add(&nnz, 1);
+			if(bnd->Get(i-1)      >= 0)	std::atomic_fetch_add(&nnz, 1);
+			if(bnd->Get(i+i_res)  >= 0)	std::atomic_fetch_add(&nnz, 1);
+			if(bnd->Get(i-i_res)  >= 0)	std::atomic_fetch_add(&nnz, 1);
+			if(bnd->Get(i+ij_res) >= 0)	std::atomic_fetch_add(&nnz, 1);
+			if(bnd->Get(i-ij_res) >= 0)	std::atomic_fetch_add(&nnz, 1);
+
+			bnd->Set(i, std::atomic_fetch_add(&full_ix, 1));
 		}
 	}
 
@@ -100,7 +105,7 @@ static void InitializeProjectionLinearSystem(FIELD<int>* bnd, FIELD<TS>* div, SP
 		vector_x.Initialize(full_ix);
 	}
 
-	ARRAY_VECTOR<TS> val; val.Initialize(16);
+	ARRAY_VECTOR<TS>  val; val.Initialize(16);
 	ARRAY_VECTOR<int> col; col.Initialize(16);
 
 	for(int p=0; p<grid.ijk_res_; p++)

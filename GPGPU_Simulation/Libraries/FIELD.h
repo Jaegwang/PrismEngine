@@ -14,8 +14,8 @@ public:
 
 	GRID Grid() const { return grid_; }
 
-	virtual void Set(const int idx, const TT& data)=0;
-	virtual void Set(const int i, const int j, const int k, const TT& data)=0;
+	virtual void Set(const int idx, const TT data)=0;
+	virtual void Set(const int i, const int j, const int k, const TT data)=0;
 
 	virtual TT   Get(const int idx) const=0;
 	virtual TT   Get(const int i, const int j, const int k) const=0;

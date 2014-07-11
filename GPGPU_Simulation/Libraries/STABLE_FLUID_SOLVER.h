@@ -115,7 +115,7 @@ public:
 				continue;
 			}
 
-			if(density_field_->Get(i,j,k) > (TS)0.0)
+			if(density_field_->Get(i,j,k) > (TS)0.5)
 				boundary_field_->Set(i,j,k, BND_FULL);
 			else
 				boundary_field_->Set(i,j,k, BND_NULL);
@@ -245,7 +245,7 @@ public:
 			}
 
 			SetBoundaryCondition();
-			projection_method_.Jacobi(boundary_field_, velocity_field_, divergence_field_, pressure_field_, scalar_ghost_field_, dt, 200);
+			projection_method_.Jacobi(boundary_field_, velocity_field_, divergence_field_, pressure_field_, scalar_ghost_field_, dt, 2000);
 
 			FOR_EACH_PARALLER(i, 0, grid.ijk_res_-1)
 			{
@@ -377,15 +377,13 @@ public:
 		for(int j=0; j<grid.j_res_; j++)
 		for(int i=0; i<grid.i_res_; i++)
 		{
-			TV3 velocity = velocity_field_->Get(i,j,k);
+			int bnd = boundary_field_->Get(i,j,k);
 
 			TV3 cell_center = grid.CellCenterPosition(i,j,k);
 
-			TS den = density_field_->Get(i,j,k);
-
-			if(den > (TS)0)
+			if(bnd >= 0)
 			{
-//				glVertex3fv(&cell_center.x);							
+				glVertex3fv(&cell_center.x);							
 			}
 
 			//if(glm::length(velocity) > 0)

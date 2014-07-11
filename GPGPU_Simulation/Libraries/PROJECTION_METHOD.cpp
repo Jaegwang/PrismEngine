@@ -199,11 +199,3 @@ void PROJECTION_METHOD::Jacobi(FIELD<int>* bnd, FIELD<TV3>* vel, FIELD<TS>* div,
 
 	DetermineVelocity(bnd, press, vel);
 }
-
-
-void PROJECTION_METHOD::Diffuse(const FIELD<int>* bnd, FIELD<TV3>* vel, FIELD<TV3>* temp, const int itr)
-{
-
-
-}
-

@@ -26,7 +26,7 @@ void FIELD_ENCODED<TT>::Initialize(const GRID& grid_input, const TT& default_dat
 	default_data_ = default_data_input;
 
 	int table_size = table_k_res_*j_res_*i_res_;
-	table_ = new CACHE_BLOCK<TT>*[table_size];
+	table_ = new std::atomic<CACHE_BLOCK<TT>*>[table_size];
 
 	for(int t=0; t<table_size; t++) table_[t] = 0;
 
@@ -40,7 +40,7 @@ void FIELD_ENCODED<TT>::Finalize()
 }
 
 template<class TT>
-void FIELD_ENCODED<TT>::Set(const int idx, const TT& data)
+void FIELD_ENCODED<TT>::Set(const int idx, const TT data)
 {
 	int i,j,k;
 	grid_.Index1Dto3D(idx,i,j,k);
@@ -49,18 +49,20 @@ void FIELD_ENCODED<TT>::Set(const int idx, const TT& data)
 }
 
 template<class TT>
-void FIELD_ENCODED<TT>::Set(const int i, const int j, const int k, const TT& data)
+void FIELD_ENCODED<TT>::Set(const int i, const int j, const int k, const TT data)
 {
 	const int t_k = k / block_k_res_;
 	const int b_k = k % block_k_res_;
 
 	const int t_idx = t_k*ij_res_ + j*i_res_ + i;
-	CACHE_BLOCK<TT>*& block = table_[t_idx];
+	CACHE_BLOCK<TT>* block = table_[t_idx];
 
 	if(!block && data != default_data_)
 	{
-		if(block_stack_.IsEmpty() == true) block = new CACHE_BLOCK<TT>(block_k_res_, default_data_);
-		else block = block_stack_.Pop();
+		if(block_stack_.IsEmpty() == true) table_[t_idx] = new CACHE_BLOCK<TT>(block_k_res_, default_data_);
+		else table_[t_idx] = block_stack_.Pop();
+
+		block = table_[t_idx];
 
 		block->Fill(default_data_);
 
@@ -68,7 +70,7 @@ void FIELD_ENCODED<TT>::Set(const int i, const int j, const int k, const TT& dat
 		block->j_ = j;
 		block->k_ = t_k;
 
-		num_blocks_++;
+		std::atomic_fetch_add(&num_blocks_, 1);
 	}
 
 	if(block) block->array_[b_k] = data;
@@ -90,7 +92,7 @@ TT FIELD_ENCODED<TT>::Get(const int i, const int j, const int k) const
 	const int b_k = k % block_k_res_;
 
 	const int t_idx = t_k*ij_res_ + j*i_res_ + i;
-	CACHE_BLOCK<TT>*& block = table_[t_idx];
+	CACHE_BLOCK<TT>* block = table_[t_idx];
 
 	if(!block) return default_data_;
 
