@@ -285,6 +285,8 @@ public:
 			boundary_field_->Rebuild();
 			pressure_field_->Rebuild();
 			divergence_field_->Rebuild();
+			scalar_ghost_field_->Rebuild();
+			vector_ghost_field_->Rebuild();
 		}
 
 	}

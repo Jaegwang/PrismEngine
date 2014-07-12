@@ -28,8 +28,13 @@ void FIELD_ENCODED<TT>::Initialize(const GRID& grid_input, const TT& default_dat
 
 	int table_size = table_k_res_*j_res_*i_res_;
 	table_ = new std::atomic<CACHE_BLOCK<TT>*>[table_size];
+	block_array_ = new CACHE_BLOCK<TT>*[table_size];
 
-	for(int t=0; t<table_size; t++) table_[t] = 0;
+	for(int t=0; t<table_size; t++)
+	{
+		table_[t] = 0;
+		block_array_[t] = 0;
+	}
 }
 
 template<class TT>
@@ -45,7 +50,10 @@ void FIELD_ENCODED<TT>::Finalize()
 	}
 
 	if(table_) { delete table_; table_ = 0; };
+	if(block_array_) { delete block_array_; block_array_ = 0; };
+
 	num_blocks_ = 0;
+	count_blocks_ = 0;
 }
 
 template<class TT>
@@ -123,6 +131,8 @@ TT FIELD_ENCODED<TT>::Get(const TV3& p) const
 template<class TT>
 void FIELD_ENCODED<TT>::Rebuild()
 {
+	count_blocks_ = 0;
+
 	FOR_EACH_PARALLEL(k, 0, table_k_res_-1)
 	for(int j=0; j<j_res_; j++) for(int i=0; i<i_res_; i++)
 	{
@@ -148,7 +158,19 @@ void FIELD_ENCODED<TT>::Rebuild()
 
 			std::atomic_fetch_sub(&num_blocks_,1);
 		}
+		else
+		{
+			int c_ix = std::atomic_fetch_add(&count_blocks_, 1);
+			block_array_[c_ix] = tb;
+		}
 	}	
+
+	assert(num_blocks_ == count_blocks_);
+
+	if(num_blocks_ != count_blocks_)
+	{	
+		std::cout<<"Error count"<<std::endl;
+	}
 }
 
 template<class TT>

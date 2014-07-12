@@ -18,14 +18,16 @@ private:
 	int block_k_res_;
 
 	std::atomic<CACHE_BLOCK<TT>*>* table_;
+	CACHE_BLOCK<TT>** block_array_;
+
+	std::atomic<int> num_blocks_;
+	std::atomic<int> count_blocks_;
 	
 	TT default_data_;
 
-	std::atomic<int> num_blocks_;
-
 public:
 
-	FIELD_ENCODED()	: table_(0), num_blocks_(0)
+	FIELD_ENCODED()	: table_(0), block_array_(0), num_blocks_(0), count_blocks_(0)
 	{}
 
 	~FIELD_ENCODED()
