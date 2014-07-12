@@ -231,3 +231,4 @@ template class FIELD_ENCODED<float>;
 template class FIELD_ENCODED<double>;
 template class FIELD_ENCODED<int>;
 template class FIELD_ENCODED<TV3>;
+template class FIELD_ENCODED<bool>;

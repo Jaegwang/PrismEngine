@@ -23,6 +23,8 @@ public:
 	FIELD<TS>*  scalar_ghost_field_;
 	FIELD<TV3>* vector_ghost_field_;
 
+	FIELD<bool>* mark_field_;
+
 	// particle data
 	ARRAY<TV3>*  particle_position_;
 	ARRAY<TV3>*  particle_velocity_;
@@ -65,6 +67,8 @@ public:
 		FIELD_ENCODED<TS>*  scalar_ghost_uniform_ = new FIELD_ENCODED<TS>;
 		FIELD_ENCODED<TV3>* vector_ghost_uniform_ = new FIELD_ENCODED<TV3>;
 
+		FIELD_ENCODED<bool>* mark_uniform_ = new FIELD_ENCODED<bool>;
+
 		density_uniform->Initialize(grid, (TS)0);
 		velocity_uniform->Initialize(grid, TV3());
 
@@ -75,12 +79,16 @@ public:
 		scalar_ghost_uniform_->Initialize(grid, (TS)0);
 		vector_ghost_uniform_->Initialize(grid, TV3());
 
+		mark_uniform_->Initialize(grid, false);
+
 		density_field_ = density_uniform;
 		velocity_field_ = velocity_uniform;
 
 		divergence_field_ = divergence_uniform_;
 		pressure_field_ = pressure_uniform_;
 		boundary_field_ = boundary_uniform_;
+
+		mark_field_ = mark_uniform_;
 
 		scalar_ghost_field_ = scalar_ghost_uniform_;
 		vector_ghost_field_ = vector_ghost_uniform_;
@@ -230,7 +238,7 @@ public:
 
 		// Rasterization
 		{
-			RasterizeParticleToField(*velocity_field_, *density_field_, *particle_position_, *particle_velocity_);		
+			RasterizeParticleToField(*velocity_field_, *density_field_, *mark_field_, *particle_position_, *particle_velocity_);		
 		}
 
 		// Projection
