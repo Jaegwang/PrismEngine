@@ -8,7 +8,7 @@ void PROJECTION_METHOD::DetermineDivergence(const FIELD<int>* bnd, const FIELD<T
 
 	const TS coef = (TS)1.0;
 
-	FOR_EACH_PARALLER(k, 1, grid.k_res_-2)
+	FOR_EACH_PARALLEL(k, 1, grid.k_res_-2)
 	{
 		for(int j=1; j<grid.j_res_-1; j++) for(int i=1; i<grid.i_res_-1; i++)
 		{
@@ -76,7 +76,7 @@ void PROJECTION_METHOD::DeterminePressure(const FIELD<int>* bnd, const FIELD<TS>
 {
 	GRID grid = press->Grid();
 
-	FOR_EACH_PARALLER(p, 0, grid.ijk_res_-1)
+	FOR_EACH_PARALLEL(p, 0, grid.ijk_res_-1)
 	{
 		press->Set(p,(TS)0);
 		press_temp->Set(p,(TS)0);
@@ -84,7 +84,7 @@ void PROJECTION_METHOD::DeterminePressure(const FIELD<int>* bnd, const FIELD<TS>
 
 	for(int t=0; t<itr; t++)
 	{
-		FOR_EACH_PARALLER(k, 1, grid.k_res_-2)
+		FOR_EACH_PARALLEL(k, 1, grid.k_res_-2)
 		{
 			for(int j=1; j<grid.j_res_-1; j++) for(int i=1; i<grid.i_res_-1; i++)
 			{
@@ -140,7 +140,7 @@ void PROJECTION_METHOD::DetermineVelocity(const FIELD<int>* bnd, const FIELD<TS>
 {
 	GRID grid = press->Grid();
 
-	FOR_EACH_PARALLER(k, 1, grid.k_res_-2)
+	FOR_EACH_PARALLEL(k, 1, grid.k_res_-2)
 	{
 		for(int j=1; j<grid.j_res_-1; j++) for(int i=1; i<grid.i_res_-1; i++)
 		{

@@ -1,5 +1,6 @@
 
 #include "FIELD_ENCODED.h"
+#include "GENERAL_MACRO.h"
 
 template<class TT>
 void FIELD_ENCODED<TT>::Initialize(const GRID& grid_input, const TT& default_data_input)
@@ -29,14 +30,22 @@ void FIELD_ENCODED<TT>::Initialize(const GRID& grid_input, const TT& default_dat
 	table_ = new std::atomic<CACHE_BLOCK<TT>*>[table_size];
 
 	for(int t=0; t<table_size; t++) table_[t] = 0;
-
-//	block_stack_.Initialize(table_size);
 }
 
 template<class TT>
 void FIELD_ENCODED<TT>::Finalize()
 {
+	FOR_EACH_PARALLEL(k, 0, table_k_res_-1)
+	for(int j=0; j<j_res_; j++) for(int i=0; i<i_res_; i++)
+	{
+		int t_ix = k*ij_res_ + j*i_res_ + i;
+
+		CACHE_BLOCK<TT>* tb = table_[t_ix];
+		if(tb) delete tb;
+	}
+
 	if(table_) { delete table_; table_ = 0; };
+	num_blocks_ = 0;
 }
 
 template<class TT>
@@ -112,6 +121,37 @@ TT FIELD_ENCODED<TT>::Get(const TV3& p) const
 }
 
 template<class TT>
+void FIELD_ENCODED<TT>::Rebuild()
+{
+	FOR_EACH_PARALLEL(k, 0, table_k_res_-1)
+	for(int j=0; j<j_res_; j++) for(int i=0; i<i_res_; i++)
+	{
+		int t_ix = k*ij_res_ + j*i_res_ + i;
+		bool is_release = true;
+
+		CACHE_BLOCK<TT>* tb = table_[t_ix];
+		if(!tb) continue;
+
+		for(int t=0; t<tb->size_; t++)
+		{
+			if(tb->array_[t] != default_data_)
+			{
+				is_release = false;
+				break;
+			}							
+		}
+
+		if(is_release == true)
+		{
+			delete tb;
+			table_[t_ix] = 0;
+
+			std::atomic_fetch_sub(&num_blocks_,1);
+		}
+	}	
+}
+
+template<class TT>
 TT FIELD_ENCODED<TT>::TriLinearInterpolate(const TV3& p) const
 { //http://en.wikipedia.org/wiki/Trilinear_interpolation
 	TV3 cp = grid_.Clamp(p);
@@ -141,27 +181,6 @@ void FIELD_ENCODED<TT>::Render()
 {
 	glDisable(GL_LIGHTING);
 
-/*	
-	glPointSize(1.0f);
-	glBegin(GL_POINTS);
-	glColor3f(1.0, 0.0, 0.0);
-	for(int k=0; k<k_res_; k++) for(int j=0; j<j_res_; j++)
-	{
-		int ix = k*j_res_+j;
-		for(FIELD_BLOCK* b=jk_blocks_[ix]; b != 0; b = b->next_block_)
-		{
-			int start_i = b->start_idx_;
-			int end_i = b->end_idx_;
-
-			TV3 v0 = grid_.CellCenterPosition(start_i, j, k);		
-			TV3 v1 = grid_.CellCenterPosition(end_i, j, k);
-
-			glVertex3fv(&v0.x);
-			glVertex3fv(&v1.x);
-		}
-	}	
-	glEnd();
-*/
 	glBegin(GL_LINES);
 	glColor3f(0.0, 1.0, 0.0);
 	for(int k=0; k<table_k_res_; k++) 

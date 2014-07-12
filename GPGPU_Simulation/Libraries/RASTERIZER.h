@@ -26,7 +26,7 @@ void RasterizeParticleToField(FIELD<TT>& val_field, FIELD<TS>& weight_field, con
 	for(int p=0; p<size; p++)
 	{
 		TV3 pos = pos_array.Get(p);
-		TT   val = val_array.Get(p);
+		TT  val = val_array.Get(p);
 
 		grid.CellCenterIndex(pos,i,j,k);		
 
@@ -46,8 +46,8 @@ void RasterizeParticleToField(FIELD<TT>& val_field, FIELD<TS>& weight_field, con
 			TV3 deviation = cell_center-pos;
 
 			TS w = QuadBSplineKernel(deviation.x*grid.one_over_dx_)*
-				    QuadBSplineKernel(deviation.y*grid.one_over_dx_)*
-					QuadBSplineKernel(deviation.z*grid.one_over_dx_);
+				   QuadBSplineKernel(deviation.y*grid.one_over_dx_)*
+				   QuadBSplineKernel(deviation.z*grid.one_over_dx_);
 
 //			#pragma omp critical
 			{

@@ -7,7 +7,7 @@ void ADVECTION_METHOD::SemiLagrangian(FIELD<TV3>* vel, const TS dt, FIELD<TT>* i
 {
 	GRID grid = out_field->Grid();
 
-	FOR_EACH_PARALLER(k, 0, grid.k_res_-1)
+	FOR_EACH_PARALLEL(k, 0, grid.k_res_-1)
 	{
 		for(int j=0; j<grid.j_res_; j++) for(int i=0; i<grid.i_res_; i++)	
 		{

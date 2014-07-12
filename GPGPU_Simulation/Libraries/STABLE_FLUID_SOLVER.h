@@ -213,7 +213,7 @@ public:
 		{
 			GRID grid = velocity_field_->Grid();
 
-			FOR_EACH_PARALLER(i, 0, particle_position_->Size()-1)		
+			FOR_EACH_PARALLEL(i, 0, particle_position_->Size()-1)		
 			{
 				TV3 pos = particle_position_->Get(i);
 				TV3 vel_g = velocity_field_->Get(pos);
@@ -239,7 +239,7 @@ public:
 
 			TS flip_coeff = (TS)0.95;
 
-			FOR_EACH_PARALLER(i, 0, grid.ijk_res_-1)
+			FOR_EACH_PARALLEL(i, 0, grid.ijk_res_-1)
 			{
 				vector_ghost_field_->Set(i, velocity_field_->Get(i));			
 			}
@@ -247,12 +247,12 @@ public:
 			SetBoundaryCondition();
 			projection_method_.Jacobi(boundary_field_, velocity_field_, divergence_field_, pressure_field_, scalar_ghost_field_, dt, 2000);
 
-			FOR_EACH_PARALLER(i, 0, grid.ijk_res_-1)
+			FOR_EACH_PARALLEL(i, 0, grid.ijk_res_-1)
 			{
 				vector_ghost_field_->Set(i, velocity_field_->Get(i) - vector_ghost_field_->Get(i));
 			}
 
-			FOR_EACH_PARALLER(i, 0, particle_position_->Size()-1)
+			FOR_EACH_PARALLEL(i, 0, particle_position_->Size()-1)
 			{
 				TV3 pos = particle_position_->Get(i);
 				TV3 vel = particle_velocity_->Get(i);
@@ -266,7 +266,7 @@ public:
 
 		// forcing
 		{
-			FOR_EACH_PARALLER(i, 0, particle_position_->Size()-1)
+			FOR_EACH_PARALLEL(i, 0, particle_position_->Size()-1)
 			{
 				if(particle_active_->Get(i) == true)
 				{
@@ -277,6 +277,16 @@ public:
 				}
 			}
 		}
+
+		// Rebuilding domain
+		{
+			density_field_->Rebuild();
+			velocity_field_->Rebuild();		
+			boundary_field_->Rebuild();
+			pressure_field_->Rebuild();
+			divergence_field_->Rebuild();
+		}
+
 	}
 
 	void AdvanceOneTimeStep(const TS dt)

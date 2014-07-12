@@ -49,7 +49,7 @@ public:
 	TT   Get(const int i, const int j, const int k) const;
 	TT   Get(const TV3& p) const;
 
-	void Rebuild(){};
+	void Rebuild();
 
 	// for test
 	void Render();

@@ -133,6 +133,11 @@ void display()
 	stable_fluid.Grid().RenderGrid();
 	stable_fluid.RenderParticles();
 //	stable_fluid.RenderVelocity();
+	
+
+	FIELD_ENCODED<TS>* df = (FIELD_ENCODED<TS>*)stable_fluid.density_field_;
+
+//	df->Render();
 
 //	field.Render();
 
