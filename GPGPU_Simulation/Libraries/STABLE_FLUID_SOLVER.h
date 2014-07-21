@@ -23,7 +23,7 @@ public:
 	FIELD<TS>*  scalar_ghost_field_;
 	FIELD<TV3>* vector_ghost_field_;
 
-	FIELD<bool>* mark_field_;
+	FIELD<int>* pts_num_field_;
 
 	// particle data
 	ARRAY<TV3>*  particle_position_;
@@ -67,7 +67,7 @@ public:
 		FIELD_ENCODED<TS>*  scalar_ghost_uniform_ = new FIELD_ENCODED<TS>;
 		FIELD_ENCODED<TV3>* vector_ghost_uniform_ = new FIELD_ENCODED<TV3>;
 
-		FIELD_ENCODED<bool>* mark_uniform_ = new FIELD_ENCODED<bool>;
+		FIELD_ENCODED<int>* pts_num_uniform_ = new FIELD_ENCODED<int>;
 
 		density_uniform->Initialize(grid, (TS)0);
 		velocity_uniform->Initialize(grid, TV3());
@@ -79,7 +79,7 @@ public:
 		scalar_ghost_uniform_->Initialize(grid, (TS)0);
 		vector_ghost_uniform_->Initialize(grid, TV3());
 
-		mark_uniform_->Initialize(grid, false);
+		pts_num_uniform_->Initialize(grid, 0);
 
 		density_field_ = density_uniform;
 		velocity_field_ = velocity_uniform;
@@ -88,7 +88,7 @@ public:
 		pressure_field_ = pressure_uniform_;
 		boundary_field_ = boundary_uniform_;
 
-		mark_field_ = mark_uniform_;
+		pts_num_field_ = pts_num_uniform_;
 
 		scalar_ghost_field_ = scalar_ghost_uniform_;
 		vector_ghost_field_ = vector_ghost_uniform_;
@@ -123,7 +123,7 @@ public:
 				continue;
 			}
 
-			if(density_field_->Get(i,j,k) > (TS)0.5)
+			if(density_field_->Get(i,j,k) > (TS)0)
 				boundary_field_->Set(i,j,k, BND_FULL);
 			else
 				boundary_field_->Set(i,j,k, BND_NULL);
@@ -238,7 +238,7 @@ public:
 
 		// Rasterization
 		{
-			RasterizeParticleToField(*velocity_field_, *density_field_, *mark_field_, *particle_position_, *particle_velocity_);		
+			RasterizeParticleToField(*velocity_field_, *density_field_, *scalar_ghost_field_, *particle_position_, *particle_velocity_);		
 		}
 
 		// Projection

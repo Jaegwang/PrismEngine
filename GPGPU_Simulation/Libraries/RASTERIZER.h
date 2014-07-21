@@ -4,7 +4,7 @@
 #include "FIELD.h"
 
 template<class TT>
-void RasterizeParticleToField(FIELD<TT>& val_field, FIELD<TS>& weight_field, FIELD<bool>& mark_field, const ARRAY<TV3>& pos_array, const ARRAY<TT>& val_array)
+void RasterizeParticleToField(FIELD<TT>& val_field, FIELD<TS>& weight_field, FIELD<TS>& scalar_field, const ARRAY<TV3>& pos_array, const ARRAY<TT>& val_array)
 {
 	int size = pos_array.Size();
 	int i,j,k;
@@ -15,13 +15,11 @@ void RasterizeParticleToField(FIELD<TT>& val_field, FIELD<TS>& weight_field, FIE
 
 	GRID grid = val_field.Grid();
 
-	#pragma omp parallel for
-	for(int p=0; p<grid.ijk_res_; p++)
+	FOR_EACH_PARALLEL(p, 0, grid.ijk_res_-1)
 	{
 		val_field.Set(p, TT());
-		weight_field.Set(p, (TS)0);
-
-		mark_field.Set(p, false);
+		weight_field.Set(p, (TS)0);		
+		scalar_field.Set(p, (TS)0);
 	}
 
 	for(int p=0; p<size; p++)
@@ -53,7 +51,7 @@ void RasterizeParticleToField(FIELD<TT>& val_field, FIELD<TS>& weight_field, FIE
 
 			weight_field.Set(ix, weight_field.Get(ix)+w);
 			val_field.Set(ix, val_field.Get(ix)+val*w);	
-
+			scalar_field.Set(ix, scalar_field.Get(ix)+(TS)1);
 		}
 	}	
 
@@ -63,9 +61,10 @@ void RasterizeParticleToField(FIELD<TT>& val_field, FIELD<TS>& weight_field, FIE
 	{
 		TS weight = weight_field.Get(p);
 		
-		if(weight >= (TS)1e-06)
+		if(weight >= (TS)1E-06)
 		{
 			val_field.Set(p, val_field.Get(p)/weight);
+			weight_field.Set(p, weight/scalar_field.Get(p));
 		}
 		else
 		{
@@ -75,4 +74,4 @@ void RasterizeParticleToField(FIELD<TT>& val_field, FIELD<TS>& weight_field, FIE
 	}
 }
 
-template void RasterizeParticleToField(FIELD<TV3>& val_field, FIELD<TS>& weight_field, FIELD<std::atomic<bool>>& mark_field, const ARRAY<TV3>& pos_array, const ARRAY<TV3>& val_array);
+template void RasterizeParticleToField(FIELD<TV3>& val_field, FIELD<TS>& weight_field, FIELD<TS>& scalar_field, const ARRAY<TV3>& pos_array, const ARRAY<TV3>& val_array);
