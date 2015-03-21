@@ -1,5 +1,7 @@
 # PrismEngine
 GPGPU Fluid Simulation Engine
 
+This project has developed on Visual Studio2013
+And work on x64 environment.
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/slbrf2_CNdU" frameborder="0" allowfullscreen></iframe>
+
